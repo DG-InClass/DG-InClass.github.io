@@ -1,12 +1,18 @@
-# Starlight Starter Kit: Basics
+# DG-InClass.github.io
+
+> **Dan Gilleland's Supplemental In-Class Resource Website**
+>
+> To update, run the following or see [the Astro upgrade guide](https://docs.astro.build/en/guides/upgrade-to/v5/)
+>
+> ```ps
+> pnpm dlx @astrojs/upgrade
+> ```
 
 [![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
 
 ```
 pnpm create astro@latest -- --template starlight
 ```
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
 
 ## 🚀 Project Structure
 
@@ -31,7 +37,7 @@ Images can be added to `src/assets/` and embedded in Markdown with a relative li
 
 Static assets, like favicons, can be placed in the `public/` directory.
 
-## 🧞 Commands
+## 🧑‍🚀 Commands
 
 All commands are run from the root of the project, from a terminal:
 
