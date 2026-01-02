@@ -60,7 +60,7 @@ export default defineConfig({
                     },
                 ],
                 {
-                    exclude: ['/guides','/reference', '/blog/**/*'],
+                    exclude: ['/guides/*','/reference/*', '/blog/**/*'],
                 },
                 ),
             ]
