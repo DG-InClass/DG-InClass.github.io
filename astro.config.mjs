@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 import tailwindcss from '@tailwindcss/vite';
+import starlightSidebarTopics from 'starlight-sidebar-topics';
 
 // https://astro.build/config
 export default defineConfig({
@@ -16,19 +17,53 @@ export default defineConfig({
                 './src/styles/global.css',
             ],
             social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/dg-inclass/dg-inclass.github.io' }],
-            sidebar: [
+            // sidebar: [
+            //     {
+            //         label: 'Guides',
+            //         items: [
+            //             // Each item here is one entry in the navigation menu.
+            //             { label: 'Example Guide', slug: 'guides/example' },
+            //         ],
+            //     },
+            //     {
+            //         label: 'Reference',
+            //         autogenerate: { directory: 'reference' },
+            //     },
+            // ],
+            plugins: [
+                starlightSidebarTopics([
+                    {
+                        label: 'About',
+                        link: '/about/',
+                        icon: 'open-book',
+                        items: ['about', 'about/academic-integrity',],
+                    },
+                    {
+                        label: 'SDEV-1150',
+                        link: '/sdev-1150/',
+                        icon: 'information',
+                        items: ['sdev-1150', 'sdev-1150/example',
+                            { 
+                                label: "Lessons", autogenerate: { directory: 'sdev-1150/lessons' }
+                            }
+                        ],
+                    },
+                    {
+                        label: 'SDEV-2150',
+                        link: '/sdev-2150/',
+                        icon: 'information',
+                        items: ['sdev-2150', 'sdev-2150/example',
+                            { 
+                                label: "Lessons", autogenerate: { directory: 'sdev-1150/lessons' }
+                            }
+                        ],
+                    },
+                ],
                 {
-                    label: 'Guides',
-                    items: [
-                        // Each item here is one entry in the navigation menu.
-                        { label: 'Example Guide', slug: 'guides/example' },
-                    ],
+                    exclude: ['/guides','/reference', '/blog/**/*'],
                 },
-                {
-                    label: 'Reference',
-                    autogenerate: { directory: 'reference' },
-                },
-            ],
+                ),
+            ]
         }),
     ],
 
