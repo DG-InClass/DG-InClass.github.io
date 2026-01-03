@@ -60,7 +60,7 @@ export default defineConfig({
                         icon: 'information',
                         items: ['sdev-2150', 'sdev-2150/example',
                             { 
-                                label: "Lessons", autogenerate: { directory: 'sdev-1150/lessons' }
+                                label: "Lessons", autogenerate: { directory: 'sdev-2150/lessons' }
                             }
                         ],
                     },
