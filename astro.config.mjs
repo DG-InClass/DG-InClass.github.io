@@ -48,7 +48,7 @@ export default defineConfig({
                         label: 'SDEV-1150',
                         link: '/sdev-1150/',
                         icon: 'information',
-                        items: ['sdev-1150', 'sdev-1150/example',
+                        items: ['sdev-1150',
                             { 
                                 label: "Lessons", autogenerate: { directory: 'sdev-1150/lessons' }
                             }
@@ -58,7 +58,7 @@ export default defineConfig({
                         label: 'SDEV-2150',
                         link: '/sdev-2150/',
                         icon: 'information',
-                        items: ['sdev-2150', 'sdev-2150/example',
+                        items: ['sdev-2150',
                             { 
                                 label: "Lessons", autogenerate: { directory: 'sdev-2150/lessons' }
                             }
