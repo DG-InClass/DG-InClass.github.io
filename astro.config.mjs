@@ -36,7 +36,13 @@ export default defineConfig({
                         label: 'About',
                         link: '/about/',
                         icon: 'open-book',
-                        items: ['about', 'about/academic-integrity',],
+                        items: [
+                            'about',
+                            'about/lab-setup',
+                            'about/lab-updates',
+                            'about/roadmap',
+                            'about/academic-integrity',
+                        ],
                     },
                     {
                         label: 'SDEV-1150',

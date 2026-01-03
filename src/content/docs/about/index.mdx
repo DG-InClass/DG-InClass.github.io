@@ -1,4 +1,112 @@
 ---
 title: About This Site
-description: tbd
+description: Overview of Dan Gilleland's personal In-Class website.
+sidebar:
+  label: Start Here
+  hidden: true
+draft: false
 ---
+
+import { Aside, Badge, Card, CardButton, CardGrid, FileTree, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import dg from '../../../assets/DanGillelandNait.png';
+import adventureMap from '../../../assets/undraw/undraw_adventure-map_8hg8.svg';
+
+{/* 
+My name is <span role="text" lang="en" aria-label="dan GIL-eh-land">Dan Gilleland</span>.
+
+My name is <span role="text" lang="en" aria-label="dan GIL-ih-land">Dan Gilleland</span>.
+
+My name is <span role="text" lang="en" aria-label="dan GIL-uh-land">Dan Gilleland</span>.
+
+My name is <span role="text" lang="en" aria-label="dan GIL-ah-land">Dan Gilleland</span>.
+
+My name is <span role="text" lang="en" aria-label="dan GIL-el-land">Dan Gilleland</span>.
+
+My name is <span role="text" lang="en" aria-label="dan GIL-il-land">Dan Gilleland</span>.
+
+<hr />
+ */}
+
+<Image src={dg} alt="Dan Gilleland (NAIT)" class="float-end" width="75" /> My name is <span lang="en" aria-label="dan GIL-el-land">**Dan Gilleland**</span>. I began this site in January 2026 as a place to centralize resources for my term-to-term delivery. While the material here is primarily for myself, I do make some items available as supplementary student resources.
+
+Why would I put supplementary student resources here instead of the <a href="https://lms.nait.ca/d2l/home" target="_blank">official <abbr title="Learning Management System">LMS</abbr></a>? Because this is *much* easier to maintain. My efforts to create content here won't be held back by the clunkiness inherent in many <abbr title="Learning Management System">LMS</abbr> platforms today.
+
+<Aside type="tip" title="Contributions">
+  If you have a suggestion or content request, please add them as comments on [this discussion](#).
+</Aside>
+
+<Card title="Read the Roadmap" icon="storybook">
+  <Image src={adventureMap} alt="Roadmap" width="250" class="float-start mr-4" />
+
+  Discover what you will be learning and where I'm going to take you as you start your journey into JavaScript.
+
+  <LinkButton href="/about/roadmap/">Read the Roadmap</LinkButton>
+</Card>
+
+## Using this site
+
+Use the side-bar site navigation if you know where you want to go. If you are unsure of where to find what you're looking for, then use the built-in search (<kbd>Ctrl</kbd> + <kbd>k</kbd>). It's pretty good, and is part of the [Astro Starlight](https://starlight.astro.build) framework this site is built on. Alternatively, check out the first item in each of the following areas:
+
+{/* <CardGrid>
+  <LinkCard title="Your First Tutorial" href="/tutorials/0012/" />
+  <LinkCard title="How-To Guides" href="/guides/0010/" />
+  <LinkCard title="Explanations" href="/explanations/0010/" />
+  <LinkCard title="References" href="/reference/0000/" />
+</CardGrid> */}
+
+<Aside title="Where is it?">
+  This site is undergoing active changes. If I (Dan) just directed you here for a quick update, and you can't see the content, try refreshing your browser. Press <kbd>Ctrl</kbd> + <kbd>F5</kbd> to do that.
+</Aside>
+
+## Audience & Content Advisory
+
+For my students this semester, you can find my <a target="_blank" href="https://dgilleland.github.io/schedule">teaching schedule</a> online (blank parts of my schedule are taken up with prep, meetings, etc.). I also use an **Instructor Workbook** for each section to track what we've covered and what's upcoming.
+
+
+## Student Workbook and Integrations 💯
+
+If you're one of my students, then you know that I *daily* reference Student Workbooks. I also strongly encourage my students to add homework and other practice materials to their workbook.
+
+Here are general steps you can follow if you desire to use the samples here.
+
+<Steps>
+1. First, pick out some tutorial you want to add to your workbook (for example, [Querying the DOM](/tutorials/0030)).
+1. Choose a place in your workbook. For example, create a `query-dom` folder under the `src` folder.
+
+   <FileTree>
+   - docs/
+   - src/
+     - ...
+     - query-dom/ Sample subfolder for your specific tutorial
+     - ...
+   - ReadMe.md
+   </FileTree>
+
+1. Follow the tutorial by creating the file(s) and adding the provided assets.
+</Steps>
+
+If you are looking for my template repository for my various student workbooks, they are pinned on <a href="https://github.com/dgilleland" target="_blank">my GitHub profile</a>.
+
+<Aside title="In-Class Instructions">
+  I might offer guidance on *where* to place them for in-person lessons or as practice/homework assignments.
+</Aside>
+
+## A New Path for Learning JavaScript
+
+> *"A new scientific truth does not triump by convincing its opponents and making them see the light, but rather because its opponents eventually die and a new generation grows up that is familiar with it ..."* &ndash; Max Planck, Scientific autobiography, 1950, p. 33, 97
+>
+> *"Change in education moves at the speed of tenure."* &ndash; Author unknown
+>
+> <hr />
+>
+> *British geneticist and polymath J.B.S. Haldane wrote in 1963 that the acceptance of a new scientific truth usually passes through four stages:*
+>
+> *For reference, the exact quote is:*
+>
+> 1. *This is worthless nonsense.*
+> 1. *This is an interesting, but perverse, point of view.*
+> 1. *This is true, but quite unimportant.*
+> 1. *I always said so.*
+>
+> &dash; <a href="https://youtu.be/AHZxhdjCBSo?si=5MezNAAqDdfmD0T-&t=2475" target="_blank">The End of the Transistor? The Chip That Thinks Like a Brain</a>
