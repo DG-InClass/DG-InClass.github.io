@@ -1,0 +1,470 @@
+---
+title: Day 2 Web Component Overview
+description: SUMMARY
+sidebar:
+  label: Web Component Overview
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import todo from '../../../../assets/undraw/undraw_under-construction_c2y1.svg';
+
+> *The following quick summary is AI-Generated using Bing Copilot.*
+
+## Quick SUMMARY
+
+Here's a **concise review summary** for each Learning Outcome Guide you listed. I've kept them short but clear so they can serve as quick reference points:
+
+***
+
+### 1. **Core Principles & Benefits**
+
+Web Components are a set of standardized APIs (Custom Elements, Shadow DOM, HTML Templates) that enable creating reusable, encapsulated UI elements. Benefits include **modularity**, **style encapsulation**, and **framework independence**.
+
+***
+
+### 2. **Create a Simple Custom Component**
+
+Define a class extending `HTMLElement`, register it with `customElements.define()`, and attach DOM content via `innerHTML` or templates. Example: `<my-element></my-element>`.
+
+***
+
+### 3. **Shadow DOM Encapsulation**
+
+The Shadow DOM isolates a component's internal structure and styles from the global DOM, preventing CSS leaks and ensuring predictable rendering.
+
+***
+
+### 4. **HTML Templates & Slots**
+
+Templates (`<template>`) provide reusable markup, while slots (`<slot>`) allow content projection into components for flexibility and dynamic composition.
+
+***
+
+### 5. **Apply Styles in Shadow DOM**
+
+Styles placed inside the shadow root apply only to that component, ensuring **true encapsulation** without affecting global styles.
+
+***
+
+### 6. **Global vs Shadow Styles**
+
+*   **Global styles**: Apply everywhere.
+*   **Shadow styles**: Scoped to the component.
+*   **Encapsulation**: Prevents style conflicts and promotes modular design.
+
+***
+
+### 7. **CSS Custom Properties**
+
+Use `--variables` in styles to allow external customization of component appearance without breaking encapsulation.
+
+***
+
+### 8. **Dynamic Styling via JavaScript**
+
+Modify styles programmatically using `this.shadowRoot.querySelector()` or by updating CSS variables dynamically.
+
+***
+
+### 9. **Passing Data (Attributes & Properties)**
+
+Attributes are string-based and reflected in HTML; properties are JavaScript-based and allow richer data types. Use `observedAttributes` for attribute changes.
+
+***
+
+### 10. **Emit Custom Events**
+
+Dispatch events using `this.dispatchEvent(new CustomEvent('event-name', { detail }))` so parent elements can listen and react.
+
+***
+
+### 11. **Expose Methods & Properties**
+
+Define public methods and properties on the component class for external scripts to call, enabling controlled interaction.
+
+***
+
+### 12. **Internal State & Sync**
+
+Maintain internal state in class fields and synchronize with attributes using setters/getters or `attributeChangedCallback`.
+
+***
+
+### 13. **Internal State Management**
+
+Store component-specific data in private fields or reactive patterns to manage UI updates internally.
+
+***
+
+### 14. **Getters & Setters**
+
+Use getters/setters for dynamic property access and validation, ensuring controlled updates and reactivity.
+
+***
+
+### 15. **React to State Changes**
+
+Update DOM when state changes by re-rendering or manipulating shadow DOM nodes for a responsive UI.
+
+***
+
+### 16. **Lifecycle Callbacks**
+
+*   `connectedCallback`: Initialization when added to DOM.
+*   `disconnectedCallback`: Cleanup when removed.
+*   `attributeChangedCallback`: Respond to attribute updates.
+
+***
+
+### 17. **Role of Unit Testing**
+
+Testing ensures reliability, maintainability, and prevents regressions. Web Components need tests for rendering, behavior, and integration.
+
+***
+
+### 18. **Set Up Test Environment**
+
+Use frameworks like **Jest** or **Mocha** with DOM simulation tools (e.g., JSDOM) to test components outside the browser.
+
+***
+
+### 19. **Write Unit Tests**
+
+Verify component rendering, attribute/property handling, event emission, and state updates using assertions.
+
+***
+
+### 20. **Mocking Techniques**
+
+Mock dependencies or external APIs to isolate component logic and ensure tests focus on internal behavior.
+
+***
+
+### 21. **Execute & Interpret Tests**
+
+Run tests via CLI, review pass/fail results, and debug failing cases to improve component quality.
+
+
+----
+
+
+
+## **Web Components Quick Reference**
+
+### **Core Concepts**
+
+*   **APIs**: Custom Elements, Shadow DOM, HTML Templates.
+*   **Benefits**: Reusable, encapsulated, framework-agnostic.
+
+***
+
+### **Creating Components**
+
+*   **Define**:
+    ```js
+    class MyElement extends HTMLElement {
+      connectedCallback() { this.innerHTML = `<p>Hello!</p>`; }
+    }
+    customElements.define('my-element', MyElement);
+    ```
+*   Use `<my-element></my-element>` in HTML.
+
+***
+
+### **Shadow DOM**
+
+*   Attach with:
+    ```js
+    this.attachShadow({ mode: 'open' });
+    ```
+*   Encapsulates DOM & styles.
+
+***
+
+### **Templates & Slots**
+
+*   `<template>` for reusable markup.
+*   `<slot>` for content projection.
+
+***
+
+### **Styling**
+
+*   **Shadow Styles**: Scoped inside shadow root.
+*   **Global vs Shadow**: Global affects all; shadow is isolated.
+*   **CSS Variables**:
+    ```css
+    :host { color: var(--text-color, black); }
+    ```
+
+***
+
+### **Dynamic Styling**
+
+*   Update via JS:
+    ```js
+    this.style.setProperty('--text-color', 'blue');
+    ```
+
+***
+
+### **Data Binding**
+
+*   **Attributes**: Strings, observed via `attributeChangedCallback`.
+*   **Properties**: Rich data types via JS.
+
+***
+
+### **Events**
+
+*   Emit:
+    ```js
+    this.dispatchEvent(new CustomEvent('my-event', { detail: data }));
+    ```
+
+***
+
+### **External Control**
+
+*   Expose methods & properties on the class.
+
+***
+
+### **State Management**
+
+*   Internal state in fields.
+*   Sync with attributes using setters/getters.
+
+***
+
+### **Lifecycle Callbacks**
+
+*   `connectedCallback`: Init.
+*   `disconnectedCallback`: Cleanup.
+*   `attributeChangedCallback`: React to changes.
+
+***
+
+### **Testing**
+
+*   **Why**: Reliability & maintainability.
+*   **Setup**: Jest/Mocha + JSDOM.
+*   **Tests**: Rendering, attributes, events.
+*   **Mocking**: Isolate logic.
+*   **Debug**: Interpret results, fix issues.
+
+----
+
+## Explanations
+
+Great! Here's the **expanded teaching guide** with detailed explanations and examples for each learning outcome. This will be structured for clarity and instructional use:
+
+***
+
+# 🌐 **Vanilla Web Components: Detailed Teaching Guide**
+
+***
+
+## **1. Core Principles & Benefits**
+
+**Explanation:**\
+Web Components are a set of standardized APIs that allow developers to create reusable, encapsulated UI elements without relying on frameworks. They consist of:
+
+*   **Custom Elements**: Define new HTML tags.
+*   **Shadow DOM**: Encapsulate DOM and styles.
+*   **HTML Templates**: Reusable markup.
+
+**Benefits:**
+
+*   **Encapsulation**: Prevents style and DOM conflicts.
+*   **Reusability**: Components can be used across projects.
+*   **Framework Independence**: Works in any modern browser.
+
+**Example:**
+
+
+
+***
+
+## **2. Create a Simple Custom Component**
+
+**Explanation:**\
+Custom elements are created by extending `HTMLElement` and registering with `customElements.define()`.
+
+**Example:**
+
+```js
+class MyButton extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `<button>Click Me</button>`;
+  }
+}
+customElements.define('my-button', MyButton);
+```
+
+***
+
+## **3. Shadow DOM Encapsulation**
+
+**Explanation:**\
+Shadow DOM isolates a component's internal structure and styles from the global DOM.
+
+**Example:**
+
+```js
+class MyCard extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.innerHTML = `<style>p { color: red; }</style><p>Hello!</p>`;
+  }
+}
+customElements.define('my-card', MyCard);
+```
+
+***
+
+## **4. HTML Templates & Slots**
+
+**Explanation:**\
+Templates provide reusable markup; slots allow dynamic content insertion.
+
+**Example:**
+
+
+
+***
+
+## **5. Apply Styles in Shadow DOM**
+
+**Explanation:**\
+Styles inside shadow root apply only to that component.
+
+**Example:**
+
+```js
+this.shadowRoot.innerHTML = `
+  <style>button { background: blue; color: white; }</style>
+  <button>Styled Button</button>
+`;
+```
+
+***
+
+## **6. Global vs Shadow Styles**
+
+*   **Global styles**: Affect entire page.
+*   **Shadow styles**: Scoped to component.
+*   **Encapsulation**: Prevents CSS conflicts.
+
+***
+
+## **7. CSS Custom Properties**
+
+**Explanation:**\
+Use `--variables` for external customization.
+
+**Example:**
+
+```css
+:host { color: var(--text-color, black); }
+```
+
+External page:
+
+```css
+my-card { --text-color: green; }
+```
+
+***
+
+## **8. Dynamic Styling via JavaScript**
+
+**Example:**
+
+```js
+this.style.setProperty('--text-color', 'blue');
+```
+
+***
+
+## **9. Passing Data (Attributes & Properties)**
+
+**Example:**
+
+```js
+static get observedAttributes() { return ['label']; }
+attributeChangedCallback(name, oldVal, newVal) {
+  this.shadowRoot.querySelector('button').textContent = newVal;
+}
+```
+
+***
+
+## **10. Emit Custom Events**
+
+**Example:**
+
+```js
+this.dispatchEvent(new CustomEvent('clicked', { detail: { id: 1 } }));
+```
+
+***
+
+## **11. Expose Methods & Properties**
+
+**Example:**
+
+```js
+class MyCounter extends HTMLElement {
+  increment() { this.count++; this.render(); }
+}
+```
+
+***
+
+## **12-15. State Management & Reactivity**
+
+*   Use internal fields for state.
+*   Sync with attributes via setters/getters.
+*   Update UI when state changes.
+
+**Example:**
+
+```js
+set count(val) { this._count = val; this.render(); }
+```
+
+***
+
+## **16. Lifecycle Callbacks**
+
+*   `connectedCallback`: Init.
+*   `disconnectedCallback`: Cleanup.
+*   `attributeChangedCallback`: React to changes.
+
+***
+
+## **17-21. Testing**
+
+*   **Why**: Ensure reliability.
+*   **Setup**: Jest/Mocha + JSDOM.
+*   **Tests**: Rendering, attributes, events.
+*   **Mocking**: Isolate logic.
+*   **Debug**: Interpret results.
+
+**Example Test (Jest):**
+
+```js
+test('renders button', () => {
+  document.body.innerHTML = `<my-button></my-button>`;
+  expect(document.querySelector('button')).not.toBeNull();
+});
+```
+
+***
+
+✅ **Next Step:**\
+Would you like me to **compile this into a structured teaching document with headings, code blocks, and diagrams (PDF or DOCX)**, or **create a slide deck for classroom presentation**? Or both?
+
