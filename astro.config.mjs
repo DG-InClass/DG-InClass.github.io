@@ -46,6 +46,7 @@ export default defineConfig({
                     },
                     {
                         label: 'SDEV-1150',
+                        id: 'sdev1150',
                         link: '/sdev-1150/',
                         icon: 'information',
                         items: ['sdev-1150',
@@ -56,6 +57,7 @@ export default defineConfig({
                     },
                     {
                         label: 'SDEV-2150',
+                        id: 'sdev2150',
                         link: '/sdev-2150/',
                         icon: 'information',
                         items: ['sdev-2150',
