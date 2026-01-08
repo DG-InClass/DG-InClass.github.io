@@ -45,6 +45,15 @@ export default defineConfig({
                         ],
                     },
                     {
+                        label: 'Co-Requisites',
+                        link: '/general/',
+                        icon: 'laptop',
+                        items: [
+                            'general',
+
+                        ]
+                    },
+                    {
                         label: 'SDEV-1150',
                         id: 'sdev1150',
                         link: '/sdev-1150/',
