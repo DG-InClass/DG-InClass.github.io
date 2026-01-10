@@ -50,7 +50,7 @@ export default defineConfig({
                         icon: 'laptop',
                         items: [
                             'general',
-                            'quality',
+                            'general/quality',
                         ]
                     },
                     {
