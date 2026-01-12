@@ -17,3 +17,71 @@ import { Image } from 'astro:assets';
 - Identify key technologies and tools used in front-end development, including HTML, CSS, and JavaScript.
 - Explain the course structure, learning outcomes, and assessment methods.
 - Navigate and set up the development environment, including code editors and browser developer tools.
+
+## Coding Demo
+
+To run the coding demo, you need to have accepted your Student Workbook and cloned it onto your computer.
+
+<Steps>
+1. Open your Student Workbook in VS Code.
+1. Open the terminal window.
+1. Paste in the following.
+
+    ```ps title="Run from the root of your repository"
+    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-1150-A04-Jan-2026/sk/lesson-01 ./src/lesson-01
+    ```
+
+1. View the code in the files `index.html`, `main.js`, and `styles.css`
+1. Open Windows Explorer.
+1. Double-click the `index.html` to open it in your browser.
+1. Open the dev tools. Notice the error in loading the JavaScript file.
+1. Make some code edits.
+
+    ```css title="css/styles.css"
+    h1 {
+        color: rebeccapurple;
+        text-decoration: underline;
+    }
+    ```
+
+
+    ```diff lang="js" title="js/main.js"
+      console.log('Lesson 01 starter loaded');
+    + alert('Hello World-Wide-Web');
+    ```
+
+1. Discuss why the CSS was loaded, but the JavaScript was not.
+1. Convert this to a Web *Project* by adding the following file: `package.json`
+
+    ```json title="package.json"
+    {
+      "name": "lesson-01",
+      "version": "1.0.0",
+      "description": "Web Server",
+      "main": "index.js",
+      "scripts": {
+        "dev": "vite"
+      },
+      "keywords": [],
+      "author": "",
+      "license": "ISC",
+      "packageManager": "pnpm@10.17.1",
+      "devDependencies": {
+        "vite": "^7.3.1"
+      }
+    }
+    ```
+
+1. Run `pnpm install` to install (grab) the Vite dependency.
+1. Run `pnpm dev` to run the web server. Press `o` and `enter` to open the page in the browser.
+1. Observe that the JavaScript now loads and runs.
+</Steps>
+
+To finish up, commit and push your code. In the terminal, run the following:
+
+```ps title="Commit and Push"
+git add .
+git commit -m "My first code demo"
+git push
+```
+
