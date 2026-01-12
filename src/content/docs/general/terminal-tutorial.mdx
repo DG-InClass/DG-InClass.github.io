@@ -1,0 +1,46 @@
+---
+title: Terminal Tutorial
+description: Practice using the terminal in Windows.
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+
+
+<Aside type="danger" title="Attendance Required">
+  This material is **not** a substitute for attending class. Rather, it is a *draft* location for Dan's classroom prep and for any supplementary material.
+</Aside>
+
+## Learning Outcome Guide
+
+*At the end of this class, you should be able to...*
+
+- Define what is meant by a "Terminal Command" and a "CLI"
+- Distinguish between a built-in terminal command and a CLI
+    - A terminal command typically refers to a command/program that is native to the shell and/or the operating system
+    - A CLI typically refers to an additional program that you can install on your computer and use from the terminal
+    - CLIs are more likely to have an "interactive" element, whereas native terminal commands will not be "interactive"
+- Demonstrate the ability to pass arguments and flag to a command or CLI
+- Interpret the terminal window to determine your current path
+- Display a directory listing of the files/folders in your current path
+- Navigate to a different path within the terminal
+- Create folders under your current directory
+
+
+
+
+```ps title="Powershell"
+Get-Content (Get-PSReadLineOption).HistorySavePath -Tail 10 | Out-File -Append .\history.txt
+```
+
+
+```bash title="Bash (Mac/Windows)"
+tail -n 10 ~/.bash_history >> ./history.txt
+```
+
+
+```zsh title"Zsh (Mac)"
+tail -n 10 ~/.zsh_history >> ./history.txt
+```
