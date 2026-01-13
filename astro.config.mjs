@@ -75,6 +75,20 @@ export default defineConfig({
                             }
                         ],
                     },
+                    {
+                        label: 'DMIT Courses',
+                        id: 'dmit',
+                        link: '/dmit/',
+                        icon: 'information',
+                        items: ['dmit',
+                            { 
+                                label: "DMIT-2008", items: ['dmit/dmit-2008']
+                            },
+                            { 
+                                label: "CPSC-1520", items: ['dmit/cpsc-1520']
+                            }
+                        ],
+                    },
                 ],
                 {
                     exclude: ['/guides/*','/reference/*', '/blog/**/*'],
