@@ -1,0 +1,25 @@
+---
+title: Day 16
+description: SUMMARY
+sidebar:
+  label: TBD
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+## Component Lifecycle in React
+
+### Learning Outcome Guide
+
+*At the end of this class, you should be able to...*
+
+- Explain the React component lifecycle and how it applies to functional components.
+- Use the `useEffect` hook to handle side effects such as data fetching, subscriptions, and cleanup.
+- Manage dependency arrays to control when effects run and prevent unnecessary updates.
+
+Additional Notes:
+Emphasize how `useEffect` replaces class lifecycle methods (`componentDidMount`, `componentDidUpdate`, `componentWillUnmount`).
+Demonstrate how missing dependencies can lead to stale data or infinite loops.
+Mention React's strict mode intentionally double-invokes effects in development for debugging - this is normal.
+React 19 introduces improvements to `useEffect` timing and async rendering consistency - note as a preview only.
