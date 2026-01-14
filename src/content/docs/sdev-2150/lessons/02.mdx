@@ -50,6 +50,626 @@ From the prior term, the following LOGs existed for Web Components:
 
 > Check out this [AI-Generated exploration](/sdev-2150/lessons/02-copilot) of these points.
 
+----
+
+
+## Starter Kit Code
+
+Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
+
+```ps
+pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-2150-A03-Jan-2026/sk/day-01/example/lesson-02-starter ./src/lesson-02
+```
+
+<Aside title="Small, Frequent Commits" type="tip">
+As soon as you grab the starter kit, perform a commit. Better yet, *do all your commits **in the terminal***.
+
+```ps title="Commit your starting point"
+git add .
+git commit -m "Lesson 02 Starter Code"
+```
+
+
+The secret to becoming a good software developer is one of building **professional disciplines**, and making small frequent commits is one of the fundamental disciplines for modern developers.
+
+As we progress through the refactoring, make a commit.
+</Aside>
+
+### Install dependencies and run the dev server
+
+
+<Steps>
+1. Move into the lesson-02/ directory: `cd lesson-02`
+1. Install the necessary dependencies: `npm install` or `npm i`
+1. Run the dev server with the `dev` script: `npm run dev`
+1. Open the provided development server URL in your browser
+1. You should see a simple **Campus Resource Directory** page built with plain HTML + Bootstrap.
+</Steps>
+
+### Lesson focus
+
+In SDEV1150 you learned the Web Component fundamentals:
+
+- Custom elements
+- Shadow DOM
+- Templates
+
+In this lesson we quickly review those features, then focus on **composition**.
+
+Composition means building larger interfaces by combining smaller components. Instead of one massive component (or inheritance chains), we create focused pieces and assemble them into a UI that's easier to change and extend.
+
+### Instructor demo
+
+We start with a single HTML document (`src/index.html`). The goal is to **carve it into components** without changing the look and layout. This is a process known as **Refactoring**.
+
+### The Composition Moment
+
+This is the most important conceptual moment in the lesson.
+
+Before this step, we are only **extracting components**.
+After this step, we are **using composition**.
+
+### What changes at this moment
+
+When you replace large chunks of HTML with custom elements, your `index.html` stops describing *how the UI works* and starts describing *how the UI is assembled*.
+
+Compare these two mental models:
+
+**Before (no composition):**
+- One large HTML document
+- UI details live in one place
+- Structure and behavior are tightly coupled
+
+**After (with composition):**
+- `index.html` contains mostly custom element tags
+- Each component owns its own markup and logic
+- The page is created by arranging components together
+
+At this point, the page file answers only one question:
+
+> "Which components appear, and how are they arranged?"
+
+That shift is what we mean by **composition**.
+
+### Why this matters
+
+- The page becomes easier to read
+- Components can be reused or rearranged
+- UI complexity is distributed instead of centralized
+- This same idea carries forward into frameworks like React and Vue
+
+If your page still contains large amounts of raw HTML, you have not reached the composition moment yet.
+
+### Component plan
+
+We'll extract these parts from the existing markup:
+
+1. **`<resource-header>`**
+   - Page title, subtitle, and the top buttons
+2. **`<resource-filters>`**
+   - Search input, category buttons, checkboxes
+3. **`<resource-results>`**
+   - The results list (list-group)
+4. **`<resource-details>`**
+   - The details card on the right
+
+> Optional stretch: add a `<resource-item>` (or `<resource-card>`) component for a single list item.
+
+### Extraction steps
+
+#### Step 1: Identify boundaries in the HTML
+
+Open `src/index.html` and find the four regions:
+
+- `<header ...>` (top of the page)
+- `<aside ...>` (filters)
+- The middle results card
+- The right details card
+
+We're going to move each region into its own component.
+
+#### Step 2: Create component files
+
+Create a folder such as `src/js/components/` and add:
+
+- `resource-header.js`
+- `resource-filters.js`
+- `resource-results.js`
+- `resource-details.js`
+
+In `src/js/main.js`, import the component modules so they register:
+
+```js
+import './components/resource-header.js';
+import './components/resource-filters.js';
+import './components/resource-results.js';
+import './components/resource-details.js';
+```
+
+#### Step 3: Replace HTML with custom elements
+
+In `src/index.html`, replace the four regions with your custom elements.
+
+Example target structure:
+
+```html
+<resource-header></resource-header>
+
+<div class="row g-3">
+  <resource-filters class="col-12 col-lg-4"></resource-filters>
+  <resource-results class="col-12 col-lg-4"></resource-results>
+  <resource-details class="col-12 col-lg-4"></resource-details>
+</div>
+```
+
+At this point, the page will look empty until your components render.
+
+#### Step 4: Implement each component (template + shadow)
+
+Each component should:
+
+- Extend `HTMLElement`
+- Attach a Shadow DOM
+- Render HTML with a cloned template node
+- Use `connectedCallback()` to render
+
+Skeleton example:
+
+```js
+const template = document.createElement('template');
+template.innerHTML = `...`;
+
+class ResourceHeader extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  }
+}
+
+customElements.define('resource-header', ResourceHeader);
+```
+
+> Important: Bootstrap styles do **not** automatically apply inside Shadow DOM. You will need to include the CSS link in your shadow root.
+
+Options:
+
+- Use **light DOM rendering** (render into `this.innerHTML` instead of Shadow DOM).
+- Or, include styles inside the component (used in this example).
+
+For Lesson 02, we'll choose one approach as a class and stay consistent.
+
+#### Step 5: Composition discussion
+
+Once the UI is rebuilt using components, we'll discuss:
+
+- What improved (clarity, reuse, maintainability)
+- What got harder (more files, more structure)
+- Why composition scales better than inheritance for UI
+
+### Student exercise
+- Create a `<resource-item>` component and render the results list from an array
+
+### Push to your GitHub workbook repo
+
+## In Class Code Sample
+
+<details>
+<summary>Expand to view the final result</summary>
+
+### `index.html`
+
+```diff lang="html" title="src/index.html"
+  <!DOCTYPE html>
+  <html lang="en">
+  
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+    <script type="module" src="/js/main.js"></script>
+    <title>2150 - Lesson 02 Demo</title>
+    <!-- include Bootstrap link here for proper CSS var shadow DOM piercing -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+  </head>
+  
+  <body>
+    <main class="container py-4">
+-     <header class="mb-4">
+-       <div class="d-flex flex-wrap justify-content-between align-items-end gap-2">
+-         <div>
+-           <h1 class="h3 mb-1">NAIT Resource Directory</h1>
+-           <p class="text-body-secondary mb-0">
+-             Find student support services, labs, and campus resources.
+-           </p>
+-         </div>
+-       </div>
+-     </header>
++     <resource-header></resource-header>
+  
+      <section class="row g-3">
+        <!-- Filters / Search -->
+-       <aside class="col-12 col-lg-4">
+-         <div class="card">
+-           <div class="card-header">
+-             <strong>Filters</strong>
+-           </div>
+- 
+-           <div class="card-body">
+-             <form id="frm-filter">
+-               <label for="q" class="form-label">Search</label>
+-               <input id="q" class="form-control" type="text" placeholder="Try: tutoring, mental health, bursary" />
+- 
+-               <hr class="my-3" />
+- 
+-               <div class="mb-2"><strong>Category</strong></div>
+-               <div class="d-flex flex-wrap gap-2" aria-label="Category filters">
+-                 <button class="btn btn-sm btn-outline-primary" type="button">All</button>
+-                 <button class="btn btn-sm btn-outline-primary" type="button">Academic</button>
+-                 <button class="btn btn-sm btn-outline-primary" type="button">Wellness</button>
+-                 <button class="btn btn-sm btn-outline-primary" type="button">Financial</button>
+-                 <button class="btn btn-sm btn-outline-primary" type="button">Tech</button>
+-               </div>
+- 
+-               <hr class="my-3" />
+- 
+-               <div class="form-check">
+-                 <input class="form-check-input" type="checkbox" value="" id="openNow" />
+-                 <label class="form-check-label" for="openNow">Open now</label>
+-               </div>
+- 
+-               <div class="form-check">
+-                 <input class="form-check-input" type="checkbox" value="" id="virtual" />
+-                 <label class="form-check-label" for="virtual">Virtual options</label>
+-               </div>
+- 
+-               <hr class="my-3" />
+- 
+-               <div class="d-flex gap-2">
+-                 <button class="btn btn-outline-secondary" type="button">Reset</button>
+-                 <button class="btn btn-primary" type="submit">Filter</button>
+-               </div>
+-             </form>
+-           </div>
+-         </div>
+-       </aside>
++       <resource-filters class="col-12 col-lg-4"></resource-filters>
+  
+        <!-- Results list -->
+-       <section class="col-12 col-lg-4">
+-         <div class="card h-100">
+-           <div class="card-header d-flex justify-content-between align-items-center">
+-             <strong>Results</strong>
+-             <span class="badge text-bg-secondary">4</span>
+-           </div>
+- 
+-           <div class="list-group list-group-flush">
+-             <button type="button" class="list-group-item list-group-item-action active" aria-current="true">
+-               <div class="d-flex w-100 justify-content-between">
+-                 <h2 class="h6 mb-1">Peer Tutoring Centre</h2>
+-                 <small>Academic</small>
+-               </div>
+-               <p class="mb-1 small text-body-secondary">Drop-in tutoring and study support.</p>
+-               <small class="text-body-secondary">Building W, Room W101</small>
+-             </button>
+- 
+-             <button type="button" class="list-group-item list-group-item-action">
+-               <div class="d-flex w-100 justify-content-between">
+-                 <h2 class="h6 mb-1">Counselling Services</h2>
+-                 <small>Wellness</small>
+-               </div>
+-               <p class="mb-1 small text-body-secondary">Confidential mental health supports.</p>
+-               <small class="text-body-secondary">Virtual and in-person</small>
+-             </button>
+- 
+-             <button type="button" class="list-group-item list-group-item-action">
+-               <div class="d-flex w-100 justify-content-between">
+-                 <h2 class="h6 mb-1">Student Awards and Bursaries</h2>
+-                 <small>Financial</small>
+-               </div>
+-               <p class="mb-1 small text-body-secondary">Funding options and application help.</p>
+-               <small class="text-body-secondary">Student Services, Main Floor CAT</small>
+-             </button>
+- 
+-             <button type="button" class="list-group-item list-group-item-action">
+-               <div class="d-flex w-100 justify-content-between">
+-                 <h2 class="h6 mb-1">IT Service Desk</h2>
+-                 <small>Tech</small>
+-               </div>
+-               <p class="mb-1 small text-body-secondary">Account access, Wi-Fi, BYOD support.</p>
+-               <small class="text-body-secondary">Library</small>
+-             </button>
+-           </div>
+-         </div>
+-       </section>
++       <resource-results class="col-12 col-lg-4"></resource-results>
+  
+        <!-- Details panel -->
+-       <section class="col-12 col-lg-4">
+-         <div class="card h-100">
+-           <div class="card-header">
+-             <strong>Details</strong>
+-           </div>
+- 
+-           <div class="card-body">
+-             <h2 class="h5">Peer Tutoring Centre</h2>
+-             <p class="text-body-secondary mb-2">Drop-in tutoring and study support.</p>
+- 
+-             <dl class="row mb-0">
+-               <dt class="col-4">Category</dt>
+-               <dd class="col-8">Academic</dd>
+- 
+-               <dt class="col-4">Location</dt>
+-               <dd class="col-8">Building W, Room W101</dd>
+- 
+-               <dt class="col-4">Hours</dt>
+-               <dd class="col-8">Mon-Thu 10:00-16:00</dd>
+- 
+-               <dt class="col-4">Contact</dt>
+-               <dd class="col-8">tutoring@nait.ca</dd>
+-             </dl>
+-           </div>
+- 
+-           <div class="card-footer d-flex gap-2">
+-             <button class="btn btn-outline-secondary" type="button">Copy email</button>
+-             <button class="btn btn-outline-primary" type="button">Open map</button>
+-           </div>
+-         </div>
+-       </section>
++       <resource-details class="col-12 col-lg-4"></resource-details>
+      </section>
+    </main>
+  </body>
+  
+  </html>
+```
+
+### `resource-header.js`
+
+```js title="src/js/components/resource-header.js"
+const template = document.createElement('template');
+template.innerHTML = `
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+  <header class="mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2">
+      <div>
+        <h1 class="h3 mb-1">NAIT Resource Directory</h1>
+        <p class="text-body-secondary mb-0">
+          Find student support services, labs, and campus resources.
+        </p>
+      </div>
+    </div>
+  </header>`
+
+class ResourceHeader extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  render() {
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  }
+}
+
+customElements.define('resource-header', ResourceHeader);
+```
+
+### `resource-filters.js`
+
+```js title="src/js/components/resource-filters.js"
+const template = document.createElement('template');
+template.innerHTML = `
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <aside class="h-100">
+    <div class="card h-100">
+      <div class="card-header">
+        <strong>Filters</strong>
+      </div>
+
+      <div class="card-body">
+        <form id="frm-filter">
+          <label for="q" class="form-label">Search</label>
+          <input id="q" class="form-control" type="text" placeholder="Try: tutoring, mental health, bursary" />
+
+          <hr class="my-3" />
+
+          <div class="mb-2"><strong>Category</strong></div>
+          <div class="d-flex flex-wrap gap-2" aria-label="Category filters">
+            <button class="btn btn-sm btn-outline-primary" type="button">All</button>
+            <button class="btn btn-sm btn-outline-primary" type="button">Academic</button>
+            <button class="btn btn-sm btn-outline-primary" type="button">Wellness</button>
+            <button class="btn btn-sm btn-outline-primary" type="button">Financial</button>
+            <button class="btn btn-sm btn-outline-primary" type="button">Tech</button>
+          </div>
+
+          <hr class="my-3" />
+
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="openNow" />
+            <label class="form-check-label" for="openNow">Open now</label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="virtual" />
+            <label class="form-check-label" for="virtual">Virtual options</label>
+          </div>
+
+          <hr class="my-3" />
+
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" type="button">Reset</button>
+            <button class="btn btn-primary" type="submit">Filter</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </aside>`;
+
+class ResourceFilters extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  render() {
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  }
+}
+
+customElements.define('resource-filters', ResourceFilters);
+```
+
+### `resource-results.js`
+
+```js title="src/js/components/resource-results.js"
+const template = document.createElement('template');
+template.innerHTML = `
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+  <section class="h-100">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Results</strong>
+        <span class="badge text-bg-secondary">4</span>
+      </div>
+
+      <div class="list-group list-group-flush">
+        <button type="button" class="list-group-item list-group-item-action active" aria-current="true">
+          <div class="d-flex w-100 justify-content-between">
+            <h2 class="h6 mb-1">Peer Tutoring Centre</h2>
+            <small>Academic</small>
+          </div>
+          <p class="mb-1 small text-body-secondary">Drop-in tutoring and study support.</p>
+          <small class="text-body-secondary">Building W, Room W101</small>
+        </button>
+
+        <button type="button" class="list-group-item list-group-item-action">
+          <div class="d-flex w-100 justify-content-between">
+            <h2 class="h6 mb-1">Counselling Services</h2>
+            <small>Wellness</small>
+          </div>
+          <p class="mb-1 small text-body-secondary">Confidential mental health supports.</p>
+          <small class="text-body-secondary">Virtual and in-person</small>
+        </button>
+
+        <button type="button" class="list-group-item list-group-item-action">
+          <div class="d-flex w-100 justify-content-between">
+            <h2 class="h6 mb-1">Student Awards and Bursaries</h2>
+            <small>Financial</small>
+          </div>
+          <p class="mb-1 small text-body-secondary">Funding options and application help.</p>
+          <small class="text-body-secondary">Student Services, Main Floor CAT</small>
+        </button>
+
+        <button type="button" class="list-group-item list-group-item-action">
+          <div class="d-flex w-100 justify-content-between">
+            <h2 class="h6 mb-1">IT Service Desk</h2>
+            <small>Tech</small>
+          </div>
+          <p class="mb-1 small text-body-secondary">Account access, Wi-Fi, BYOD support.</p>
+          <small class="text-body-secondary">Library</small>
+        </button>
+      </div>
+    </div>
+  </section>`;
+
+class ResourceResults extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  render() {
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  }
+}
+
+customElements.define('resource-results', ResourceResults);
+```
+
+### `resource-details.js`
+
+```js title="src/js/components/resource-details.js"
+const template = document.createElement('template');
+template.innerHTML = `
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+  <section class="h-100">
+    <div class="card h-100">
+      <div class="card-header">
+        <strong>Details</strong>
+      </div>
+
+      <div class="card-body">
+        <h2 class="h5">Peer Tutoring Centre</h2>
+        <p class="text-body-secondary mb-2">Drop-in tutoring and study support.</p>
+
+        <dl class="row mb-0">
+          <dt class="col-4">Category</dt>
+          <dd class="col-8">Academic</dd>
+
+          <dt class="col-4">Location</dt>
+          <dd class="col-8">Building W, Room W101</dd>
+
+          <dt class="col-4">Hours</dt>
+          <dd class="col-8">Mon-Thu 10:00-16:00</dd>
+
+          <dt class="col-4">Contact</dt>
+          <dd class="col-8">tutoring@nait.ca</dd>
+        </dl>
+      </div>
+
+      <div class="card-footer d-flex gap-2">
+        <button class="btn btn-outline-secondary" type="button">Copy email</button>
+        <button class="btn btn-outline-primary" type="button">Open map</button>
+      </div>
+    </div>
+  </section>`;
+
+class ResourceDetails extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  render() {
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  }
+}
+
+customElements.define('resource-details', ResourceDetails);
+```
+
+### `main.js`
+
+Notice how our `main.js` is now reduced to a set of imports of our custom elements.
+
+```js title="src/js/main.js"
+import './components/resource-header.js';
+import './components/resource-filters.js';
+import './components/resource-results.js';
+import './components/resource-details.js';
+```
+
+</details>
+
+
+----
+
 ## Homework
 
 This lesson has <a href="https://lms.nait.ca/content/enforced/113082-020842.26109.1252/Day%2002%20Homework%20Exercise.html" target="_blank">a homework practice assignment</a> for you to work on as a review of Web Components.
