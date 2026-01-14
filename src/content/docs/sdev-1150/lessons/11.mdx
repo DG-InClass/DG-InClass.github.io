@@ -1,0 +1,27 @@
+---
+title: Day 11
+description: SUMMARY
+sidebar:
+  label: TBD
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+## HTML Form Validation
+
+### Learning Outcome Guide
+
+*At the end of this class, you should be able to...*
+
+- Implement built-in HTML form validation attributes (required, min, max, pattern, type).
+- Create custom form validation using JavaScript event handling.
+- Provide dynamic feedback to users about input validation status.
+
+
+Additional Notes:
+Prefer small, reusable validation functions when the same checks are needed on `input` and `submit`.
+Use `setCustomValidity()` to provide friendly error messages and `reportValidity()` to show them immediately.
+The built-in `form.checkValidity()` is useful to gate submit behavior, but custom checks are often needed for rules beyond HTML attributes.
+Encourage students to test different invalid inputs and observe the validation messages in the browser.
+Students must read MDN - Constraint Validation
