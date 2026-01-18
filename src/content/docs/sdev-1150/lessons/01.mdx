@@ -35,6 +35,8 @@ To run the coding demo, you need to have accepted your Student Workbook and clon
 1. View the code in the files `index.html`, `main.js`, and `styles.css`
 1. Open Windows Explorer.
 1. Double-click the `index.html` to open it in your browser.
+
+   Notice how the URL in the browser's address bar notes that this is a *File* as opposed to a standard URL.
 1. Open the dev tools. Notice the error in loading the JavaScript file.
 1. Make some code edits.
 
@@ -52,28 +54,52 @@ To run the coding demo, you need to have accepted your Student Workbook and clon
     ```
 
 1. Discuss why the CSS was loaded, but the JavaScript was not.
-1. Convert this to a Web *Project* by adding the following file: `package.json`
 
-    ```json title="package.json"
-    {
-      "name": "lesson-01",
-      "version": "1.0.0",
-      "description": "Web Server",
-      "main": "index.js",
-      "scripts": {
-        "dev": "vite"
-      },
-      "keywords": [],
-      "author": "",
-      "license": "ISC",
-      "packageManager": "pnpm@10.17.1",
-      "devDependencies": {
-        "vite": "^7.3.1"
-      }
-    }
-    ```
+   What would happen if we edited the `index.html` reference for the script file, changing it from a *root-relative* link format to a *relative* link?
+1. Convert this to a Web *Project*.
 
-1. Run `pnpm install` to install (grab) the Vite dependency.
+    <Tabs>
+      <TabItem label="Terminal Setup">
+        Run the following from the terminal. Make sure you are in the root of `lesson-01` folder.
+
+        ```ps title="./src/lesson-01 of your workbook"
+        pnpm init
+        pnpm add -D vite
+        code package.json
+        ```
+
+        Then, edit line 7 of the `package.json` to read as follows:
+
+        ```json title="package.json"
+            "dev": "vite"
+        ```
+        
+      </TabItem>
+      <TabItem label="Manual Setup">
+        Create a file named `package.json` and paste in the following code. Then run `pnpm install` in the terminal.
+
+        ```json title="package.json"
+        {
+          "name": "lesson-01",
+          "version": "1.0.0",
+          "description": "Web Server",
+          "main": "index.js",
+          "scripts": {
+            "dev": "vite"
+          },
+          "keywords": [],
+          "author": "",
+          "license": "ISC",
+          "packageManager": "pnpm@10.17.1",
+          "devDependencies": {
+            "vite": "^7.3.1"
+          }
+        }
+        ```
+      </TabItem>
+    </Tabs>
+
+
 1. Run `pnpm dev` to run the web server. Press `o` and `enter` to open the page in the browser.
 1. Observe that the JavaScript now loads and runs.
 </Steps>
