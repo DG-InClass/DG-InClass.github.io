@@ -1,0 +1,25 @@
+---
+import { Badge } from '@astrojs/starlight/components';
+
+/* Usage:
+
+import InClass from '../../../components/InClass.astro';
+
+<InClass term="Jan 2026" done={false} plan='in-class' />
+
+*/
+interface Props {
+    term: string,
+    done: boolean,
+    plan?: "homework" | "in-class"
+}
+
+const {term, plan, done = false}:Props = Astro.props;
+const variant = done ? "success" : "caution";
+const doneAs = plan === 'homework' ? 'Homework' : plan === 'in-class' ? 'In-Class Demo' : '';
+const text = `${term} term`;
+---
+
+<blockquote class="float-end ps-2">
+   {done?"✅ ":""} {doneAs} <Badge text={text} variant={variant} size="small" />
+</blockquote>
