@@ -5,6 +5,7 @@ sidebar:
   label: Jan 12
 ---
 
+import InClass from '../../../../components/astro/InClass.astro';
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 
@@ -29,6 +30,8 @@ To begin, I (Dan) will help get you started, so you can see how to best leverage
 
 ## Coding Demo
 
+<InClass term="Jan 2026" done={false} plan='in-class' />
+
 To run the coding demo, you need to have your Student Workbook open in Visual Studio Code.
 
 <Steps>
@@ -40,3 +43,113 @@ To run the coding demo, you need to have your Student Workbook open in Visual St
 
 1. Walk through the steps in the `ReadMe.md` of the new lesson.
 </Steps>
+
+### Walkthrough
+
+<Steps>
+1. I adjusted what the instructions said to do by naming the project folder `demo` and using `pnpm` instead of `npm`. Here's what I ran in the terminal.
+
+    ```ps title="Path: ~/src/lesson-02"
+    pnpm create vite demo --no-interactive --template vanilla
+    ```
+
+    A couple of words about the flags I used:
+
+    - `--no-interactive` avoids me getting the Prompts
+    - `--template vanilla` gives me a plain JavaScript project with no frameworks
+
+1. Here's the result of what was created. Basically, the previous step **scaffolded** a new project.
+
+    <FileTree>
+    - demo Everything in this folder is the web project
+      - public
+        - vite.svg
+      - src
+        - counter.js
+        - javascript.svg
+        - main.js
+        - style.css
+      - .gitignore
+      - index.html
+      - package.json
+    </FileTree>
+</Steps>
+
+
+Let's examine various parts of the code.
+
+<details>
+<summary>
+#### `index.html`
+</summary>
+
+```html title="index.html"
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>demo</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
+```
+
+</details>
+
+<details>
+<summary>
+#### `main.js`
+</summary>
+
+```js title="src/main.js"
+import './style.css'
+import javascriptLogo from './javascript.svg'
+import viteLogo from '/vite.svg'
+import { setupCounter } from './counter.js'
+
+document.querySelector('#app').innerHTML = `
+  <div>
+    <a href="https://vite.dev" target="_blank">
+      <img src="${viteLogo}" class="logo" alt="Vite logo" />
+    </a>
+    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
+      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
+    </a>
+    <h1>Hello Vite!</h1>
+    <div class="card">
+      <button id="counter" type="button"></button>
+    </div>
+    <p class="read-the-docs">
+      Click on the Vite logo to learn more
+    </p>
+  </div>
+`
+
+setupCounter(document.querySelector('#counter'))
+```
+
+</details>
+
+<details>
+<summary>
+#### `counter.js`
+</summary>
+
+```js title="src/counter.js"
+export function setupCounter(element) {
+  let counter = 0
+  const setCounter = (count) => {
+    counter = count
+    element.innerHTML = `count is ${counter}`
+  }
+  element.addEventListener('click', () => setCounter(counter + 1))
+  setCounter(0)
+}
+```
+
+</details>
