@@ -11,7 +11,7 @@ export default defineConfig({
 
     integrations: [
         starlight({
-            title: 'My Docs',
+            title: 'DG In-Class',
             customCss: [
                 // Path to your Tailwind base styles:
                 './src/styles/global.css',
