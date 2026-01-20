@@ -5,6 +5,7 @@ sidebar:
   label: TBD
 ---
 
+import InClass from '../../../../components/astro/InClass.astro';
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 
@@ -18,4 +19,23 @@ import { Image } from 'astro:assets';
 - Emit custom events from a web component for listening.
 - Expose methods and properties for external JavaScript control.
 - Store and update simple internal component state and synchronize it with properties/attributes.
+
+
+----
+
+## Coding Demo
+
+<InClass term="Jan 2026" done={false} plan='in-class' />
+
+To run the coding demo, you need to have your Student Workbook open in Visual Studio Code.
+
+<Steps>
+1. Open the terminal window and paste in the following.
+
+    ```ps title="Run from the root of your repository"
+    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-1150-A04-Jan-2026/sk/lesson-21 ./src/lesson-21
+    ```
+
+1. Walk through the steps in the `ReadMe.md` of the new lesson.
+</Steps>
 

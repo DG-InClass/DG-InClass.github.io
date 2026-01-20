@@ -5,6 +5,7 @@ sidebar:
   label: TBD
 ---
 
+import InClass from '../../../../components/astro/InClass.astro';
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 
@@ -21,3 +22,22 @@ import { Image } from 'astro:assets';
 
 Additional Notes:
 Students must read chapter 11 of JSFBP
+
+----
+
+## Coding Demo
+
+<InClass term="Jan 2026" done={false} plan='in-class' />
+
+To run the coding demo, you need to have your Student Workbook open in Visual Studio Code.
+
+<Steps>
+1. Open the terminal window and paste in the following.
+
+    ```ps title="Run from the root of your repository"
+    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-1150-A04-Jan-2026/sk/lesson-10 ./src/lesson-10
+    ```
+
+1. Walk through the steps in the `ReadMe.md` of the new lesson.
+</Steps>
+

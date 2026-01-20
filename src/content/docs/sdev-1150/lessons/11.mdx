@@ -5,6 +5,7 @@ sidebar:
   label: TBD
 ---
 
+import InClass from '../../../../components/astro/InClass.astro';
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 
@@ -25,3 +26,22 @@ Use `setCustomValidity()` to provide friendly error messages and `reportValidity
 The built-in `form.checkValidity()` is useful to gate submit behavior, but custom checks are often needed for rules beyond HTML attributes.
 Encourage students to test different invalid inputs and observe the validation messages in the browser.
 Students must read MDN - Constraint Validation
+
+----
+
+## Coding Demo
+
+<InClass term="Jan 2026" done={false} plan='in-class' />
+
+To run the coding demo, you need to have your Student Workbook open in Visual Studio Code.
+
+<Steps>
+1. Open the terminal window and paste in the following.
+
+    ```ps title="Run from the root of your repository"
+    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-1150-A04-Jan-2026/sk/lesson-11 ./src/lesson-11
+    ```
+
+1. Walk through the steps in the `ReadMe.md` of the new lesson.
+</Steps>
+
