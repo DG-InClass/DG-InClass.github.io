@@ -172,6 +172,296 @@ In `main.js`:
 
 </details>
 
+<details>
+<summary>Open for Code Changes</summary>
+
+### Lesson 04 Code
+
+#### Modify `main.js`
+
+Let's add an event listener for the custom `resource-filters-changed` events.
+
+```diff lang="js" title="src/js/main.js"
+  // Step 4: Wire <resource-filters> to <resource-results>.
+  // TODO: Listen for `resource-filters-changed` (bubbles and composed from Shadow DOM).
+  // TODO: Pass filters to results via resultsComponent.setFilters(filters) or resultsComponent.filters = filters.
++ const filtersComponent = document.querySelector('resource-filters');
++ filtersComponent.addEventListener('resource-filters-changed', (event) => {
++   resultsComponent.filters = event.detail;
+- // TODO: Reset details view when new filters are applied (clear previous selection).
++   // TODO: Reset details view when new filters are applied (clear previous selection).
++   const detailsComponent = document.querySelector('resource-details');
++   detailsComponent.resource = null;
++ });
+```
+
+
+#### Modify `resource-filters.js`
+
+To begin, we'll have the **All** button as the active filter.
+
+```diff lang="js" title="src/js/components/resource-filters.js"
+-             <button class="btn btn-sm btn-outline-primary" type="button">All</button>
++             <button class="btn btn-sm btn-outline-primary active" type="button">All</button>
+```
+
+We'll create a `_handleSubmit()` function.
+
+```diff lang="js" title="src/js/components/resource-filters.js"
+    // Step 2: Create submit handler method.
++   _handleSubmit(event) {
++     event.preventDefault();
+      // TODO: Build a filters object: { query, category, openNow, virtual }.
++     const query = this.shadowRoot.querySelector('#q').value.trim();
++     const categoryGroup = this.shadowRoot.querySelector('[aria-label="Category filters"]');
++     const categoryButton = categoryGroup.querySelector('.active') || categoryGroup.querySelector('button');
++     const category = categoryButton ? categoryButton.textContent.trim().toLowerCase() : 'all';
++     const openNow = this.shadowRoot.querySelector('#openNow').checked;
++     const virtual = this.shadowRoot.querySelector('#virtual').checked;
++     const filters = {
++       query,
++       category,
++       openNow,
++       virtual,
++     };
+      // TODO: Dispatch a bubbling and composed CustomEvent('resource-filters-changed', { detail: filters }).
++     const filtersEvent = new CustomEvent('resource-filters-changed', {
++       detail: filters,
++       bubbles: true,
++       composed: true,
++     });
++     this.dispatchEvent(filtersEvent);
++   }
+```
+
+Then we'll create a `_handleCategoryClick()` method.
+
+```diff lang="js" title="src/js/components/resource-filters.js"
+    // TODO: Handle category button clicks to set active state.
++   _handleCategoryClick(event) {
++     const button = event.target.closest('button');
++     if (!button || !this._categoryGroupEl.contains(button)) {
++       return;
++     }
++ 
++     const activeButton = this._categoryGroupEl.querySelector('.active');
++     if (activeButton && activeButton !== button) {
++       activeButton.classList.remove('active');
++     }
++     button.classList.add('active');
++   }
+```
+
+Then we will modify the constructor.
+
+```diff lang="js" title="src/js/components/resource-filters.js"
+    constructor() {
+      super();
+      this.attachShadow({ mode: 'open' });
+      // TODO: Bind event handler methods
++     this._handleSubmit = this._handleSubmit.bind(this);
++     this._handleCategoryClick = this._handleCategoryClick.bind(this);
+    }
+```
+
+
+#### Modify `resource-results.js`
+
+`resource-results` needs some properties to manage the effects of filtering.
+
+```diff lang="js" title="src/js/components/resource-results.js"
+  class ResourceResults extends HTMLElement {
+    #results = [];
+    // Step 3: Store the filtered dataset and current filters, then derive and render filtered results.
+    // TODO: Keep a filtered copy of the dataset (e.g., #filteredResults).
++   #filteredResults = [];
+    // TODO: Add a private filters field that triggers filtering and re-render.
++   #filters = {
++     query: '',
++     category: 'all',
++     openNow: false,
++     virtual: false,
++   };
+  
+    constructor() {
+      super();
+      this._handleResultClick = this._handleResultClick.bind(this);
+      this.attachShadow({ mode: 'open' });
+    }
+  
+    // TODO: Add a filters property (e.g., set filters(filters)) that triggers filtering and re-render.
++   set filters(filters) {
++     // Retain ALL existing filter values unless explicitly overridden
++     this.#filters = {
++       ...this.#filters,
++       ...filters,
++     };
++     this.#applyFilters();
++   }
+  
+    set results(data) {
+      this.#results = data;
+      // Step 3: Set the filtered results initially to the full dataset.
+      // TODO: Initialize the filtered results.
++     this.#filteredResults = [...data];
+      this.render();
+    }
+  
+    _handleResultClick(event) {
+      const button = event.target.closest('button[data-id]');
+      if (button) {
+        const selectedId = button.getAttribute('data-id');
+        // Mark the selected result as active
+        // NOTE: can use and explain the optional chaining operator here (used below) OR just use an if statement
+        this.shadowRoot.querySelector('button.active')?.classList.remove('active');
+        button.classList.add('active');
+  
+        // Find the selected resource from the results
+        const resource = this.#results.find(r => r.id === selectedId);
+        // Dispatch a custom event with the selected resource details
+        const selectedEvent = new CustomEvent('resource-selected', {
+          detail: { resource },
+          bubbles: true,
+          composed: true,
+        });
+  
+        this.dispatchEvent(selectedEvent);
+      }
+    }
+  
+    connectedCallback() {
+      this.shadowRoot.addEventListener('click', this._handleResultClick);
+      this.render();
+    }
+  
+    disconnectedCallback() {
+      this.shadowRoot.removeEventListener('click', this._handleResultClick);
+    }
+  
+    // TODO: Filter without mutating the original dataset.
++   #applyFilters() {
++     const { query, category, openNow, virtual } = this.#filters;
++     const normalizedQuery = query.trim().toLowerCase();
++     const normalizedCategory = (category || '').trim().toLowerCase();
++ 
++     // There are many ways to implement filtering; the following is just one approach.
++     this.#filteredResults = this.#results.filter((result) => {
++       if (normalizedQuery) {
++         const haystack = [
++           result.title,
++           result.summary,
++           result.category,
++           result.location,
++         ]
++           .join(' ')
++           .toLowerCase();
++         if (!haystack.includes(normalizedQuery)) {
++           return false;
++         }
++       }
++ 
++       if (normalizedCategory && normalizedCategory !== 'all') {
++         if (result.category.toLowerCase() !== normalizedCategory) {
++           return false;
++         }
++       }
++ 
++       if (openNow && !result.openNow) {
++         return false;
++       }
++ 
++       if (virtual && !result.virtual) {
++         return false;
++       }
++ 
++       return true;
++     });
++ 
++     this.render();
++   }
+  
+    render() {
+      const content = template.content.cloneNode(true);
+  
+      // Step 3: Render from the derived (filtered) results, show an empty-state when none match.
+      // TODO: Use the filtered results to build the list items.
+-     if (this.#results.length) {
++     if (this.#filteredResults.length) {
+        // Generate the list of results to display
+-       const resultsHtml = this.#results.map(result => `<button type="button" class="list-group-item list-group-item-action" data-id="${result.id}">
++       const resultsHtml = this.#filteredResults.map(result => `<button type="button" class="list-group-item list-group-item-action" data-id="${result.id}">
+            <div class="d-flex w-100 justify-content-between">
+              <h2 class="h6 mb-1">${result.title}</h2>
+              <small>${result.category}</small>
+            </div>
+            <p class="mb-1 small text-body-secondary">${result.summary}</p>
+            <small class="text-body-secondary">${result.location}</small>
+          </button>`);
+        const listGroup = content.querySelector('.list-group');
+        listGroup.innerHTML = resultsHtml.join('');
+      } else {
+        // No results found message
+        const listGroup = content.querySelector('.list-group');
+        listGroup.innerHTML = `<div class="list-group-item">
+            <p class="mb-0">No results found.</p>
+          </div>`;
+      }
+  
+      // Clear existing content and append new content
+      this.shadowRoot.innerHTML = '';
+      this.shadowRoot.appendChild(content);
+    }
+  }
+```
+
+
+#### Modify `resource-details.js`
+
+This file needs a small change at the end of its render function.
+
+```diff lang="js" title="src/js/components/resource-details.js"
+    render() {
+      if (this.#resource) {
+        const detailsContainer = document.createElement('div');
+        detailsContainer.classList.add('card-body');
+  
+        detailsContainer.innerHTML = `
+          <h2 class="h5">${this.#resource.title}</h2>
+          <p class="text-body-secondary mb-2">${this.#resource.summary}</p>
+  
+          <dl class="row mb-0">
+            <dt class="col-4">Category</dt>
+            <dd class="col-8">${this.#resource.category}</dd>
+  
+            <dt class="col-4">Location</dt>
+            <dd class="col-8">${this.#resource.location}</dd>
+  
+            <dt class="col-4">Hours</dt>
+            <dd class="col-8">${this.#resource.hours}</dd>
+  
+            <dt class="col-4">Contact</dt>
+            <dd class="col-8">${this.#resource.contact}</dd>
+          </dl>
+        `;
+  
+        this.shadowRoot.innerHTML = '';
+        this.shadowRoot.appendChild(template.content.cloneNode(true));
+        this.shadowRoot.querySelector('slot').appendChild(detailsContainer);
+      } else {
+        // If no resource is selected, just render the template
+        this.shadowRoot.innerHTML = '';
+-       this.shadowRoot.appendChild(template.content.cloneNode(true));
++       // TODO: Hide action buttons when no resource is selected
++       const content = template.content.cloneNode(true);
++       content.querySelector('.card-footer').classList.add('d-none');
++       this.shadowRoot.appendChild(content);
+      }
+    }
+```
+
+
+</details>
+
 ## Assessment
 
 Minimum requirements:
