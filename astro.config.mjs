@@ -33,15 +33,26 @@ export default defineConfig({
             plugins: [
                 starlightSidebarTopics([
                     {
-                        label: 'About',
+                        label: 'Start Here',
                         link: '/about/',
                         icon: 'open-book',
                         items: [
-                            'about',
-                            'about/lab-setup',
-                            'about/lab-updates',
-                            'about/roadmap',
-                            'about/academic-integrity',
+                            { 
+                                label: "Start Here", 
+                                items: [
+                                    'about',
+                                    'about/roadmap',
+                                    'about/colophon',
+                                ]
+                            },
+                            { 
+                                label: "Labs/Assignments", 
+                                items: [
+                                    'about/lab-setup',
+                                    'about/lab-updates',
+                                    'about/academic-integrity',
+                                ]
+                            }
                         ],
                     },
                     {
@@ -58,7 +69,8 @@ export default defineConfig({
                         id: 'sdev1150',
                         link: '/sdev-1150/',
                         icon: 'information',
-                        items: ['sdev-1150',
+                        items: [
+                            { label: "References", items: ['sdev-1150','sdev-1150/qna']},
                             { 
                                 label: "Lessons", autogenerate: { directory: 'sdev-1150/lessons' }
                             }
@@ -69,8 +81,8 @@ export default defineConfig({
                         id: 'sdev2150',
                         link: '/sdev-2150/',
                         icon: 'information',
-                        items: ['sdev-2150',
-                            { label: "References", items: ['sdev-2150/qna']},
+                        items: [
+                            { label: "References", items: ['sdev-2150','sdev-2150/qna']},
                             {
                                 label: "Lessons", autogenerate: { directory: 'sdev-2150/lessons' }
                             }
