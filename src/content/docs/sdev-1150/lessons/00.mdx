@@ -1,14 +1,17 @@
 ---
-title: Day #
+title: TITLE
 description: SUMMARY
 sidebar:
-  label: DATE
+  label: Lesson #
 draft: true
 ---
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 import todo from '../../../../assets/undraw/undraw_under-construction_c2y1.svg';
+import When from '../../../../components/astro/When.astro';
+
+<When planned='' />
 
 <Image src={todo} alt="Author TODO Items" class="float-end ml-3" width="150" />
 <Aside title="Work-In-Progress (WIP)" type="caution">
