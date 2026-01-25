@@ -70,7 +70,8 @@ export default defineConfig({
                         link: '/sdev-2150/',
                         icon: 'information',
                         items: ['sdev-2150',
-                            { 
+                            { label: "References", items: ['sdev-2150/qna']},
+                            {
                                 label: "Lessons", autogenerate: { directory: 'sdev-2150/lessons' }
                             }
                         ],
