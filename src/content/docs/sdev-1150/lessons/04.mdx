@@ -12,8 +12,6 @@ import When from '../../../../components/astro/When.astro';
 
 <When planned='Jan 19' />
 
-
-
 ### Learning Outcome Guide
 
 *At the end of this class, you should be able to...*
@@ -32,19 +30,12 @@ import When from '../../../../components/astro/When.astro';
 
 ## Coding Demo
 
-<InClass term="Jan 2026" done={false} plan='in-class' />
+import Tiged from '../../../../components/astro/Tiged.astro';
 
-To run the coding demo, you need to have your Student Workbook open in Visual Studio Code.
-
-<Steps>
-1. Open the terminal window and paste in the following.
-
-    ```ps title="Run from the root of your repository"
-    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-1150-A04-Jan-2026/sk/lesson-04 ./src/lesson-04
-    ```
-
-1. Walk through the steps in the `ReadMe.md` of the new lesson.
-</Steps>
+<Tiged 
+    repo="DG-InClass/SDEV-1150-A04-Jan-2026/"
+    from="sk/lesson-04"
+    to="./src/lesson-04" />
 
 ### Walkthrough
 
