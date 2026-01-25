@@ -8,4 +8,29 @@ import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCar
 import { Image } from 'astro:assets';
 import todo from '../../../assets/undraw/undraw_under-construction_c2y1.svg';
 
+
 <a href="https://starlight-sidebar-topics.netlify.app/" target="_blank">Starlight Sidebar Topics</a>
+
+## Custom components
+
+I've created a couple of custom components that I use in various parts of my site.
+
+### `Tiged.astro`
+
+I am often calling on my students to grab starter kits from my *Instructor Repository* and put them into their *Student Workbook*. To do that, I have them use the <a href="https://github.com/tiged/tiged" target="_blank">`tiged`</a> command in the VS Code terminal.
+
+For students new to programming, I have found this approach a lot faster and simpler than trying to guide them on how to handle zip files and put them in the right place. More importantly, I don't have to mess around with *creating* or *maintaining* those zip files! I just have to put some starter code in my instructor repo!
+
+import tigedCode from '../../../components/astro/Tiged.astro?raw';
+
+<Code code={tigedCode} lang="astro" title="Tiged.astro" />
+
+### `When.astro`
+
+In Jan 2026, I've been teaching few new courses, and I've been given lesson plans to follow in class. But sometimes the plan doesn't match reality.
+
+The `<When />` component allows me to make a quick note about when the particular lesson was planned to be delivered and when it was actually delivered.
+
+import whenCode from '../../../components/astro/When.astro?raw';
+
+<Code code={whenCode} lang="astro" title="When.astro" />
