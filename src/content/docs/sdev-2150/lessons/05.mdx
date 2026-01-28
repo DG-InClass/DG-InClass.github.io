@@ -11,6 +11,18 @@ import When from '../../../../components/astro/When.astro';
 
 <When planned='Jan 23' />
 
+## Lesson focus
+
+In this lesson, we introduce **asynchronous JavaScript** and the **fetch API**.
+
+We will extend the reactive, component-based application built in previous lessons so that:
+
+- Data is loaded asynchronously from a backend API
+- The UI renders after data is fetched
+- Components react to data arriving over time
+
+We are still not using a framework. The goal is to understand the mental model that frameworks later abstract.
+
 
 
 ### Learning Outcome Guide
@@ -24,3 +36,166 @@ import When from '../../../../components/astro/When.astro';
 > Reinforce the visual model of the event loop to support conceptual understanding.
 >
 > Encourage students to experiment with debugging asynchronous code to reveal timing behaviour.
+
+----
+
+## Code Walkthrough
+
+Up to now, the information displayed in our components has come from hard-coded data in our `main.js`. A far more realistic scenario is one where data come from some back-end storage such as a database. In this demo, we'll examine fetching data for our components.
+
+### Setup
+
+The project comes with two separate projects - one to represent our frontend and another to represent our backend.
+
+
+<Steps>
+1. Open two separate terminal windows in VS Code. Perform an install and run in both of them.
+
+    ```ps title="~/src/lesson-05/backend/" "start"
+    pnpm install
+    pnpm start
+    ```
+
+
+    ```ps title="~/src/lesson-05/frontend/" "dev"
+    pnpm install
+    pnpm dev
+    ```
+
+1. Confirm that the backend is working by opening a browser to `http://localhost:3000/resources`. You should see data in JSON format.
+1. Confirm that the frontend is working by opening another browser tab to `http://localhost:5173`. You should see the website with the components 
+</Steps>
+
+### Data Fetching
+
+<Steps>
+1. Begin by removing the hard-coded data from `main.js`.
+
+    ```diff lang="js" title="~/src/js/main.js"
+      const resultData = [
+    -   {
+    -     id: 'tutoring',
+    -     title: 'Peer Tutoring Centre',
+    -     category: 'Academic',
+    -     summary: 'Drop-in tutoring and study support.',
+    -     location: 'Building W, Room W101',
+    -     hours: 'Mon-Thu 10:00-16:00',
+    -     contact: 'tutoring@nait.ca',
+    -     virtual: false,
+    -     openNow: true,
+    -   },
+    -   {
+    -     id: 'counselling',
+    -     title: 'Counselling Services',
+    -     category: 'Wellness',
+    -     summary: 'Confidential mental health supports.',
+    -     location: 'Virtual and in-person',
+    -     hours: 'Mon-Fri 09:00-17:00',
+    -     contact: 'wellness@nait.ca',
+    -     virtual: true,
+    -     openNow: true,
+    -   },
+    -   {
+    -     id: 'bursaries',
+    -     title: 'Student Awards and Bursaries',
+    -     category: 'Financial',
+    -     summary: 'Funding options and application help.',
+    -     location: 'Student Services, Main Floor CAT',
+    -     hours: 'Mon-Fri 10:00-15:00',
+    -     contact: 'awards@nait.ca',
+    -     virtual: true,
+    -     openNow: false,
+    -   },
+    -   {
+    -     id: 'it',
+    -     title: 'IT Service Desk',
+    -     category: 'Tech',
+    -     summary: 'Account access, Wi-Fi, MFA resets.',
+    -     location: 'Library',
+    -     hours: 'Mon-Fri 08:30-16:30',
+    -     contact: 'it@nait.ca',
+    -     virtual: false,
+    -     openNow: true,
+    -   },
+      ];
+    ```
+
+    Notice that no data appears in our page.
+1. Add temporary code to fetch data from the API endpoint and pass to the component.
+
+    ```diff lang="js" title="~/src/js/main.js"
+    + // TODO: Remove this "smoke-test" call later on
+    + const response = await fetch('http://localhost:3000/resources');
+    + const data = await response.json();
+    + resultData = [...data];
+      // TODO: Stage 1: After fetching from the API, pass the fetched resources into <resource-results>
+      const resultsComponent = document.querySelector('resource-results');
+      resultsComponent.results = resultData;
+    ```
+
+1. Your page should now be showing data fetched from the API endpoint. If you want to experiment with slower connections, explore the documentation for *throttling* in [Chrome](https://developer.chrome.com/docs/devtools/settings/throttling/) and [Edge](https://learn.microsoft.com/en-us/microsoft-edge/devtools/settings/throttling).
+1. Modify the `resource-results.js` to make it recognize a `source` attribute.
+
+    ```diff lang="js" title="~/src/js/components/resource-results.js"
+        // TODO: Stage 2: Observe the `source` attribute
+    +   static get observedAttributes() {
+    +     return ['source'];
+    +   }
+    ```
+
+1. Add the `attributeChanged()` callback.
+
+    ```diff lang="js" title="~/src/js/components/resource-results.js"
+    +   attributeChangedCallback(name, oldValue, newValue) {
+    +     if (name === 'source' && oldValue !== newValue) {
+    +       // Check if connected before fetching
+    +       if (this.isConnected) {
+    +         // Fetch new data from the source URL
+    +         console.log(`Fetch from ${newValue}`);
+    +       }
+    +     }
+    +   }
+    ```
+
+1. Create a private function to do the "heavy lifting" of the fetch.
+
+    ```diff lang="js" title="~/src/js/components/resource-results.js"
+    +   async #fetchData(source) {
+    +     try {
+    +       const response = await fetch(source);
+    +       if (!response.ok) {
+    +         throw new Error(`Network response was not ok: ${response.statusText}`);
+    +       }
+    +       const data = await response.json();
+    +       this.results = data;
+    +     } catch (error) {
+    +       console.error('Failed to fetch data:', error);
+    +     }
+    + 
+    +     this.render();
+    +   }
+    ```
+
+1. Return to the `attributeChanged()` callback and make use of that private function.
+
+    ```diff lang="js" title="~/src/js/components/resource-results.js"
+        attributeChangedCallback(name, oldValue, newValue) {
+          if (name === 'source' && oldValue !== newValue) {
+            // Check if connected before fetching
+            if (this.isConnected) {
+              // Fetch new data from the source URL
+    -         console.log(`Fetch from ${newValue}`);
+    +         this.#fetchData(newValue);
+            }
+          }
+        }
+    ```
+
+1. Add the `source` attribute to your custom element's markup.
+
+    ```diff lang="html" title="~/src/index.html"
+    -       <resource-results class="col-12 col-lg-4"></resource-results>
+    +       <resource-results class="col-12 col-lg-4" source="http://localhost:3000/resources"></resource-results>
+    ```
+
+</Steps>
