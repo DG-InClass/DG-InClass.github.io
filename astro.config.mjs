@@ -85,6 +85,9 @@ export default defineConfig({
                             { label: "References", items: ['sdev-2150','sdev-2150/qna']},
                             {
                                 label: "Lessons", autogenerate: { directory: 'sdev-2150/lessons' }
+                            },
+                            {
+                                label: "Notes", autogenerate: { directory: 'sdev-2150/notes'}
                             }
                         ],
                     },
