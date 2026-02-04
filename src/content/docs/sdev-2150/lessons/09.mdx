@@ -22,6 +22,14 @@ import When from '../../../../components/astro/When.astro';
 - Build complex UIs by composing multiple smaller components together.
 
 Additional Notes:
-Stress that composition is React's preferred paradigm over inheritance.
-Use simple but meaningful examples (dashboards, lists, cards) to show practical reuse.
-Higher-Order Components (HOCs) and Render Props are legacy patterns but worth a brief mention as alternatives to composition.
+- Stress that composition is React's preferred paradigm over inheritance.
+- Use simple but meaningful examples (dashboards, lists, cards) to show practical reuse.
+- Higher-Order Components (HOCs) and Render Props are legacy patterns but worth a brief mention as alternatives to composition.
+  - See [Higher-Order Components (Legacy Pattern)](https://videlais.github.io/learning-react/chapters/chapter9/)
+  - See [Advantages/Disadvantages](https://scriptbinary.com/react/react-design-patterns-hocs-render-props#advantages-and-disadvantages)
+
+<Aside title="Don't Over-Engineer">
+It's way too easy as a developer to fall into the trap of over-engineering, and one of the ways we do that is with **premature optimization**. Higher-Order Components and Render Props are patterns where we try to gain some code-reuse. The first problem is thinking we need the pattern too early.
+
+Remember, everything comes with tradeoffs!
+</Aside>
