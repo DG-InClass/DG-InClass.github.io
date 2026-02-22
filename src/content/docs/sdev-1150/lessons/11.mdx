@@ -10,7 +10,7 @@ import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCar
 import { Image } from 'astro:assets';
 import When from '../../../../components/astro/When.astro';
 
-<When planned='Feb 12' />
+<When planned='Feb 12' actual='Feb 23' />
 
 
 
@@ -24,11 +24,18 @@ import When from '../../../../components/astro/When.astro';
 
 
 Additional Notes:
-Prefer small, reusable validation functions when the same checks are needed on `input` and `submit`.
-Use `setCustomValidity()` to provide friendly error messages and `reportValidity()` to show them immediately.
-The built-in `form.checkValidity()` is useful to gate submit behavior, but custom checks are often needed for rules beyond HTML attributes.
-Encourage students to test different invalid inputs and observe the validation messages in the browser.
-Students must read MDN - Constraint Validation
+
+- Prefer small, reusable validation functions when the same checks are needed on `input` and `submit`.
+- Use `setCustomValidity()` to provide friendly error messages and `reportValidity()` to show them immediately.
+- The built-in `form.checkValidity()` is useful to gate submit behavior, but custom checks are often needed for rules beyond HTML attributes.
+- Encourage students to test different invalid inputs and observe the validation messages in the browser.
+- Students must read MDN - Constraint Validation
+
+<Aside title="Summary">
+It's not just about if/else checks. It's about user feedback and leveraging built-in HTML validation attributes alongside custom validation.
+
+Also, given that we are doing client-side processing (no server-side to receive form submissions), we will always use `.preventDefault()` on the `'submit'` event of forms.
+</Aside>
 
 ----
 
