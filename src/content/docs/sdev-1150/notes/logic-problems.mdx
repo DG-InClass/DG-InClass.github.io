@@ -1,0 +1,43 @@
+---
+title: Logic Problems
+description: SUMMARY
+sidebar:
+  label: Logic Problems
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+## Open Weather API
+
+Consider the version of their API that allows you to request information based on a named location instead of Lat/Long details. <a href="https://openweathermap.org/current?collection=current_forecast" target="_blank">Their documentation</a> shows three versions of an API call where you can use certain combinations of city name, state code and country code.
+
+```http title="City Name Only"
+https://api.openweathermap.org/data/2.5/weather?q={city name}&appid={API key}
+```
+
+```http title="City and Country"
+https://api.openweathermap.org/data/2.5/weather?q={city name},{country code}&appid={API key}
+```
+
+```http title="City, State and Country"
+https://api.openweathermap.org/data/2.5/weather?q={city name},{state code},{country code}&appid={API key}
+```
+
+Given the pattern above, create a generalized function that could assemble the query string portion of the URL from a single object input. You may presume that the input data has been verified for correctness beforehand (e.g.: not missing the city name or app id).
+
+<details>
+<summary>View Solution</summary>
+
+If you know something about object deconstruction syntax and the built-in array functions in JavaScript, then you might find it can be solved quite easily without needing any if/else statements. Here's one possible solution.
+
+```js
+const buildQueryString = ({city, state, country, appId}) => {
+  const queryParts = [city, state, country];
+  const queryValue = queryParts.filter(item => !!item).join(',');
+  return `?q=${queryValue}&appid=${appId}`;
+}
+```
+
+
+</details>

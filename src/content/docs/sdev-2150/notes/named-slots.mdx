@@ -1,0 +1,53 @@
+---
+title: title
+description: SUMMARY
+sidebar:
+  label: nav label
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+
+## Querying Named Slots
+
+When you have a component that has a named slot, you won't know what (if any) child elements may be placed in that slot. Nonetheless, you might have to perform some *interaction* with the child elements. For the default slot, it's a simpler matter. For named slots, you can query based on `'[slot="name"]'`.
+
+
+----
+
+### With the help of AI....
+
+> *Why does `.querySelector('slot[name=main]');` fail to get the `<known-child>` element that we are potentially expecting in our named slot?*
+
+```js
+// Find the element assigned to the `main` slot and set its `source` property.
+/s/ Setting a property directly on the <slot> element does nothing; we must target
+// the actual slotted element (e.g. <known-child>).
+const assigned = this._main.assignedElements({ flatten: true });
+const mainEl = (assigned && assigned.length) ? assigned[0] : this.querySelector('known-child');
+if (mainEl) {
+  mainEl.source = selectedId;
+} else {
+  console.warn('No slotted main element found to receive source update');
+}
+```
+
+
+- **What `slot.assignedElements()` does:** returns an array of the actual Element nodes assigned into a `<slot>` from the light DOM (it gives you the slotted elements, not the slot placeholder).
+- **Why your code failed before:** you were setting source on the `<slot>` element itself (the placeholder). The slot is not the component instance; properties must be set on the slotted element (e.g. the `<known-child>` element).
+- **Why `assignedElements({flatten:true})` fixes it:** it finds the real element(s) placed into the slot so you can call mainEl.source = selectedId; and invoke the set source() on the actual component.
+- **Quick example:**
+    ```js
+    const slot = this.shadowRoot.querySelector('slot[name=main]');
+    const assigned = slot.assignedElements({ flatten: true });
+    const mainEl = assigned[0];
+    if (mainEl) mainEl.source = 'cnn';
+    ```
+- **Notes / variants:**
+  - `assignedNodes()` returns Nodes (text, comment, elements); `assignedElements()` returns only Elements.
+  - If no assigned elements, check fallback content or use `this.querySelector(...)` as a fallback.
+  - If multiple slotted elements exist, iterate or choose the intended one.
+  - `flatten: true` walks into nested slots (useful if content itself uses slots).
+Result: once you target the slotted element, its `set source()` runs (which is why your breakpoint/log fired).
