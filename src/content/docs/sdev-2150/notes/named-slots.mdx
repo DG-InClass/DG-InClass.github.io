@@ -19,14 +19,45 @@ When you have a component that has a named slot, you won't know what (if any) ch
 
 ### With the help of AI....
 
-> *Why does `.querySelector('slot[name=main]');` fail to get the `<known-child>` element that we are potentially expecting in our named slot?*
+Imagine the following markup:
+
+```html
+  <nav-drawer>
+    <cross-references slot="main"></cross-references>
+  </nav-drawer>
+```
+
+#### Named slots and direct light-DOM element access
 
 ```js
 // Find the element assigned to the `main` slot and set its `source` property.
-/s/ Setting a property directly on the <slot> element does nothing; we must target
-// the actual slotted element (e.g. <known-child>).
+const mainEl = this.querySelector('[slot="main"]');
+mainEl.source = selectedId;
+```
+
+- **Short answer:** Because the code grabs a direct reference to the light-DOM element that has `slot="main"` (via `this.querySelector('[slot="main"]')`), it can set that element's `source` property directly — no need to ask the shadow `slot` for its assigned nodes.
+
+- **Why that works:**
+  - `this.querySelector('[slot="main"]')` runs on the custom element (the host) and returns the actual slotted child element in the light DOM (for example, the `<news-headlines>` element). You now hold a direct reference to that element.
+  - `assignedNodes()` / `assignedElements()` are methods on the `<slot>` element inside the shadow DOM used when you only have the slot and want to discover which light DOM nodes are assigned to it. They are unnecessary if you already have the slotted element reference.
+
+- **When you'd need `assignedElements()` instead:**
+  - If you only had a reference to the `<slot>` inside the shadow root (e.g., `this.shadowRoot.querySelector('slot[name="main"]')`) and needed to find its assigned children, use `slot.assignedElements()` or listen for `slotchange`.
+  - Also use `assignedElements()` if multiple nodes might be assigned and you need to iterate them.
+
+- **Timing caveat:** If the slotted element might not exist yet at `connectedCallback`, then `this.querySelector('[slot="main"]')` can be null; in that case use the slot inside the shadow and `slotchange` (or query later) to detect when assignment occurs.
+
+
+#### Using the Slot Container
+
+> *Why does `.querySelector('slot[name=main]');` fail to get the `<cross-references>` element that we are potentially expecting in our named slot?*
+
+```js
+// Find the element assigned to the `main` slot and set its `source` property.
+/// Setting a property directly on the <slot> element does nothing; we must target
+// the actual slotted element (e.g. <cross-references>).
 const assigned = this._main.assignedElements({ flatten: true });
-const mainEl = (assigned && assigned.length) ? assigned[0] : this.querySelector('known-child');
+const mainEl = (assigned && assigned.length) ? assigned[0] : this.querySelector('cross-references');
 if (mainEl) {
   mainEl.source = selectedId;
 } else {
@@ -36,14 +67,14 @@ if (mainEl) {
 
 
 - **What `slot.assignedElements()` does:** returns an array of the actual Element nodes assigned into a `<slot>` from the light DOM (it gives you the slotted elements, not the slot placeholder).
-- **Why your code failed before:** you were setting source on the `<slot>` element itself (the placeholder). The slot is not the component instance; properties must be set on the slotted element (e.g. the `<known-child>` element).
+- **Why your code failed before:** you were setting source on the `<slot>` element itself (the placeholder). The slot is not the component instance; properties must be set on the slotted element (e.g. the `<cross-references>` element).
 - **Why `assignedElements({flatten:true})` fixes it:** it finds the real element(s) placed into the slot so you can call mainEl.source = selectedId; and invoke the set source() on the actual component.
 - **Quick example:**
     ```js
     const slot = this.shadowRoot.querySelector('slot[name=main]');
     const assigned = slot.assignedElements({ flatten: true });
     const mainEl = assigned[0];
-    if (mainEl) mainEl.source = 'cnn';
+    if (mainEl) mainEl.source = 'mdn:web-components';
     ```
 - **Notes / variants:**
   - `assignedNodes()` returns Nodes (text, comment, elements); `assignedElements()` returns only Elements.
@@ -51,3 +82,6 @@ if (mainEl) {
   - If multiple slotted elements exist, iterate or choose the intended one.
   - `flatten: true` walks into nested slots (useful if content itself uses slots).
 Result: once you target the slotted element, its `set source()` runs (which is why your breakpoint/log fired).
+
+
+
