@@ -1,0 +1,559 @@
+---
+title: Data Fetching Strategies in React
+description: SUMMARY
+sidebar:
+  label: Lesson 19 Wrap-Up
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import When from '../../../../components/astro/When.astro';
+
+<When planned='Lesson 19' />
+
+
+Our in-class walkthrough of Lesson 19 ([Data Fetching Strategies in React](sdev-2150/lessons/19)), we worked on the main part of the lesson which was about setting up React Router to use <a href="https://reactrouter.com/start/modes#data" target="_blank">Data Mode</a> instead of Declarative Mode.
+
+The rest of the lesson (from [here](sdev-2150/lessons/19/#phase-8-refactor-resourcedirectorypage-to-use-useloaderdata) onwards) is about the changes you would have to make if you have "rolled your own" fetching/loader code (which is what the starter kit has).
+
+The following is a re-write of the follow-up to complete the Lesson 19 starter kit, but hopefully with a little more clarity.
+
+<Aside type="caution" title="Broken 'till we fix it...">
+  NOTE: Our application to this point is effectively 'broken'. That's because we have to swap out all our own fetching/loading strategies to hook into ReactRouter's Data mode.
+  
+  Fixing/completing our app is the purpose of this walkthrough. We will work within the page components to make use of the new loaders and action functions.
+
+  This is going to feel like we're "gutting" a lot of code, and that's because we are. Lest you think that tossing code out the window is the normal way we develop - it's not (or at least, shouldn't be). Ideally, you should **make your routing mode choice *early***, when you're thinking through the features you want in your app. Because our app needs to fetch data and interact with a REST API, it would have been better to just start with Data mode rather than Declarative mode. But that's a *life-lesson*, and sometimes we have to learn them the hard way....
+</Aside>
+
+----
+
+
+
+## Phase 8: Refactor `ResourceDirectoryPage` to use `useLoaderData()`
+
+<Steps>
+1. Open `src/pages/ResourceDirectoryPage.jsx`. We'll begin by replacing our custom `useResourcec()` hook with ReactRouter's `useLoaderData`.
+
+    ```diff lang="jsx" title="ResourceDirectoryPage.jsx"
+      import { useState } from 'react';
+    - import { useResources } from '../hooks/useResources';
+    + import { useLoaderData } from 'react-router';
+      import { useSelectedResource } from '../hooks/useSelectedResource';
+    ```
+
+1. Get the data from the route via the loader. The rout already loaded/fetched the data before the page was rendered, so our page component no longer needs a hook to fetch the data on itw own.
+
+    ```diff lang="jsx" title="ResourceDirectoryPage.jsx"
+      export default function ResourceDirectoryPage() {
+        const [searchTerm, setSearchTerm] = useState('');
+        const [selectedCategories, setSelectedCategories] = useState([]);
+        const [openNowOnly, setOpenNowOnly] = useState(false);
+        // const [selectedResource, setSelectedResource] = useState(null);
+        const [selectedResource, setSelectedResource] = useSelectedResource();
+        const [virtualOnly, setVirtualOnly] = useState(false);
+      
+    -   const { resources, isLoading, error, refetch } = useResources();
+    +   const { resources } = useLoaderData();
+    ```
+
+1. We can now remove our component-level loading and error handling.
+
+    ```diff lang="jsx" title="ResourceDirectoryPage.jsx"
+        return (
+          <>
+    -       {/* The following is not great for UX/UI, but it gets the point across. Feel free to style
+    -       the loading and error states in "nicer" way. */}
+    -       {isLoading && (
+    -         <div className="text-sm text-base-content/70">Loading resources...</div>
+    -       )}
+    -       {error && (
+    -         <div className="alert alert-error">
+    -           <div>
+    -             <p className="font-semibold">Could not load resources</p>
+    -             <p className="text-sm opacity-80">{error.message}</p>
+    -             <button className="btn btn-sm mt-2" onClick={refetch}>Try again</button>
+    -           </div>
+    -         </div>
+    -       )}
+            <aside className="md:col-span-3 lg:col-span-1">
+              <Filters
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                selectedCategories={selectedCategories}
+                onCategoryToggle={setSelectedCategories}
+                openNowOnly={openNowOnly}
+                onOpenNowChange={setOpenNowOnly}
+                virtualOnly={virtualOnly}
+                onVirtualOnlyChange={setVirtualOnly}
+              />
+            </aside>
+            <section className="md:col-span-2 lg:col-span-1">
+              <Results
+                resources={resources}
+                selectedResource={selectedResource}
+                onSelectResource={setSelectedResource}
+                searchTerm={searchTerm}
+                selectedCategories={selectedCategories}
+                openNowOnly={openNowOnly}
+                virtualOnly={virtualOnly}
+              />
+            </section>
+            <aside className="md:col-span-1 lg:col-span-1">
+              {selectedResource ? (
+                <Details resource={selectedResource} />
+              ) : (
+                <div className="text-sm text-base-content/70">
+                  Select a resource to view details.
+                </div>
+              )}
+            </aside>
+          </>
+        );
+    ```
+
+</Steps>
+
+## Phase 9: Refactor `AdminPage` to use `useLoaderData()`
+
+<Steps>
+1. Open `src/pages/AdminPage.jsx`. Once again, we'll replace our `useResources()` hook with ReactRouter's Data Mode capabilities.
+
+    ```diff lang="jsx" title="AdminPage.jsx"
+    - import { useNavigate, useParams } from 'react-router';
+      
+    - import { useResources } from '../hooks/useResources';
+    + import { NavLink, useLoaderData, useNavigation } from 'react-router';
+      import Card from '../components/ui/Card';
+      import ResourceForm from '../components/ResourceForm';
+    ```
+
+1. Once again, the router has dealt with the data that we were fetching in our custom hook. Additionally, it has also loaded the resource id (if any) from the route. Within our component, we will replace our old code with ReactRouter's Data Loading.
+
+    ```diff lang="jsx" title="AdminPage.jsx"
+      export default function AdminPage() {
+    -   const { resourceId } = useParams();
+    -   const navigate = useNavigate();
+    - 
+    -   const { resources, isLoading, error, refetch } = useResources();
+    +   const { resources, selectedResource, resourceId } = useLoaderData();
+    +   const navigation = useNavigation();
+    +   const isSubmitting = navigation.state === 'submitting';
+    ```
+
+    We'll have to do a little clean-up as well, since we're discarding our custom hook's implementation details.
+
+1. Let's start by removing our `currentResource` which was trying to find the resource based on the param's id.
+
+    ```diff lang="jsx" title="AdminPage.jsx"
+    -  // We no longer require a useEffect to track the current resource. Instead, we 
+    -  // can derive it directly from the URL param and the list of resources. If the 
+    -  // resourceId param is present, we find the corresponding resource from the list.
+    -  // If it's not present, currentResource will be null, which indicates that we're
+    -  // creating a new resource rather than editing an existing one.
+    -
+    -  // Track the current resource based on the URL param. If no resourceId is present, 
+    -  // currentResource will be null..
+    -  const currentResource = resourceId
+    -    ? resources.find((item) => item.id === resourceId)
+    -    : null;
+    ```
+
+1. Our `initialFormData` was based on the old `currentResource`. We'll swap that over to use the `selectedResource` from our loader.
+
+    ```diff lang="jsx" title="AdminPage.jsx" "selectedResource"
+    -   // Set the initial form data based on the current resource. If it's not null, use 
+    -   // the resource's data. Otherwise, use the empty form data.
+    -   const initialFormData = currentResource ? {
+    +   const initialFormData = selectedResource ? {
+    -     title: currentResource.title,
+    +     title: selectedResource.title,
+    -     category: currentResource.category,
+    +     category: selectedResource.category,
+    -     summary: currentResource.summary,
+    +     summary: selectedResource.summary,
+    -     location: currentResource.location,
+    +     location: selectedResource.location,
+    -     hours: currentResource.hours,
+    +     hours: selectedResource.hours,
+    -     contact: currentResource.contact,
+    +     contact: selectedResource.contact,
+    -     virtual: currentResource.virtual,
+    +     virtual: selectedResource.virtual,
+    -     openNow: currentResource.openNow,
+    +     openNow: selectedResource.openNow,
+        } : EMPTY_FORM_DATA;
+    ```
+
+1. Our `handleEditStart()`, `handleCreateResource()` and `isEditing` will also no longer be needed. In our next step, we'll be using ReactRouter's `<Form>` component, so we won't need our own handler for the submit.
+
+    ```diff lang="jsx" title="AdminPage.jsx"
+    -   function handleEditStart(resource) {
+    -     navigate(`/admin/${resource.id}`);
+    -   }
+    - 
+    -   async function handleCreateResource(e, formData) {
+    -     e.preventDefault();
+    -     e.preventDefault();
+    - 
+    -     const isEditing = Boolean(resourceId);
+    -     const url = isEditing
+    -       ? `http://localhost:3000/resources/${resourceId}`
+    -       : 'http://localhost:3000/resources';
+    - 
+    -     const method = isEditing ? 'PUT' : 'POST';
+    - 
+    -     const res = await fetch(url, {
+    -       method,
+    -       headers: {
+    -         'Content-Type': 'application/json',
+    -       },
+    -       body: JSON.stringify(formData),
+    -     });
+    - 
+    -     if (!res.ok) {
+    -       throw new Error(`Could not ${isEditing ? 'update' : 'create'} resource`);
+    -     }
+    - 
+    -     const savedResource = await res.json();
+    -     await refetch();
+    - 
+    -     navigate(`/admin/${savedResource.id}`);
+    -   }
+    - 
+    -   // Determine if we're in editing mode based on the presence of the resourceId param.
+    -   const isEditing = Boolean(resourceId);
+    ```
+
+1. In the JSX that our Admin page is returning, we'll get rid of our loading indicator and our error messages as well.
+
+    ```diff lang="jsx" title="AdminPage.jsx"
+    -       {error && (
+    -         <div className="alert alert-error">
+    -           <span>{error.message}</span>
+    -           <button className="btn btn-sm" onClick={refetch}>Try again</button>
+    -         </div>
+    -       )}
+    ```
+
+1. We'll also "surgically" remove the parts in our `<Card>` that held our loading indicator/errors for our indivdual resource item.
+
+    ```diff lang="jsx" title="AdminPage.jsx"
+            <section className="md:col-span-3 lg:col-span-3">
+              <Card title="Resource Form">
+                <div className="card-body">
+    -             {resourceId && isLoading && <p>Loading selected resource...</p>}
+    - 
+    -             {resourceId && !isLoading && !currentResource && (
+    -               <p className="text-sm text-red-600">
+    -                 Selected resource could not be found.
+    -               </p>
+    -             )}
+    - 
+    -             {/* Update to make use of the ResourceForm component */}
+    -             {(!resourceId || currentResource) && (
+                    <ResourceForm
+                      key={resourceId ?? 'new'}
+                      initialData={initialFormData}
+    -                  isEditing={isEditing}
+    +                  isEditing={Boolean(resourceId)}
+    +                  isSubmitting={isSubmitting}
+    -                 onSubmit={handleCreateResource}
+    -                 onReset={() => navigate('/admin')}
+                    />
+    -             )}
+                </div>
+              </Card>
+            </section>
+    ```
+
+1. The final clean-up will be the section where we are rendering our resources. We'll use the `<NavLink>` instead of our old navigation that triggered an edit of whatever resource we wanted to edit.
+
+    <Aside>
+      This was the original walkthrough's "Phase 11"
+    </Aside>    
+
+    ```diff lang="jsx" title="AdminPage.jsx"
+            <section className="md:col-span-3 lg:col-span-3">
+              <Card title="Current Resources">
+                <div className="card-body">
+                  <ul className="space-y-2">
+                    {resources.map((resource) => (
+                      <li
+                        key={resource.id}
+    -                   className="rounded border border-gray-200 p-3 cursor-pointer hover:border-sky-400"
+    -                   onClick={() => handleEditStart(resource)}>
+    +                   >
+    +                   <NavLink
+    +                     to={`/admin/${resource.id}`}
+    +                     className={({ isActive }) =>
+    +                       `block rounded border p-3 ${isActive ? 'border-sky-500 bg-sky-50' : 'border-gray-200'}`
+    +                     }
+    +                   >
+                        <p className="font-semibold">{resource.title}</p>
+                        <p className="text-sm text-base-content/70">{resource.category}</p>
+    +                   </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Card>
+            </section>
+    ```
+
+</Steps>
+
+We're not done quite ready to view the results in the browser. Our next step will be to replace our manual form with the router form. That means taking a look at our `ResourceForm` component.
+
+## Phase 10: Replace the manual form with router `<Form>`
+
+Because the route now has an `action`, we can use React Router's `<Form>` component.
+
+<Steps>
+1. Open `~/src/components/ResourceForm.jsx`. We'll start by adding a couple of imports.
+
+    ```diff lang="jsx" title="ResourceForm.jsx"
+    + import { Form, useNavigate } from 'react-router';
+      import { useState } from 'react';
+    ```
+
+1. Next, we'll change the props of the component.
+
+    ```diff lang="jsx" title="ResourceForm.jsx"
+    - export default function ResourceForm({ initialData, isEditing, onSubmit, onReset }) {
+    + export default function ResourceForm({ initialData, isEditing, isSubmitting }) {
+    ```
+
+1. We'll add some functions to handle events in our form.
+
+    ```diff lang="jsx" title="ResourceForm.jsx"
+    +   const navigate = useNavigate();
+    + 
+    +   function handleChange(e) {
+    +     const { name, value, type, checked } = e.target;
+    + 
+    +     setFormData((prev) => ({
+    +       ...prev,
+    +       [name]: type === 'checkbox' ? checked : value,
+    +     }));
+    +   }
+    + 
+    +   function handleReset() {
+    +     if (isEditing) {
+    +       navigate('/admin');
+    +     } else {
+    +       setFormData(initialData);
+    +     }
+    +   }
+    ```
+
+1. Now it's time to change out the native HTML `<form>` with React Router's `<Form>` component. To begin, just change the tag itself; the contents of the form will be changed in the next steps. (Remember the closing tag.)
+
+    ```diff lang="jsx" title="ResourceForm.jsx"
+    -     <form onSubmit={(e) => onSubmit(e, formData)} className="space-y-4">
+    +     <Form method="post" className="space-y-4">
+          {* leave inner tags unchanged for the moment *}
+    -     </form>
+    +     </Form>
+    ```
+
+1. Inside the form, we'll begin by cleaning up the input element for the title of the resource.
+
+    ```diff lang="jsx" title="ResourceForm.jsx"
+            <div className="space-y-1">
+    -         <label className="block text-sm font-medium">Title</label>
+    +         <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
+              <input
+    +           id="title"
+    +           name="title"
+    +           type="text"
+    -           className="input input-bordered w-full"
+    +           className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                value={formData.title}
+    -           onChange={(e) =>
+    -             setFormData({ ...formData, title: e.target.value })
+    -           }
+    +           onChange={handleChange}
+              />
+            </div>
+    ```
+
+1. Let's also fix our buttons.
+
+    ```diff lang="jsx" title="ResourceForm.jsx"
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="rounded border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+    -           onClick={() => {
+    -             setFormData(initialData);
+    -             onReset();
+    -           }}
+    +           onClick={handleReset}
+              >
+    -           Reset
+    +           {isEditing ? 'Clear' : 'Reset'}
+              </button>
+      
+    -         <button type="submit" className="rounded bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700">
+    +         <button type="submit" disabled={isSubmitting} className="rounded bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700">
+    -           {isEditing ? 'Update Resource' : 'Add Resource'}
+    +           {isSubmitting ? 'Saving...' : isEditing ? 'Update Resource' : 'Add Resource'}
+              </button>
+            </div>
+    ```
+
+1. With the existing code cleaned up, we're now free to add in some more input controls for the rest of the resource data we need to collect.
+
+    ```diff lang="jsx" title="ResourceForm.jsx"
+            {/* Add these after the input for the resource title */}  
+    +       <div className="space-y-1">
+    +         <label htmlFor="summary" className="block text-sm font-medium text-gray-700">
+    +           Summary
+    +         </label>
+    +         <textarea
+    +           id="summary"
+    +           name="summary"
+    +           value={formData.summary}
+    +           onChange={handleChange}
+    +           className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+    +         />
+    +       </div>
+    + 
+    +       <div className="space-y-1">
+    +         <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+    +           Location
+    +         </label>
+    +         <input
+    +           id="location"
+    +           name="location"
+    +           type="text"
+    +           value={formData.location}
+    +           onChange={handleChange}
+    +           className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+    +         />
+    +       </div>
+    + 
+    +       <div className="space-y-1">
+    +         <label htmlFor="hours" className="block text-sm font-medium text-gray-700">
+    +           Hours
+    +         </label>
+    +         <input
+    +           id="hours"
+    +           name="hours"
+    +           type="text"
+    +           value={formData.hours}
+    +           onChange={handleChange}
+    +           className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+    +         />
+    +       </div>
+    + 
+    +       <div className="space-y-1">
+    +         <label htmlFor="contact" className="block text-sm font-medium text-gray-700">
+    +           Contact
+    +         </label>
+    +         <input
+    +           id="contact"
+    +           name="contact"
+    +           type="text"
+    +           value={formData.contact}
+    +           onChange={handleChange}
+    +           className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+    +         />
+    +       </div>
+    + 
+    +       <label className="flex items-center gap-2 text-sm text-gray-700">
+    +         <input
+    +           name="virtual"
+    +           type="checkbox"
+    +           checked={formData.virtual}
+    +           onChange={handleChange}
+    +         />
+    +         Virtual
+    +       </label>
+    + 
+    +       <label className="flex items-center gap-2 text-sm text-gray-700">
+    +         <input
+    +           name="openNow"
+    +           type="checkbox"
+    +           checked={formData.openNow}
+    +           onChange={handleChange}
+    +         />
+    +         Open now
+    +       </label>
+    ```
+
+</Steps>
+
+
+Here are some important differences from the old way we worked with the HTML form:
+
+- no manual `onSubmit`
+- no manual `fetch()` call inside the component
+- the form submits to the route action automatically
+
+
+----
+
+
+<Aside>
+  ## Phases 11-13
+
+  These changes from the old walkthrough were incorporated in earlier steps.
+</Aside>
+
+
+## Conclusion: What changed architecturally?
+
+Before data mode:
+
+- routes selected components
+- components fetched their own data
+- components handled their own submit requests
+
+After data mode:
+
+- routes select components
+- routes load data with loaders
+- routes handle mutations with actions
+- components mainly render data and forms
+
+This is a major architecture shift.
+
+## Phase 15: Validate the finished behavior
+
+Test the following:
+
+1. Visiting `/` loads directory data through a route loader
+2. Visiting `/admin` loads the admin page through a route loader
+3. Visiting `/admin/:resourceId` loads the selected resource through the loader
+4. Submitting the admin form triggers the route action
+5. Creating a new resource redirects to `/admin/:newId`
+6. Updating a resource keeps the app on that resource route
+
+## Key Concepts Reinforced
+
+- Data mode uses a router object and `RouterProvider`
+- `loader` functions fetch route data
+- `useLoaderData()` reads the loaded route data
+- `action` functions handle route-based mutations
+- `<Form>` submits directly to the route action
+- Route data and route state can work together cleanly
+- Controlled form components may still be useful in data mode when route changes need to reset UI state cleanly
+
+## Assessment
+
+- The app uses `createBrowserRouter()` and `RouterProvider`
+- Route data is loaded with loaders
+- The admin form submits through a route action
+- `useLoaderData()` replaces component-level data fetching
+- The route still controls create vs edit mode
+- The admin form resets correctly when switching between create mode and edit mode
+
+## Student Exercise
+
+1. Implement an route-level [ErrorBoundary](https://reactrouter.com/how-to/error-boundary#data-mode) to handle errors fetching data.
+2. Add a pending message or disabled state for all admin form buttons while submitting.
+3. Add simple field validation in the action and return an error response for invalid submissions.
+4. Add a success message after saving by reading navigation or location state.
+
