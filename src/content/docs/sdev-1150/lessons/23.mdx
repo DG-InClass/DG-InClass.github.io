@@ -53,75 +53,133 @@ To run the coding demo, you need to have your Student Workbook open in Visual St
 
 ### Ensure No Outside Access to Class Attributes
 
-JavaScript supports private class attributes. You can mark a class attribute as private by prefixing it with a `#` symbol. Update the user-card to implement the followed attribute as a private field.
+Previously, we created some members of the `UserCard` class with a name that started with an underscore (). The intent was to communicate to other developers, "Don't access this directly - leave it alone." But all that was just an "honors system" approach - nothing actually prevented a developer from directly accessing those items from outside `user-card.js`.
 
-```js
-// user-card.js
-class UserCard extends HTMLElement {
-  #followed = false;
+Fortunately, JavaScript supports **private** class attributes. You can mark a class attribute as private by prefixing it with a `#` symbol. Let's update the user-card to implement the `_followed` attribute as a private field. While we're at it, let's also clean up the other class members that were marked with a leading underscore: `_btn`, `_onFollow`, and `_setFollow`.
 
-  constructor() {
-    super();
-
-    // Added property to track follow state
-    this.#followed = false;
-
-    const shadow = this.attachShadow({ mode: 'open' });
-    const content = template.content.cloneNode(true);
-    const img = content.querySelector('img');
-    img.src = this.getAttribute('avatar') || 'https://placehold.co/80x80/0077ff/ffffff';
-    this._btn = content.querySelector('button');
-    this._btn.addEventListener('click', () => this._onFollow());
-    shadow.appendChild(content);
-  }
-
-  follow() {
-    this._setFollow(true);
-  }
-
-  unfollow() {
-    this._setFollow(false);
-  }
-
-  // Property to read followed state
-  get followed() {
-    return this.#followed;
-  }
-
-  _setFollow(value) {
-    this.#followed = value;
-    this._btn.textContent = this.#followed ? 'Following' : 'Follow';
-    this.dispatchEvent(new CustomEvent('follow-change', {
-      detail: { id: this.getAttribute('user-id') || null, followed: this.#followed },
-      bubbles: true,
-      composed: true,
-    }));
-  }
-
-  // Follow button handler
-  _onFollow() {
-    this._setFollow(!this.#followed);
-  }
-
-  // Respond to attribute changes if needed in the future
-  static get observedAttributes() {
-    return ['avatar'];
-  }
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (name === 'avatar' && this.shadowRoot) {
-      const img = this.shadowRoot.querySelector('img');
-      if (img) {
-        img.src = newValue;
+```diff lang="js" title="~/src/user-card.js"
+  class UserCard extends HTMLElement {
++   #followed = false;
+  
+    constructor() {
+      super();
+  
+      // Added property to track follow state
+-     this._followed = false;
++     this.#followed = false;
+  
+      const shadow = this.attachShadow({ mode: 'open' });
+      const content = template.content.cloneNode(true);
+      const img = content.querySelector('img');
+      img.src = this.getAttribute('avatar') || 'https://placehold.co/80x80/0077ff/ffffff';
+-     this._btn = content.querySelector('button');
++     this.#btn = content.querySelector('button');
+-     this._btn.addEventListener('click', () => this._onFollow());
++     this.#btn.addEventListener('click', () => this.#onFollow());
+      shadow.appendChild(content);
+    }
+  
+    follow() {
+-     this._setFollow(true);
++     this.#setFollow(true);
+    }
+  
+    unfollow() {
+-     this._setFollow(false);
++     this.#setFollow(false);
+    }
+  
+    // Property to read followed state
+    get followed() {
+-     return this._followed;
++     return this.#followed;
+    }
+  
+-   _setFollow(value) {
++   #setFollow(value) {
+-     this._followed = value;
++     this.#followed = value;
+-     this._btn.textContent = this._followed ? 'Following' : 'Follow';
++     this.#btn.textContent = this.#followed ? 'Following' : 'Follow';
+      this.dispatchEvent(new CustomEvent('follow-change', {
+-       detail: { id: this.getAttribute('user-id') || null, followed: this._followed },
++       detail: { id: this.getAttribute('user-id') || null, followed: this.#followed },
+        bubbles: true,
+        composed: true,
+      }));
+    }
+  
+    // Follow button handler
+-   _onFollow() {
++   #onFollow() {
+-     this._setFollow(!this._followed);
++     this.#setFollow(!this.#followed);
+    }
+  
+    // Respond to attribute changes if needed in the future
+    static get observedAttributes() {
+      return ['avatar'];
+    }
+  
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === 'avatar' && this.shadowRoot) {
+        const img = this.shadowRoot.querySelector('img');
+        if (img) {
+          img.src = newValue;
+        }
       }
     }
   }
-}
 ```
 
-This update will prevent any updates to the `#followed` field that do not originate from within the class itself. We will apply this to all internal class state.
+Using this approach, our `UserCard` instances will only have the following public members for us to interact with:
+
+```js title="main.js" "followed" "follow()" "unFollow()"
+// Sample throw-away code
+let myCard = document.createElement('user-card');
+console.log('Are we following?', myCard.followed); // access the property
+myCard.follow(); // call a method
+console.log('We should be following now:', myCard.followed);
+myCard.unFollow();
+console.log('No longer following:', myCard.followed);
+// ... end of throw-away code
+```
+
+Any attempt to write code to access the private members will just crash the app.
+
+```js title="main.js"
+// This line will crash EVERYTHING
+let myCard = document.createElement('user-card');
+console.log('Are we following?', myCard.followed); // access the property
+console.log('Attempting to access private member:', myCard.#followed); // 💥 CRASH!
+// Delete all this after experimenting
+```
+
 
 ### Add `user` Property and Lifecycle Usage
+
+User information on our `<user-card>` has been set through named slots. While that is convenient, it's not necessarily the best way if we want to enforce some strict constraints on the content. For example, we intend our card to have just strings (text) as the user's name and description. But nothing is stopping us from putting in other content.
+
+```html title="index.html"
+  <main>
+    <user-card>
+      <span slot="name">Someone <input type="checkbox" /></span>
+      <span slot="description">
+        I am
+        <ul>
+          <li>Arbitrary</li>
+          <li><del>Controlled</del></li>
+        </ul>
+      </span>
+    </user-card>
+  </main>
+```
+
+import someone from './23/Someone.png';
+
+<Image src={someone} alt="Some arbitrary user-card content" />
+
+One way to address this is to set individual attributes for the name and description, just like we have for the avatar image URL. We could complement this approach by also adding private objects for each value for when we programmatically interact with.
 
 In `user-card.js`, we'll expose a `user` property (setter/getter), use `connectedCallback` to wire event listeners, and `disconnectedCallback` to remove them.
 
