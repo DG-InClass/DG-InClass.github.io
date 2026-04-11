@@ -30,7 +30,7 @@ Additional Notes:
 
 ## Walkthrough
 
-We're going to leverage TanStack Query to solve the edge-case problems that typically come with building our own data-fetching strategies. This will solve problems such as
+We're going to leverage <a href="https://tanstack.com/query/latest" target="_blank">**TanStack Query**</a> to solve the edge-case problems that typically come with building our own data-fetching strategies. This will solve problems such as
 
 - managing loading state
 - managing error state
@@ -53,7 +53,7 @@ pnpm install @tanstack/react-query
 
 ### Editing `main.jsx`
 
-We'll need to hook Tanstack's QueryClientProvider and the QueryClient into the root/entry point of our application.
+We'll need to hook TanStack's QueryClientProvider and the QueryClient into the root/entry point of our application.
 
 ```diff lang="jsx" title="~/src/main.jsx"
   import { StrictMode } from 'react';
@@ -79,11 +79,11 @@ We'll need to hook Tanstack's QueryClientProvider and the QueryClient into the r
   );
 ```
 
-Just like our `<ThemeProvider>` (via React's Context API) allows all our child components to access theme information so that they can style themselves correctly, the Tanstack `<QueryClientProvider>` will supply "behind-the-scenes" functionality to suppliment and simplify the various REST API calls we will need to make with the `fetch()` API.
+Just like our `<ThemeProvider>` (via React's Context API) allows all our child components to access theme information so that they can style themselves correctly, the TanStack `<QueryClientProvider>` will supply "behind-the-scenes" functionality to suppliment and simplify the various REST API calls we will need to make with the `fetch()` API.
 
 ### Retooling `router.js`
 
-In our existing code, our `router.js` file is leveraging React Router's Data Mode features, such as loaders and actions. Because we're going to use Tanstack for the loading, etc., we're going to have to do a significant bit of re-tooling of our existing code.
+In our existing code, our `router.js` file is leveraging React Router's Data Mode features, such as loaders and actions. Because we're going to use TanStack for the loading, etc., we're going to have to do a significant bit of re-tooling of our existing code.
 
 <Steps>
 1. We'll start by dropping the router's use of loaders and actions.
@@ -678,11 +678,66 @@ We're now ready to wrap up our Admin page. We will pass our form submit callback
         </section>
 ```
 
+### Update `ResourceForm.jsx`
+
+Now that TanStack is an intermediary for our form's POST and PUT operations, we need to swap out the usage of React Router's `<Form>` component.
+
+<Steps>
+1. Remove the `Form` import. We'll be replacing that with a regular HTML `<form>`.
+
+    ```diff lang="jsx" title="~/src/components/ResourceForm.jsx"
+    - import { Form, useNavigate } from 'react-router';
+    + import { useNavigate } from 'react-router';
+      import { useState } from 'react';
+    ```
+
+1. Add a prop to the component to receive the callback for submitting the form.
+
+    ```diff lang="jsx" title="~/src/components/ResourceForm.jsx"
+      export default function ResourceForm({
+        initialData,
+        isEditing,
+        isSubmitting,
+    +   onSubmit
+      }) {
+        const [formData, setFormData] = useState(initialData);
+    ```
+
+    If you recall from the [Admin Page](#complete-the-adminpages-jsx), we'll be receiving their handler to submit the resource (which ultimately goes through TanStack).
+
+1. Inside the component, create an event handler for the `<form>`'s submit event.
+
+    ```diff lang="jsx" title="~/src/components/ResourceForm.jsx"
+    +   function handleSubmit(evt) {
+    +     evt.preventDefault();
+    +     onSubmit(formData);
+    +   }
+
+        return (
+          <Form method="post" className="space-y-4">
+    ```
+
+1. Switch over to the `<form>` element (open and closing tags) and wire up the submit event.
+
+    ```diff lang="jsx" title="~/src/components/ResourceForm.jsx" {"1":2-3} {"2":5-6}
+        return (
+    -     <Form method="post" className="space-y-4">
+    +     <form onSubmit={handleSubmit} className="space-y-4">
+          {/* internal components unchanged */}
+    -     </Form>
+    +     </form>
+    ```
+
+</Steps>
+
+----
 
 
-## Conclusions
 
-You might be thinking that there's a lot of similarities between what TanStack Query does and React's native Context API, and you'd be right about that. But they are not identical or interchangable.
+
+## Conclusion
+
+You might be thinking that there are a lot of similarities between what TanStack Query does and React's native Context API. You would be right about that. But they are not identical or interchangable. Here's a few guidelines.
 
 Use React's Context API for
 
@@ -696,7 +751,7 @@ Use TanStack Query for
 - async operations
 - caching and synchronization
 
-Here's a few other concluding things to note.
+Here's a few other concluding things to note about TanStack.
 
 - TanStack Query replaces loaders and actions for server data
 - server state is different from client state
