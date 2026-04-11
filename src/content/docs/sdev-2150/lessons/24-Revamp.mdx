@@ -408,7 +408,7 @@ useQuery({queryKey: ['resource', resourceId], queryFn: fetchById})
       const displayedResource = selectedResourceData ?? selectedResource;
     ```
 
-    Note that `useQuery()` will only call `queryFn` if we have a selected resource (`enabled: Boolean(selectedResourceId)`) and that we will be invalidating our cache after 5 minutes. Invalidating the cache will make sure we get the latest information on that particular resource.
+    Note that `useQuery()` will only call `queryFn` if we have a selected resource (`enabled: Boolean(selectedResourceId)`) and that we will be invalidating our cache after 5 minutes. Invalidating the cache will make sure we get the latest information on that particular resource. TanStack helps to keep our data "fresh" and current, and we can configure this with `staleTime`.
 
 1. Thanks to the `isLoading` and `isError` state variables, we can provide a "quick result" for our component if the `resources` data is not (yet) available. Add the following after our  `useQuery()` call from the previous step.
 
@@ -469,7 +469,6 @@ useQuery({queryKey: ['resource', resourceId], queryFn: fetchById})
 
 </Steps>
 
-One of the key takeaways from including TanStack's `useMutation()` hook is that when the server data is updated, all cached queries will be invalidated and refreshed. TanStack Query will refetch on window focus (in case the user has switched away from the browser or the tab). TanStack helps to keep our data "fresh" and current, and we can configure this with `staleTime`.
 
 Inspect the Network tab in DevTools and move back and forth between displayed results. You should observe that there are no additional requests being sent after the initial request for each unique resource.
 
@@ -524,7 +523,7 @@ Our `AdminPage.jsx` component also fetches data. It needs all the resources (`fe
     +   });
     ```
 
-1. Use React Rounter to get the `resourceId`.
+1. Use React Router to get the `resourceId`.
 
     ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
     +   // Get the resourceId, if any (via React Router)
@@ -581,6 +580,10 @@ Our `AdminPage.jsx` component also fetches data. It needs all the resources (`fe
     ```
 
 </Steps>
+
+
+One of the key takeaways from including TanStack's `useMutation()` hook is that when the server data is updated, all cached queries will be invalidated and refreshed. TanStack Query will refetch on window focus (in case the user has switched away from the browser or the tab).
+
 
 At this point, our `AdminPage` component has all its hooks in place. Now we can use those hook objects in our form processing.
 
