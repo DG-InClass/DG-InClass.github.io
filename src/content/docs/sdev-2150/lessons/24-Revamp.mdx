@@ -1,0 +1,703 @@
+---
+title: Server-Side State in React
+description: SUMMARY
+sidebar:
+  label: Lesson 24 - Revamp
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import When from '../../../../components/astro/When.astro';
+
+<When planned='Lesson 24' />
+
+
+
+### Learning Outcome Guide
+
+*At the end of this class, you should be able to...*
+
+- Configure and use TanStack Query to manage server-synchronized state in React applications.
+- Fetch and cache remote data declaratively with `useQuery`.
+- Compare manual data fetching with TanStack Query for performance and scalability benefits.
+
+
+Additional Notes:
+- Emphasize key features: caching, background refetching, and data invalidation.
+- Emphasize TanStack is not a *replacement* for `fetch()` calls. Rather, it sits "above" the `fetch()` calls, treating them as a "low-level API" while solving "higher-level" concerns around component lifecycle with regard to fetching (loading state, error state, etc.)
+
+----
+
+## Walkthrough
+
+We're going to leverage TanStack Query to solve the edge-case problems that typically come with building our own data-fetching strategies. This will solve problems such as
+
+- managing loading state
+- managing error state
+- handling refetching
+- avoiding duplicate requests
+
+### Starter Kit Code
+
+Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
+
+```ps
+pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-2150-A03-Jan-2026/sk/day-24/example/lesson-24-starter ./src/lesson-24
+```
+
+After doing the pnpm/npm install of the `lesson-24/backend` and `lesson-24/frontend` projects, we'll need to install TanStack Query as a dependency.
+
+```ps title="~/src/lesson-24/frontend"
+pnpm install @tanstack/react-query
+```
+
+### Editing `main.jsx`
+
+We'll need to hook Tanstack's QueryClientProvider and the QueryClient into the root/entry point of our application.
+
+```diff lang="jsx" title="~/src/main.jsx"
+  import { StrictMode } from 'react';
+  import { createRoot } from 'react-dom/client';
+  import { RouterProvider } from 'react-router';
+  
+  import './index.css';
+  import { router } from './router';
+  import { ThemeProvider } from './context/ThemeProvider';
+  
++ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+  
++ const queryClient = new QueryClient();
+  
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
++     <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <RouterProvider router={router} />
+        </ThemeProvider>
++     </QueryClientProvider>
+    </StrictMode>
+  );
+```
+
+Just like our `<ThemeProvider>` (via React's Context API) allows all our child components to access theme information so that they can style themselves correctly, the Tanstack `<QueryClientProvider>` will supply "behind-the-scenes" functionality to suppliment and simplify the various REST API calls we will need to make with the `fetch()` API.
+
+### Retooling `router.js`
+
+In our existing code, our `router.js` file is leveraging React Router's Data Mode features, such as loaders and actions. Because we're going to use Tanstack for the loading, etc., we're going to have to do a significant bit of re-tooling of our existing code.
+
+<Steps>
+1. We'll start by dropping the router's use of loaders and actions.
+
+    ```diff lang="js" title="~/src/router.js"
+      export const router = createBrowserRouter([
+        {
+          path: '/',
+          Component: App,
+          children: [
+            {
+              index: true,
+              Component: ResourceDirectoryPage,
+              ErrorBoundary: RouteErrorBoundary,
+    -         loader: resourceDirectoryLoader,
+            },
+            {
+              path: 'admin',
+              Component: AdminPage,
+              ErrorBoundary: RouteErrorBoundary,
+    -         loader: adminLoader,
+    -         action: adminAction,
+            },
+            {
+              path: 'admin/:resourceId',
+              Component: AdminPage,
+              ErrorBoundary: RouteErrorBoundary,
+    -         loader: adminLoader,
+    -         action: adminAction,
+            },
+          ],
+        },
+      ]);
+    ```
+
+1. Next, we can get rid of our loader functions.
+
+    ```diff lang="js" title="~/src/router.js"
+    - // Loader functions
+    - export async function resourceDirectoryLoader() {
+    -   const resources = await fetchResources();
+    -   return { resources };
+    - }
+    - 
+    - export async function adminLoader({ params }) {
+    -   const resources = await fetchResources();
+    - 
+    -   if (!params.resourceId) {
+    -     return {
+    -       resources,
+    -       resourceId: null,
+    -       selectedResource: null,
+    -     };
+    -   }
+    - 
+    -   const selectedResource = await fetchResourceById(params.resourceId);
+    - 
+    -   return {
+    -     resources,
+    -     resourceId: params.resourceId,
+    -     selectedResource,
+    -   };
+    - }
+    ```
+
+1. We'll also get rid of the actions.
+
+    ```diff lang="js" title="~/src/router.js"
+    - // Action functions
+    - export async function adminAction({ request, params }) {
+    -   const formData = await request.formData();
+    - 
+    -   const payload = {
+    -     title: formData.get('title'),
+    -     category: formData.get('category'),
+    -     summary: formData.get('summary'),
+    -     location: formData.get('location'),
+    -     hours: formData.get('hours'),
+    -     contact: formData.get('contact'),
+    -     virtual: formData.get('virtual') === 'on',
+    -     openNow: formData.get('openNow') === 'on',
+    -   };
+    - 
+    -   const isEditing = Boolean(params.resourceId);
+    -   const url = isEditing
+    -     ? `${API_BASE_URL}/resources/${params.resourceId}`
+    -     : `${API_BASE_URL}/resources`;
+    -   const method = isEditing ? 'PUT' : 'POST';
+    - 
+    -   const res = await fetch(url, {
+    -     method,
+    -     headers: {
+    -       'Content-Type': 'application/json',
+    -     },
+    -     body: JSON.stringify(payload),
+    -   });
+    - 
+    -   if (!res.ok) {
+    -     throw new Error(`Could not ${isEditing ? 'update' : 'create'} resource`);
+    -   }
+    - 
+    -   const savedResource = await res.json();
+    - 
+    -   return redirect(`/admin/${savedResource.id}`);
+    - }
+    ```
+
+1. Now that we have removed the action, we no longer need the import of the `redirect` function.
+
+    ```diff lang="js" title="~/src/router.js"
+    - import { redirect } from 'react-router';
+    ```
+
+</Steps>
+
+What about the remaining supporting functions that were being used by the loaders? We'll be removing those as well, but we'll be *relocating* that code into another file.
+
+### Relocating `fetchResources()` and `fetchResourceById()`
+
+We will still need all of our fetch functions from `router.js`, since they are critical underpinnings of the actual data transfer. TanStack Query does not replace these. Rather, TanStack Query will "sit on top of" these calls and use them to address certain *lifecycle concerns* around they async data fetching.
+
+Since we still need `fetchResources()` and `fetchResourceById()`, *but* they are no longer directly used in our `router.js`, we should really separate them out into their own module. These are "low-level" API calls, so we'll move them accordingly.
+
+<Aside type="tip" title="Separation of Concerns">
+One of the principles of good software design is the **separation of concerns**. This refers to the idea that we should make sure the code we write and bundle together in our modules is all related to each other. That is why we're taking the time in this phase to relocate our code.
+</Aside>
+
+<Steps>
+1. Create a new file at `~/src/api/resources.js`. This will be the new home of our resource fetching functions (including some new ones we'll add for more REST API calls).
+1. Move the `BASE_URL` constant to the new file.
+
+    ```diff lang="js" title="Cut from router.js"
+    - const API_BASE_URL = 'http://localhost:3000';
+    ```
+
+    ```diff lang="js" title="Paste into resources.js"
+    + const API_BASE_URL = 'http://localhost:3000';
+    ```
+
+1. Move the `fetchResources()` function to our new file. We'll also have to add the `export` so that we can use it elsewhere in later phases.
+
+    ```diff lang="js" title="Cut from router.js"
+    - async function fetchResources() {
+    -   const res = await fetch(`${API_BASE_URL}/resources`);
+    - 
+    -   if (!res.ok) {
+    -     throw new Error(`Could not load resources: ${res.status}`);
+    -   }
+    - 
+    -   return res.json();
+    - }
+    ```
+
+    ```diff lang="js" title="Paste into resources.js" "export"
+    + export async function fetchResources() {
+    +   const res = await fetch(`${API_BASE_URL}/resources`);
+    + 
+    +   if (!res.ok) {
+    +     throw new Error(`Could not load resources: ${res.status}`);
+    +   }
+    + 
+    +   return res.json();
+    + }
+    ```
+
+1. Likewise, we'll move the `fetchResourceById()` to our new module.
+
+    ```diff lang="js" title="Cut from router.js"
+    - async function fetchResourceById(resourceId) {
+    -   const res = await fetch(`${API_BASE_URL}/resources/${resourceId}`);
+    - 
+    -   if (!res.ok) {
+    -     throw new Error(`Could not load resource: ${res.status}`);
+    -   }
+    - 
+    -   return res.json();
+    - }
+    ```
+
+    Again, we need to remember to export our relocated function.
+
+    ```diff lang="js" title="Paste into resources.js" "export"
+    + export async function fetchResourceById(resourceId) {
+    +   const res = await fetch(`${API_BASE_URL}/resources/${resourceId}`);
+    + 
+    +   if (!res.ok) {
+    +     throw new Error(`Could not load resource: ${res.status}`);
+    +   }
+    + 
+    +   return res.json();
+    + }
+    ```
+
+</Steps>
+
+### Add to `resources.js`
+
+Besides our existing functions to retrieve data, we will need ones to do our `POST` and `PUT` calls.
+
+<Steps>
+1. Add a function to handle creating new resources. This will perform a `POST` to the backend REST API.
+
+    ```js title="~/src/api/resources.js"
+    export async function createResource(payload) {
+      const res = await fetch(`${API_BASE_URL}/resources`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Could not create resource: ${res.status}`);
+      }
+
+      return res.json();
+    }
+    ```
+
+1. Next, we need a function to update an existing resource. This will perform a `PUT` to the backend.
+
+    ```js title="~/src/api/resources.js"
+    export async function updateResource(resourceId, payload) {
+      const res = await fetch(`${API_BASE_URL}/resources/${resourceId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Could not update resource: ${res.status}`);
+      }
+
+      return res.json();
+    }
+    ```
+
+</Steps>
+
+Now that our low-level API calls are all located in a single module, we can move on to
+
+### Update `ResourceDirectoryPage.jsx` to use TanStack Query
+
+At the heart of TanStack Query is the `useQuery()` hook. We give it an object with a `queryKey` that will be used to identify the data in the cache and a `queryFn` which is the low-level function call that performs the actual fetching of our data. There are a couple of other options we could provide: `enabled` (whether the query should run at all - defaults to `true`) and `staleTime` (how long we want to regard the data as "fresh" or current - it's a number in milliseconds, and defaults to `0`).
+
+TanStack's `useQuery()` will return an object with four properties. These objects contain the "reactive state" that fits in with React's rendering system.
+
+```js title="What useQuery() returns"
+const {
+  data,       // The data from the fetch call
+  isLoading,  // 
+  isError,    //
+  error       //
+} = useQuery({ queryKey: ['some-cache-key'], queryFn: someFetchFunction });
+// Only `queryKey` and `queryFn` are required settings for useQuery()
+```
+
+<Aside type="tip" title="Caching">
+The `queryKey` is an array because `useQuery()` will take each value in the array and use it to build a unique string for the cache. For example, if we had a `resourceId` with a value of `32`, we could have it produce a unique key of `resource-32` by supplying two values for the `queryKey`, as seen below.
+
+```js title=""
+useQuery({queryKey: ['resource', resourceId], queryFn: fetchById})
+```
+</Aside>
+
+<Steps>
+1. Replace our React Router import and use TanStack Query instead.
+
+    ```diff lang="jsx" title="~/src/pages/ResourceDirectoryPage.jsx"
+      import { useState } from 'react';
+    - import { useLoaderData } from 'react-router';
+    + import { useQuery } from '@tanstack/react-query';
+    + import { fetchResources, fetchResourceById } from '../api/resources';
+      import { useSelectedResource } from '../hooks/useSelectedResource';
+    ```
+
+1. Replace the `useLoaderData()` call with the TanStack `useQuery()` hook.
+
+    ```diff lang="jsx" title="~/src/pages/ResourceDirectoryPage.jsx"
+      export default function ResourceDirectoryPage() {
+        const [searchTerm, setSearchTerm] = useState('');
+        const [selectedCategories, setSelectedCategories] = useState([]);
+        const [openNowOnly, setOpenNowOnly] = useState(false);
+      
+        const [selectedResource, setSelectedResource] = useSelectedResource();
+        const [virtualOnly, setVirtualOnly] = useState(false);
+      
+    -   const { resources } = useLoaderData();
+    +   const {
+    +     data: resources = [],
+    +     isLoading,
+    +     isError,
+    +     error,
+    +   } = useQuery({
+    +     queryKey: ['resources'],
+    +     queryFn: fetchResources
+    +   });
+    ```
+ 
+    Notice how we're specifying that the resulting `data` will be stored into a local variable `resources` and that we're giving it an initial value of an empty array. This is so that our new code can be a "drop-in" replacement for the `resources` variable we had created from `useLoaderData()`.
+
+1. Recall that the Resource Directory page was also "remembering" the selected resource (through the use of `localStorage`) via our custom `useSelectedResource()` hook. We can leverage `useQuery()` to capture and cache that data as well.
+
+    Add the following right after the code we replaced in the previous step.
+
+    ```js title="~/src/pages/ResourceDirectoryPage.jsx"
+      const selectedResourceId = selectedResource?.id ?? null;
+
+      const {
+        data: selectedResourceData,
+      } = useQuery({
+        queryKey: ['resource', selectedResourceId],
+        queryFn: () => fetchResourceById(selectedResourceId),
+        enabled: Boolean(selectedResourceId),
+        // cache the resource for some time
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      });
+
+      const displayedResource = selectedResourceData ?? selectedResource;
+    ```
+
+    Note that `useQuery()` will only call `queryFn` if we have a selected resource (`enabled: Boolean(selectedResourceId)`) and that we will be invalidating our cache after 5 minutes. Invalidating the cache will make sure we get the latest information on that particular resource.
+
+1. Thanks to the `isLoading` and `isError` state variables, we can provide a "quick result" for our component if the `resources` data is not (yet) available. Add the following after our  `useQuery()` call from the previous step.
+
+    ```js title="~/src/pages/ResourceDirectoryPage.jsx"
+      if (isLoading) {
+        return <p>Loading resources...</p>;
+      }
+
+      if (isError) {
+        return <p>Error loading resources: {error.message}</p>;
+      }
+    ```
+
+    <Aside type="caution" title="Remember the React Rules for Hooks">
+    You might be tempted to put these *"if-then-return"* checks before the `useQuery()` that handled our selected resource. **Don't!**
+
+    Remember the <a href="https://react.dev/reference/rules" target="_blank">Rules of React</a>. You should always ensure your component has the <a href="https://react.dev/reference/rules#rules-of-hooks" target="_blank">same hook invocations</a>, regardless of the state of the component. If you exit *before* performing any other hooks, you will confuse React's management of your component lifecycle.
+    </Aside>
+
+1. In the primary JSX block that our component returns, let's clean out the commented code. It wasn't rendering anyway, and the result it represents has been handled by our previous step.
+
+    ```diff lang="jsx" title="~/src/pages/ResourceDirectoryPage.jsx"
+      export default function ResourceDirectoryPage() {
+        // keep code from prior steps
+        return (
+          <>
+    -       {/* The following is not great for UX/UI, but it gets the point across. Feel free to style
+    -       the loading and error states in "nicer" way. */}
+    -       {/* {isLoading && (
+    -         <div className="text-sm text-base-content/70">Loading resources...</div>
+    -       )}
+    -       {error && (
+    -         <div className="alert alert-error">
+    -           <div>
+    -             <p className="font-semibold">Could not load resources</p>
+    -             <p className="text-sm opacity-80">{error.message}</p>
+    -             <button className="btn btn-sm mt-2" onClick={refetch}>Try again</button>
+    -           </div>
+    -         </div>
+    -       )} */}
+    ```
+
+1. Lastly, let's update the part of our JSX that conditionally renders our details.
+
+    ```diff lang="jsx" title="~/src/pages/ResourceDirectoryPage.jsx"
+            <aside className="md:col-span-1 lg:col-span-1">
+    -         {selectedResource ? (
+    -           <Details resource={selectedResource} />
+    +         {displayedResource ? (
+    +           <Details resource={displayedResource} />
+              ) : (
+                <div className="text-sm text-base-content/70">
+                  Select a resource to view details.
+                </div>
+              )}
+            </aside>
+    ```
+
+</Steps>
+
+One of the key takeaways from including TanStack's `useMutation()` hook is that when the server data is updated, all cached queries will be invalidated and refreshed. TanStack Query will refetch on window focus (in case the user has switched away from the browser or the tab). TanStack helps to keep our data "fresh" and current, and we can configure this with `staleTime`.
+
+Inspect the Network tab in DevTools and move back and forth between displayed results. You should observe that there are no additional requests being sent after the initial request for each unique resource.
+
+### Update `AdminPage.jsx`
+
+Our `AdminPage.jsx` component also fetches data. It needs all the resources (`fetchResources()`) and whatever specific resource that we might be editing (`fetchResourceById()`). Again TanStack Query will help us integrate these async function calls with the React lifecycle.
+
+#### Arrange our Hooks
+
+<Steps>
+1. Once again, replace a few of the imports. Note that we're making some choices to use different React Router hooks than we previously did.
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+    - import { NavLink, useLoaderData, useNavigation } from 'react-router';
+    + import { NavLink, useNavigate, useParams } from 'react-router';
+    + import {
+    +   useMutation,    //
+    +   useQuery,       //
+    +   useQueryClient, //
+    + } from '@tanstack/react-query';
+
+      import Card from '../components/ui/Card';
+
+      import ResourceForm from '../components/ResourceForm';
+    + import { createResource, fetchResourceById, fetchResources, updateResource } from '../api/resources';
+    ```
+
+
+    We're going to use TanStack's `useMutation` and `useQueryClient` hooks as well.
+
+1. To begin our component function's processing, we'll change how we obtain the `resources`. If we're editing, we'll also be grabbing the `resourceId`, and `selectedResource`.
+1. Remove the old `useLoaderData()`.
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+      export default function AdminPage() {
+    -   const { resources, resourceId, selectedResource } = useLoaderData();
+    ```
+
+1. Use TanStack to get the `resources`.
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+      export default function AdminPage() {
+    +   // Query for the resources (via TanStack)
+    +   const {
+    +     data: resources = [],
+    +     isLoading: isLoadingResources,
+    +     isError: isResourcesError,
+    +     error: resourcesError,
+    +   } = useQuery({
+    +     queryKey: ['resources'],
+    +     queryFn: fetchResources,
+    +   });
+    ```
+
+1. Use React Rounter to get the `resourceId`.
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+    +   // Get the resourceId, if any (via React Router)
+    +   const { resourceId } = useParams();
+    ```
+
+1. Use TanStack to get the `selectedResource` (based on the `resourceId`, if any).
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+    +   // Query for the selectedResource (if we are editing)
+    +   const {
+    +     data: selectedResource,
+    +     isLoading: isLoadingSelectedResource,
+    +     isError: isSelectedResourceError,
+    +     error: selectedResourceError,
+    +   } = useQuery({
+    +     queryKey: ['resource', resourceId],
+    +     queryFn: () => fetchResourceById(resourceId),
+    +     enabled: Boolean(resourceId),
+    +   });
+    ```
+
+    Notice the caching key we're using with the `queryKey`. If the resource id is `'tutoring'`, then the key will be `'resource-tutoring'`.
+
+    Also notice that this hook will only call the `queryFn` if we have a resource id: `enabled: Boolean(resourceId)`.
+
+1. Next, we'll change how we will perform navigation when we ultimately save our form's data. Replace the old React Router `useNavigation()` hook to instead work with `useNavigate()` and `useQueryClient()`.
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+    -   const navigation = useNavigation();
+    +   // These TanStack and React Router functions
+    +   // will be used together when we save and then
+    +   // navigate to edit mode for the saved resource.
+    +   const navigate = useNavigate();
+    +   const queryClient = useQueryClient();
+    ```
+
+1. TanStack's `useMutation()` hook will help us control all the state changes and "page reloading" related to saving information for the resource form.
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+    +   // TanStack hook for submitting form data
+    +   const saveResourceMutation = useMutation({
+    +     mutationFn: ({ payload, resourceId: currentResourceId }) => {
+    +       return currentResourceId
+    +         ? updateResource(currentResourceId, payload)
+    +         : createResource(payload);
+    +     },
+    +     onSuccess: async (savedResource) => {
+    +       await queryClient.invalidateQueries({ queryKey: ['resources'] });
+    +       await queryClient.invalidateQueries({ queryKey: ['resource', savedResource.id] });
+    +       navigate(`/admin/${savedResource.id}`);
+    +     },
+    +   });
+    ```
+
+</Steps>
+
+At this point, our `AdminPage` component has all its hooks in place. Now we can use those hook objects in our form processing.
+
+#### Complete our Processing Logic
+
+<Steps>
+1. Our page will still need to track what state we're in during save operations. We'll use the results of the TanStack mutation hook.
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+    -   const isSubmitting = navigation.state === 'submitting';
+    +   const isSubmitting = saveResourceMutation.isPending;
+    ```
+
+1. We'll create a function to send to our `<ResourceForm>` for handling form submissions.
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+    +   // Callback to invoke the TanStack mutation function to save the data
+    +   function handleSubmitResource(formData) {
+    +     saveResourceMutation.mutate({
+    +       payload: formData,
+    +       resourceId,
+    +     });
+    +   }
+    ```
+
+1. Now, we can provide our "early exit" checks related to the `useQuery()` hook results gained earlier.
+1. If we don't have the list of resources yet, return a simple loading message.
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+    +   // Early exit if the resource list is not yet loaded
+    +   if (isLoadingResources) {
+    +     return <p>Loading resources...</p>;
+    +   }
+    ```
+
+1. If there are problems loading the list of resources, tell the user.
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+    +   // Early exit to report errors in fetching
+    +   if (isResourcesError) {
+    +     return <p>Error loading resources: {resourcesError.message}</p>;
+    +   }
+    ```
+
+1. If we're waiting for the specific resource that we are trying to edit, exit with an appropriate message.
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+    +   // Early exit if we are loading a specific resource to be edited
+    +   if (resourceId && isLoadingSelectedResource) {
+    +     return <p>Loading selected resource...</p>;
+    +   }
+    ```
+
+1. If an error happens when we try to load that specific resource, tell the user.
+
+    ```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+    +   // Early exit to report errors regarding the specific resource we are editing
+    +   if (resourceId && isSelectedResourceError) {
+    +     return <p>Error loading selected resource: {selectedResourceError.message}</p>;
+    +   }
+    ```
+
+</Steps>
+
+<Aside type="tip">
+It should be noted that the approach we've taken for the "early exits" in our Admin and Resource Directory pages could have been handled differently. Rather than exiting with terse "Loading..." and "Error..." messages, we *could* have use the `isLoadingResources`, `isResourcesError`, etc. as conditional rendering in the bigger JSX block returned by our pages. That approach would allow for more "surgical" replacements of what the user sees when there are errors or when data is not yet available.
+</Aside>
+
+#### Complete the AdminPage's JSX
+
+We're now ready to wrap up our Admin page. We will pass our form submit callback function to the `<ResourceForm>` and include a bit of conditional rendering to report any errors in trying to save the data.
+
+```diff lang="jsx" title="~/src/pages/AdminPage.jsx"
+        <section className="md:col-span-3 lg:col-span-3">
+          <Card title="Resource Form">
+            <div className="card-body">
++               {saveResourceMutation.isError && (
++               <p className="text-sm text-red-600">
++                 Error saving resource: {saveResourceMutation.error.message}
++               </p>
++             )}
+
+            <ResourceForm
+                key={resourceId ?? 'new'}
+                initialData={initialFormData}
+                isEditing={Boolean(resourceId)}
+                isSubmitting={isSubmitting}
++               onSubmit={handleSubmitResource}
+              />
+            </div>
+          </Card>
+        </section>
+```
+
+
+
+## Conclusions
+
+You might be thinking that there's a lot of similarities between what TanStack Query does and React's native Context API, and you'd be right about that. But they are not identical or interchangable.
+
+Use React's Context API for
+
+- shared client state
+- UI preferences
+- simple shared values
+
+Use TanStack Query for
+
+- server data
+- async operations
+- caching and synchronization
+
+Here's a few other concluding things to note.
+
+- TanStack Query replaces loaders and actions for server data
+- server state is different from client state
+- TanStack Query manages fetching and caching
+- queries replace manual `useEffect` data fetching
+- query keys control caching behaviour
+
