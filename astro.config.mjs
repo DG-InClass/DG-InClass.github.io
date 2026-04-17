@@ -12,22 +12,20 @@ export default defineConfig({
     integrations: [
         starlight({
             title: 'DG In-Class',
-            pagefind: [
-                {
-                    bundlePath: 'https://dgilleland.github.io/CPSC-1520/pagefind',
-                    // Optional: slightly de-prioritize imported results vs local results
-                    // indexWeight: 0.9,
-                },
-                {
-                    bundlePath: 'https://dgilleland.github.io/DMIT-2008/pagefind',
-                    // indexWeight: 0.9,
-                },
+            pagefind: {
+              mergeIndex: [
+                // Optional: slightly de-prioritize imported results vs local results
+                // indexWeight: 0.9,
+                { bundlePath: 'https://dgilleland.github.io/CPSC-1520/pagefind' },
+                // indexWeight: 0.9,
+                { bundlePath: 'https://dgilleland.github.io/DMIT-2008/pagefind' },
                 // Add this later if/when the personal site also publishes Pagefind
                 // {
                 //   bundlePath: 'https://dgilleland.github.io/pagefind',
                 //   indexWeight: 0.7,
                 // },
-            ],
+              ],
+            },
             customCss: [
                 // Path to your Tailwind base styles:
                 './src/styles/global.css',
