@@ -82,14 +82,26 @@ const isProtectedPage = protectedSlugs.has(slug);
 <style>
     .auth-gate {
         display: grid;
+        max-width: 100%;
+        min-width: 0;
     }
 
     .auth-gate-checking,
     .auth-gate-result {
         grid-area: 1 / 1;
+        max-width: 100%;
+        min-width: 0;
         transition:
             opacity 160ms ease,
             transform 160ms ease;
+    }
+
+    .auth-gate :global(clerk-show),
+    .auth-gate :global([data-clerk-control-slot-default]),
+    .auth-gate :global([data-clerk-control-slot-fallback]) {
+        display: block;
+        max-width: 100%;
+        min-width: 0;
     }
 
     .auth-gate-checking {
