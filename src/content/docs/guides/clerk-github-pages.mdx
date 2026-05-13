@@ -105,11 +105,15 @@ In the Clerk dashboard:
 
 <Steps>
 1. Create or select the Clerk application for this site.
-1. Add the production domain for GitHub Pages, such as `https://dg-inclass.github.io`.
+1. If you are using a production Clerk instance, configure the production domain in the **Domains** area of the dashboard.
 1. Configure any sign-in or sign-up methods you want to allow.
 1. If you use Clerk-hosted Account Portal pages, confirm that sign-in and sign-up redirects return to your site.
 1. If the Clerk secret key has ever been committed, shown in logs, or shared in a screenshot, rotate it.
 </Steps>
+
+<Aside type="caution" title="Production domains and GitHub Pages">
+Clerk production instances expect production domain configuration. If the Clerk dashboard asks for DNS-based domain setup, use a custom domain for the GitHub Pages site. The default `github.io` URL is useful for testing, but a custom domain is the cleaner production setup.
+</Aside>
 
 ## Local development vs GitHub Pages
 
@@ -294,11 +298,23 @@ const match = protectedPrefixes.find((item) => slug === item.prefix || slug.star
 
 Clerk Organizations let you assign roles and permissions to users. For this site, an organization can represent the course site, and permissions can represent access to course sections.
 
+<Aside type="caution" title="Free-tier fit">
+The Clerk Hobby plan includes B2B Organizations with the built-in **Admin** and **Member** roles, custom permissions, invitations, and limited included organization usage. Custom roles and role sets are listed by Clerk as enhanced B2B features. Keep the free-tier setup to the built-in roles unless the Clerk dashboard for your plan explicitly allows custom roles in production.
+</Aside>
+
+For a free-tier-friendly setup, start with one organization for the site and use Clerk's built-in roles:
+
+- `org:admin` for site maintainers;
+- `org:member` for signed-in students or readers.
+
+Then create custom permissions only if they are useful with those built-in roles.
+
 <Steps>
 1. In Clerk, open the application for this site.
 1. Go to the Organizations settings and enable Organizations.
 1. Go to Roles & Permissions.
-1. Create features for the course areas, such as `sdev1150`, `sdev2150`, and `dmit`.
+1. Use the built-in Admin and Member roles for a Hobby/free setup.
+1. If needed, create features for broad site areas, such as `sdev1150`, `sdev2150`, and `dmit`.
 1. Create read permissions for those features:
 
     ```txt
@@ -307,14 +323,22 @@ Clerk Organizations let you assign roles and permissions to users. For this site
     org:dmit:read
     ```
 
-1. Create roles that match your access patterns. For example, `SDEV 1150 Student`, `SDEV 2150 Student`, or `All Courses`.
-1. Assign the appropriate permissions to each role.
+1. Assign custom permissions to the built-in roles that should receive them.
 1. Create or select the organization for this site.
 1. Invite users to the organization.
-1. Assign each member the role that matches the course material they should see.
+1. Assign each member either the built-in Member or Admin role.
 </Steps>
 
 After changing a user's role or permissions, test in a fresh browser session. Session claims may not update instantly in an already-open session.
+
+If you need separate course access where one student can see SDEV-1150 and another can see SDEV-2150, the free-tier built-in roles may be too coarse if everything lives in one organization. Options are:
+
+- keep the GitHub Pages site at signed-in-only display protection and do not model per-course access in Clerk;
+- create separate organizations per course or cohort and test how active organization selection affects `<Protect permission="...">`;
+- upgrade to the Clerk B2B features that include custom roles and role sets;
+- move truly private or per-student material behind server-side authorization instead of GitHub Pages.
+
+Do not depend on custom roles such as `SDEV 1150 Student` unless your Clerk plan and production dashboard allow custom roles.
 
 ## Hide regular Starlight sidebar links
 
