@@ -104,6 +104,11 @@ const isProtectedPage = protectedSlugs.has(slug);
         min-width: 0;
     }
 
+    .auth-gate :global([data-clerk-control-slot-default][hidden]),
+    .auth-gate :global([data-clerk-control-slot-fallback][hidden]) {
+        display: none;
+    }
+
     .auth-gate-checking {
         opacity: 1;
         transform: translateY(0);
