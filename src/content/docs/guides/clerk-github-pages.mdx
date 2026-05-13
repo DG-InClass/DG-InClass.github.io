@@ -148,6 +148,28 @@ Use the production publishable key for the GitHub Pages build environment:
 PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 ```
 
+For GitHub Pages, add that value to GitHub Actions so the static build can see it.
+
+<Steps>
+1. In the GitHub repository, go to **Settings**.
+1. Open **Secrets and variables**.
+1. Choose **Actions**.
+1. Open the **Variables** tab.
+1. Add a repository variable named `PUBLIC_CLERK_PUBLISHABLE_KEY`.
+1. Set the value to the production Clerk publishable key, usually beginning with `pk_live_`.
+</Steps>
+
+Then pass that GitHub Actions variable into the Astro build step in the Pages deployment workflow.
+
+```yaml title=".github/workflows/deploy.yml"
+- name: Install, build, and upload your site
+  uses: withastro/action@v5
+  env:
+    PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.PUBLIC_CLERK_PUBLISHABLE_KEY }}
+```
+
+The publishable key is safe to use as a GitHub Actions variable because it is designed to be exposed in browser code. Do not add `CLERK_SECRET_KEY` to this static GitHub Pages build.
+
 Do not mix the keys casually. If the static site is built with a development key, the deployed GitHub Pages site will talk to the Clerk development instance. That can make production testing confusing because users, organizations, roles, permissions, domains, and redirect settings may not match the production Clerk instance.
 
 Before deploying, check:
@@ -574,7 +596,8 @@ Before deploying:
 - confirm `.env` is ignored and not tracked;
 - remove `CLERK_SECRET_KEY` from the static-site setup;
 - remove `src/middleware.ts` unless you are preparing for a server host;
-- add the Clerk publishable key to the GitHub Pages build environment if the build needs it;
+- add `PUBLIC_CLERK_PUBLISHABLE_KEY` as a GitHub Actions repository variable;
+- pass that variable into the `withastro/action` build step in `.github/workflows/deploy.yml`;
 - confirm the Clerk dashboard allows the GitHub Pages origin;
 - test signed-out browsing in a private window;
 - test signed-in browsing with a user who has each expected role;
