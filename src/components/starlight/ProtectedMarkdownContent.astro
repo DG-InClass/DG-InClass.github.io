@@ -1,0 +1,36 @@
+---
+import Default from '@astrojs/starlight/components/MarkdownContent.astro';
+import { Show, SignInButton } from '@clerk/astro/components';
+
+const protectedSlugs = new Set(['guides/clerk-github-pages']);
+const slug = Astro.locals.starlightRoute.entry.slug;
+const isProtectedPage = protectedSlugs.has(slug);
+---
+
+{
+    isProtectedPage ? (
+        <Show when="signed-in">
+            <Default>
+                <slot />
+            </Default>
+
+            <div slot="fallback" class="sl-markdown-content auth-protected-content">
+                <h2>Sign in to view this guide</h2>
+                <p>This maintainer guide is displayed only for signed-in users.</p>
+                <SignInButton mode="modal" />
+            </div>
+        </Show>
+    ) : (
+        <Default>
+            <slot />
+        </Default>
+    )
+}
+
+<style>
+    .auth-protected-content {
+        border: 1px solid var(--sl-color-hairline);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+    }
+</style>

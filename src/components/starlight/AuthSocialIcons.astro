@@ -1,0 +1,14 @@
+---
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+import { Show, SignInButton, UserButton } from '@clerk/astro/components';
+---
+
+<Default><slot /></Default>
+
+<Show when="signed-out">
+  <SignInButton mode="modal" />
+</Show>
+
+<Show when="signed-in">
+  <UserButton />
+</Show>

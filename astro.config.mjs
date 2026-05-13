@@ -5,17 +5,24 @@ import starlight from '@astrojs/starlight';
 import tailwindcss from '@tailwindcss/vite';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
 
+import clerk from '@clerk/astro';
+
 // https://astro.build/config
 export default defineConfig({
     site: 'https://dg-inclass.github.io',
 
     integrations: [
+        clerk(),
         starlight({
             title: 'DG In-Class',
             customCss: [
                 // Path to your Tailwind base styles:
                 './src/styles/global.css',
             ],
+            components: {
+                SocialIcons: './src/components/starlight/AuthSocialIcons.astro',
+                MarkdownContent: './src/components/starlight/ProtectedMarkdownContent.astro',
+            },
             social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/dg-inclass/dg-inclass.github.io' }],
             // sidebar: [
             //     {
@@ -108,9 +115,31 @@ export default defineConfig({
                             }
                         ],
                     },
+                    {
+                        label: 'Errata',
+                        id: 'errata',
+                        link: '/guides/',
+                        icon: 'information',
+                        items: [
+                            {
+                                label: 'Guides',
+                                autogenerate: { directory: 'guides' },
+                            },
+                            {
+                                label: 'Reference',
+                                autogenerate: { directory: 'reference' },
+                            },
+                        ],
+                    },
                 ],
                 {
-                    exclude: ['/guides/*','/reference/*', '/blog/**/*'],
+                    exclude: ['/blog/**/*'],
+                    topics: {
+                        sdev1150: ['/sdev-1150/**'],
+                        sdev2150: ['/sdev-2150/**'],
+                        dmit: ['/dmit/**'],
+                        errata: ['/guides/**', '/reference/**'],
+                    },
                 },
                 ),
             ]

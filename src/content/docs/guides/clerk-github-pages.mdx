@@ -1,0 +1,589 @@
+---
+title: Clerk with GitHub Pages
+description: Using Clerk for signed-in-only display gating on a static Astro Starlight site.
+sidebar:
+  label: Clerk + GitHub Pages
+draft: false
+---
+
+import { Aside, FileTree, Steps } from '@astrojs/starlight/components';
+
+This guide explains how to use Clerk with an Astro Starlight site that is deployed to GitHub Pages.
+
+The goal is **signed-in-only display**. Clerk can help the normal site UI show sign-in controls, hide course links, and show fallback messages to signed-out users.
+
+It is not the same as server-side access control.
+
+<Aside type="caution" title="Static sites are not private by default">
+GitHub Pages serves static files that were already generated at build time. If a page or asset is included in the deployed `dist` folder, Clerk cannot completely prevent someone from requesting that file directly.
+</Aside>
+
+The sidebar customization approach in this guide was inspired by <a href="https://lirantal.com/blog/customizing-astro-starlight-sidebar-gated-content-auth" target="_blank" rel="noreferrer">Liran Tal’s article on customizing the Astro Starlight sidebar for gated content</a>. His article demonstrates a stronger server-rendered approach using Starlight customization, Clerk, and server-side checks. This guide adapts the Starlight sidebar customization idea for a static GitHub Pages site.
+
+## What this protects
+
+Use this setup for:
+
+- hiding course navigation from signed-out users;
+- showing sign-in prompts instead of course content in normal browser use;
+- keeping a cleaner experience for students who should sign in first;
+- managing who appears to have course access through Clerk.
+
+Do not use this setup for:
+
+- exam material that must stay secret;
+- answer keys;
+- private student information;
+- anything that must be impossible to download without authorization.
+
+If the content must be truly private, it should not be part of the static GitHub Pages build. Move it behind server-side rendering, an authenticated API, or another private distribution method.
+
+## How GitHub Pages changes the Clerk setup
+
+Astro middleware and server-side Clerk checks only help when an Astro server is handling requests.
+
+GitHub Pages does not run your Astro server. It serves the static files from the built output.
+
+That means this file is not useful for production protection on GitHub Pages:
+
+```ts title="src/middleware.ts"
+import { clerkMiddleware } from '@clerk/astro/server'
+
+export const onRequest = clerkMiddleware()
+```
+
+For a GitHub Pages deployment, remove `src/middleware.ts` unless you are keeping it for a future server-capable deployment.
+
+## Install Clerk
+
+Install the Astro SDK.
+
+```powershell title="Install Clerk"
+pnpm add @clerk/astro
+```
+
+Add Clerk to the Astro integrations list.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import starlight from '@astrojs/starlight';
+import clerk from '@clerk/astro';
+
+export default defineConfig({
+  site: 'https://dg-inclass.github.io',
+  integrations: [
+    clerk(),
+    starlight({
+      title: 'DG In-Class',
+    }),
+  ],
+});
+```
+
+## Environment variables
+
+For signed-in-only display on GitHub Pages, you normally only need the publishable key.
+
+```dotenv title=".env"
+PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
+```
+
+Do not keep or deploy `CLERK_SECRET_KEY` for this static-only setup. The secret key is for server-side Clerk operations such as middleware enforcement, backend authorization checks, webhooks, and user management from a server.
+
+Make sure `.env` is ignored by Git.
+
+```powershell title="Check that .env is ignored"
+git check-ignore -v .env
+git ls-files .env
+```
+
+The first command should show the matching `.gitignore` rule. The second command should print nothing.
+
+## Configure Clerk.com
+
+In the Clerk dashboard:
+
+<Steps>
+1. Create or select the Clerk application for this site.
+1. Add the production domain for GitHub Pages, such as `https://dg-inclass.github.io`.
+1. Configure any sign-in or sign-up methods you want to allow.
+1. If you use Clerk-hosted Account Portal pages, confirm that sign-in and sign-up redirects return to your site.
+1. If the Clerk secret key has ever been committed, shown in logs, or shared in a screenshot, rotate it.
+</Steps>
+
+## Local development vs GitHub Pages
+
+Clerk has to know which browser origins are allowed to use the application. Local development and the hosted GitHub Pages site are different origins.
+
+For local development, the site usually runs at an Astro dev server URL such as:
+
+```txt title="Local development origins"
+http://localhost:4321
+http://127.0.0.1:4321
+```
+
+For GitHub Pages, the hosted site origin is the public URL:
+
+```txt title="Production origin"
+https://dg-inclass.github.io
+```
+
+In the Clerk dashboard, check the allowed origins, redirect URLs, and after-sign-in/after-sign-up URLs for the environment you are working in. If local sign-in works but the GitHub Pages deployment does not, the production origin or redirect settings are often the first thing to check.
+
+<Aside type="tip" title="Use the right Clerk instance settings">
+Clerk applications have development and production settings. When you are testing locally, make changes in the development instance. When you are preparing the GitHub Pages deployment, switch to the production instance/settings in the Clerk dashboard and confirm the GitHub Pages URL is allowed there too.
+</Aside>
+
+The publishable key also belongs to a Clerk environment. A development key normally starts with `pk_test_`. A production key normally starts with `pk_live_`.
+
+Use the development publishable key in local `.env` while building and testing on your computer:
+
+```dotenv title=".env for local development"
+PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+```
+
+Use the production publishable key for the GitHub Pages build environment:
+
+```dotenv title="GitHub Pages build environment"
+PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
+```
+
+Do not mix the keys casually. If the static site is built with a development key, the deployed GitHub Pages site will talk to the Clerk development instance. That can make production testing confusing because users, organizations, roles, permissions, domains, and redirect settings may not match the production Clerk instance.
+
+Before deploying, check:
+
+- the dashboard is switched to the production Clerk instance;
+- the production GitHub Pages origin is allowed;
+- production redirect URLs point back to `https://dg-inclass.github.io`;
+- the GitHub Pages build uses the production publishable key;
+- the users, organization memberships, roles, and permissions exist in production, not only in development.
+
+## Add sign-in controls to Starlight
+
+Starlight lets you override built-in components through the `components` option.
+
+For a small sign-in area in the header, override `SocialIcons`. This keeps the existing GitHub link area and adds Clerk controls beside it.
+
+```js title="astro.config.mjs"
+starlight({
+  title: 'DG In-Class',
+  components: {
+    SocialIcons: './src/components/starlight/AuthSocialIcons.astro',
+  },
+})
+```
+
+Create the override component.
+
+```astro title="src/components/starlight/AuthSocialIcons.astro"
+---
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+import { Show, SignInButton, UserButton } from '@clerk/astro/components';
+---
+
+<Default><slot /></Default>
+
+<Show when="signed-out">
+  <SignInButton mode="modal" />
+</Show>
+
+<Show when="signed-in">
+  <UserButton />
+</Show>
+```
+
+The important pattern is to import the default Starlight component and render it. That preserves the built-in behavior while adding the auth UI.
+
+## Protect page display
+
+Use Clerk's `<Protect>` component to show fallback content to users who are signed out or do not have the required permission.
+
+```astro title="Example protected block"
+---
+import { Protect, SignInButton } from '@clerk/astro/components';
+---
+
+<Protect permission="org:sdev1150:read">
+  <p>This content is shown to users with SDEV-1150 access.</p>
+
+  <div slot="fallback">
+    <p>Sign in with an account that has SDEV-1150 access.</p>
+    <SignInButton mode="modal" />
+  </div>
+</Protect>
+```
+
+<Aside type="caution" title="Protect hides display, not the static file">
+On GitHub Pages, `<Protect>` is useful for normal browsing flow. It should not be treated as a privacy or secrecy boundary for generated static content.
+</Aside>
+
+## Protect course pages with a Starlight override
+
+If the whole course area should show a fallback to signed-out users, override `ContentPanel`.
+
+```js title="astro.config.mjs"
+starlight({
+  title: 'DG In-Class',
+  components: {
+    ContentPanel: './src/components/starlight/ProtectedContentPanel.astro',
+  },
+})
+```
+
+Create a small route-to-permission map.
+
+```astro title="src/components/starlight/ProtectedContentPanel.astro"
+---
+import Default from '@astrojs/starlight/components/ContentPanel.astro';
+import { Protect, SignInButton } from '@clerk/astro/components';
+
+const protectedPrefixes = [
+  { prefix: 'sdev-1150', permission: 'org:sdev1150:read', label: 'SDEV-1150' },
+  { prefix: 'sdev-2150', permission: 'org:sdev2150:read', label: 'SDEV-2150' },
+  { prefix: 'dmit', permission: 'org:dmit:read', label: 'DMIT' },
+];
+
+const slug = Astro.props.slug ?? '';
+const match = protectedPrefixes.find((item) => slug === item.prefix || slug.startsWith(`${item.prefix}/`));
+---
+
+{
+  match ? (
+    <Protect permission={match.permission}>
+      <Default {...Astro.props}>
+        <slot />
+      </Default>
+
+      <div slot="fallback">
+        <h2>Sign in to view {match.label}</h2>
+        <p>This course area is shown only to signed-in accounts with the correct Clerk permission.</p>
+        <SignInButton mode="modal" />
+      </div>
+    </Protect>
+  ) : (
+    <Default {...Astro.props}>
+      <slot />
+    </Default>
+  )
+}
+```
+
+## Manage Organizations, Roles, and Permissions
+
+Clerk Organizations let you assign roles and permissions to users. For this site, an organization can represent the course site, and permissions can represent access to course sections.
+
+<Steps>
+1. In Clerk, open the application for this site.
+1. Go to the Organizations settings and enable Organizations.
+1. Go to Roles & Permissions.
+1. Create features for the course areas, such as `sdev1150`, `sdev2150`, and `dmit`.
+1. Create read permissions for those features:
+
+    ```txt
+    org:sdev1150:read
+    org:sdev2150:read
+    org:dmit:read
+    ```
+
+1. Create roles that match your access patterns. For example, `SDEV 1150 Student`, `SDEV 2150 Student`, or `All Courses`.
+1. Assign the appropriate permissions to each role.
+1. Create or select the organization for this site.
+1. Invite users to the organization.
+1. Assign each member the role that matches the course material they should see.
+</Steps>
+
+After changing a user's role or permissions, test in a fresh browser session. Session claims may not update instantly in an already-open session.
+
+## Hide regular Starlight sidebar links
+
+The Starlight sidebar can also be customized through a `Sidebar` override.
+
+Liran Tal's article uses a server-rendered Starlight site and checks the current user on the server before rendering sidebar entries. On GitHub Pages, you cannot do that request-time server check. You can still use the same Starlight override idea for display gating.
+
+```js title="astro.config.mjs"
+starlight({
+  title: 'DG In-Class',
+  components: {
+    Sidebar: './src/components/starlight/AuthSidebar.astro',
+  },
+})
+```
+
+A sidebar entry can be hidden completely, or replaced with a locked placeholder.
+
+```astro title="src/components/starlight/AuthSidebar.astro"
+---
+import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
+import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
+import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter';
+import { Protect, Show, SignInButton } from '@clerk/astro/components';
+
+const protectedAreas = [
+  { prefix: '/sdev-1150/', permission: 'org:sdev1150:read' },
+  { prefix: '/sdev-2150/', permission: 'org:sdev2150:read' },
+  { prefix: '/dmit/', permission: 'org:dmit:read' },
+];
+
+function getPermissionForHref(href) {
+  return protectedAreas.find((area) => href?.startsWith(area.prefix))?.permission;
+}
+
+function splitSidebar(entries, protectedEntriesByPermission = new Map()) {
+  const publicEntries = [];
+
+  for (const entry of entries) {
+    if (entry.type === 'link') {
+      const permission = getPermissionForHref(entry.href);
+
+      if (permission) {
+        protectedEntriesByPermission.set(permission, [
+          ...(protectedEntriesByPermission.get(permission) ?? []),
+          entry,
+        ]);
+      } else {
+        publicEntries.push(entry);
+      }
+
+      continue;
+    }
+
+    const nested = splitSidebar(entry.entries, protectedEntriesByPermission);
+    if (nested.publicEntries.length > 0) {
+      publicEntries.push({ ...entry, entries: nested.publicEntries });
+    }
+  }
+
+  return { publicEntries, protectedEntriesByPermission };
+}
+
+const { publicEntries, protectedEntriesByPermission } = splitSidebar(Astro.locals.starlightRoute.sidebar);
+---
+
+<SidebarPersister>
+  <SidebarSublist sublist={publicEntries} />
+
+  {
+    [...protectedEntriesByPermission.entries()].map(([permission, entries]) => (
+      <Protect permission={permission}>
+        <SidebarSublist sublist={entries} />
+      </Protect>
+    ))
+  }
+</SidebarPersister>
+
+<Show when="signed-out">
+  <p class="auth-sidebar-note">
+    Sign in to see course links.
+    <SignInButton mode="modal" />
+  </p>
+</Show>
+
+<div class="md:sl-hidden">
+  <MobileMenuFooter />
+</div>
+```
+
+This hides protected links from the normal signed-out sidebar. It does not remove the built pages from the deployed site.
+
+### Show locked placeholders instead
+
+If you want users to see that a course exists, keep the group but remove its children.
+
+```js title="Locked placeholder idea"
+function lockProtectedGroups(entries, signedOut) {
+  return entries.map((entry) => {
+    if (signedOut && entry.type === 'group' && ['SDEV-1150', 'SDEV-2150', 'DMIT Courses'].includes(entry.label)) {
+      return {
+        ...entry,
+        label: `${entry.label} locked`,
+        entries: [],
+        badge: { text: 'Sign in', variant: 'tip' },
+      };
+    }
+
+    if (entry.type === 'group') {
+      return { ...entry, entries: lockProtectedGroups(entry.entries) };
+    }
+
+    return entry;
+  });
+}
+```
+
+## Hide links with `starlightSidebarTopics`
+
+This site uses `starlight-sidebar-topics`, which already overrides Starlight's `Sidebar` component.
+
+That matters because a custom `Sidebar` override can accidentally replace the plugin's topic list.
+
+The plugin's override uses this shape:
+
+```astro title="starlight-sidebar-topics/overrides/Sidebar.astro"
+---
+import Default from '@astrojs/starlight/components/Sidebar.astro'
+import StarlightSidebarTopicsSidebar from '../components/starlight/Sidebar.astro'
+---
+
+<StarlightSidebarTopicsSidebar />
+<Default><slot /></Default>
+```
+
+If you write your own sidebar override while using this plugin, preserve that shape.
+
+```astro title="src/components/starlight/AuthTopicsSidebar.astro"
+---
+import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
+import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
+import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter';
+import AuthTopicsList from './AuthTopicsList.astro';
+import { Protect } from '@clerk/astro/components';
+
+const protectedAreas = [
+  { prefix: '/sdev-1150/', permission: 'org:sdev1150:read' },
+  { prefix: '/sdev-2150/', permission: 'org:sdev2150:read' },
+  { prefix: '/dmit/', permission: 'org:dmit:read' },
+];
+
+function getPermissionForHref(href) {
+  return protectedAreas.find((area) => href?.startsWith(area.prefix))?.permission;
+}
+
+function splitSidebar(entries, protectedEntriesByPermission = new Map()) {
+  const publicEntries = [];
+
+  for (const entry of entries) {
+    if (entry.type === 'link') {
+      const permission = getPermissionForHref(entry.href);
+      if (permission) protectedEntriesByPermission.set(permission, [...(protectedEntriesByPermission.get(permission) ?? []), entry]);
+      else publicEntries.push(entry);
+      continue;
+    }
+
+    const nested = splitSidebar(entry.entries, protectedEntriesByPermission);
+    if (nested.publicEntries.length > 0) publicEntries.push({ ...entry, entries: nested.publicEntries });
+  }
+
+  return { publicEntries, protectedEntriesByPermission };
+}
+
+const { publicEntries, protectedEntriesByPermission } = splitSidebar(Astro.locals.starlightRoute.sidebar);
+---
+
+<AuthTopicsList />
+
+<SidebarPersister>
+  <SidebarSublist sublist={publicEntries} />
+
+  {
+    [...protectedEntriesByPermission.entries()].map(([permission, entries]) => (
+      <Protect permission={permission}>
+        <SidebarSublist sublist={entries} />
+      </Protect>
+    ))
+  }
+</SidebarPersister>
+
+<div class="md:sl-hidden">
+  <MobileMenuFooter />
+</div>
+```
+
+Then point Starlight at your override.
+
+```js title="astro.config.mjs"
+starlight({
+  title: 'DG In-Class',
+  components: {
+    Sidebar: './src/components/starlight/AuthTopicsSidebar.astro',
+  },
+  plugins: [
+    starlightSidebarTopics([
+      // topic configuration
+    ]),
+  ],
+})
+```
+
+### Hide topic buttons
+
+The plugin also renders a topic list from `Astro.locals.starlightSidebarTopics.topics`.
+
+If you need conditional topic buttons, create a custom topic list component instead of using the built-in one.
+
+```astro title="src/components/starlight/AuthTopicsList.astro"
+---
+import { Badge, Icon } from '@astrojs/starlight/components';
+import { Protect } from '@clerk/astro/components';
+
+const allTopics = Astro.locals.starlightSidebarTopics.topics;
+const protectedTopics = new Map([
+  ['SDEV-1150', 'org:sdev1150:read'],
+  ['SDEV-2150', 'org:sdev2150:read'],
+  ['DMIT Courses', 'org:dmit:read'],
+]);
+---
+
+<ul class="starlight-sidebar-topics">
+  {
+    allTopics.map((topic) => {
+      const permission = protectedTopics.get(topic.label);
+      const topicLink = (
+        <li>
+          <a href={topic.link} class:list={{ 'starlight-sidebar-topics-current': topic.isCurrent }}>
+            {topic.icon && <Icon name={topic.icon} />}
+            {topic.label}
+            {topic.badge && <Badge text={topic.badge.text} variant={topic.badge.variant} />}
+          </a>
+        </li>
+      );
+
+      return permission ? <Protect permission={permission}>{topicLink}</Protect> : topicLink;
+    })
+  }
+</ul>
+```
+
+The plugin configuration options are still useful, but they are build-time tools:
+
+- `items` defines the sidebar entries for a topic.
+- `exclude` keeps pages out of topic handling.
+- `topics` associates unlisted pages with a topic.
+
+They do not create per-user runtime authorization by themselves.
+
+## Suggested file structure
+
+<FileTree>
+- src/
+  - components/
+    - starlight/
+      - AuthSocialIcons.astro
+      - ProtectedContentPanel.astro
+      - AuthTopicsSidebar.astro
+      - AuthTopicsList.astro
+  - content/
+    - docs/
+      - guides/
+        - clerk-github-pages.mdx
+</FileTree>
+
+## Production checklist
+
+Before deploying:
+
+- confirm `.env` is ignored and not tracked;
+- remove `CLERK_SECRET_KEY` from the static-site setup;
+- remove `src/middleware.ts` unless you are preparing for a server host;
+- add the Clerk publishable key to the GitHub Pages build environment if the build needs it;
+- confirm the Clerk dashboard allows the GitHub Pages origin;
+- test signed-out browsing in a private window;
+- test signed-in browsing with a user who has each expected role;
+- inspect the built `dist` folder so the static-site limitation is clear.
+
+## Summary
+
+Clerk can make a GitHub Pages Starlight site feel signed-in-only for normal users. It can show account controls, hide course links, and display fallbacks based on roles or permissions.
+
+That is useful for course navigation and student experience.
+
+It is not a replacement for server-side authorization.
