@@ -9,17 +9,26 @@ const isProtectedPage = protectedSlugs.has(slug);
 
 {
     isProtectedPage ? (
-        <Show when="signed-in">
-            <Default>
-                <slot />
-            </Default>
-
-            <div slot="fallback" class="sl-markdown-content auth-protected-content">
-                <h2>Sign in to view this guide</h2>
-                <p>This maintainer guide is displayed only for signed-in users.</p>
-                <SignInButton mode="modal" />
+        <div class="auth-gate" data-auth-gate>
+            <div class="sl-markdown-content auth-protected-content auth-gate-checking" data-auth-gate-checking>
+                <h2>Checking auth...</h2>
+                <p>Please wait while we check your sign-in status before showing this content.</p>
             </div>
-        </Show>
+
+            <div class="auth-gate-result" data-auth-gate-result>
+                <Show when="signed-in" treatPendingAsSignedOut={false}>
+                    <Default>
+                        <slot />
+                    </Default>
+
+                    <div slot="fallback" class="sl-markdown-content auth-protected-content">
+                        <h2>Sign in to view this content</h2>
+                        <p>This content is displayed only for signed-in users.</p>
+                        <SignInButton mode="modal" />
+                    </div>
+                </Show>
+            </div>
+        </div>
     ) : (
         <Default>
             <slot />
@@ -27,7 +36,84 @@ const isProtectedPage = protectedSlugs.has(slug);
     )
 }
 
+<script>
+    function resolveAuthGates() {
+        document.querySelectorAll('[data-auth-gate]').forEach((gate) => {
+            const clerkShow = gate.querySelector('clerk-show');
+            const result = gate.querySelector('[data-auth-gate-result]');
+            const checking = gate.querySelector('[data-auth-gate-checking]');
+
+            if (!clerkShow || !result || !checking) return;
+
+            const updateGateState = () => {
+                const defaultSlot = clerkShow.querySelector('[data-clerk-control-slot-default]');
+                const fallbackSlot = clerkShow.querySelector('[data-clerk-control-slot-fallback]');
+                const isResolved =
+                    (defaultSlot && !defaultSlot.hasAttribute('hidden')) ||
+                    (fallbackSlot && !fallbackSlot.hasAttribute('hidden'));
+
+                if (!isResolved) return;
+
+                gate.setAttribute('data-auth-gate-state', 'resolved');
+
+                window.setTimeout(() => {
+                    checking.setAttribute('hidden', '');
+                }, 220);
+            };
+
+            updateGateState();
+
+            const observer = new MutationObserver(updateGateState);
+            observer.observe(clerkShow, {
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['hidden'],
+            });
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', resolveAuthGates, { once: true });
+    } else {
+        resolveAuthGates();
+    }
+</script>
+
 <style>
+    .auth-gate {
+        display: grid;
+    }
+
+    .auth-gate-checking,
+    .auth-gate-result {
+        grid-area: 1 / 1;
+        transition:
+            opacity 160ms ease,
+            transform 160ms ease;
+    }
+
+    .auth-gate-checking {
+        opacity: 1;
+        transform: translateY(0);
+        z-index: 1;
+    }
+
+    .auth-gate-result {
+        opacity: 0;
+        transform: translateY(0.25rem);
+    }
+
+    .auth-gate[data-auth-gate-state='resolved'] .auth-gate-checking {
+        opacity: 0;
+        transform: translateY(-0.25rem);
+        pointer-events: none;
+    }
+
+    .auth-gate[data-auth-gate-state='resolved'] .auth-gate-result {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     .auth-protected-content {
         border: 1px solid var(--sl-color-hairline);
         border-radius: 0.5rem;
