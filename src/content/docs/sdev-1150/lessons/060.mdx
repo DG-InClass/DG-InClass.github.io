@@ -1,0 +1,466 @@
+---
+title: Creating and Using Objects
+description: Instructor guide for object literals, constructor functions, prototypes, and classes
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 1" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="90-120">
+> ⚠️ Be mindful of delivery time; this walkthrough can easily run long if discussion expands.
+
+- This lesson is longer and more conceptually layered than lesson 02.
+- Students type through object literals, constructor functions, prototypes, class expressions, method calls, and class declarations.
+- The walkthrough needs time to compare several object-creation patterns without making them feel like unrelated syntax.
+- The estimate allows extra time for slower typing, terminology checks, and discussion around shared structure and methods.
+</Instructor>
+
+
+
+We're going to explore a few ways to create and use objects in JavaScript. We'll start with a [plain object literal](#plain-object-literal). Then we'll look at [constructor functions](#constructor-function) and prototypes. Finally, we'll look at a simple example of [JavaScript classes](#classes-in-javascript).
+
+
+----
+
+## Lecture
+
+Why look at objects? The answer is simple: Because they are ***EVERYWHERE***!
+
+You can't escape the presence of objects in JavaScript. Did you know that the `console` is an object?! 😱 The same is true for arrays and for `Math`. Don't believe me? Try seeing the result of `typeof console` or `typeof Math`, and you'll get a result of `'object'`.
+
+Objects are *not* scary or difficult. In fact, they are pretty easy to describe. An object is a set of *properties* (to hold related information) and *methods* (to perform some behaviours).
+
+```js title="any demo file"
+let person = { name: 'Stew Dent', age: 23 }
+console.log(typeof person);     // it's data type
+console.log(person.name);       // one of its properties
+console.log(person.valueOf());  // a method
+```
+
+<Aside type="tip" title="The Object Prototype">
+Did you notice the `.valueOf()` method? Where did *that* come from?
+
+Every object is ultimately founded upon something called the **Object Prototype**. We *could* get into all the nitty-gritty details behind why, but we'll leave that for a future discussion.
+
+The first big takeaway is that an object can have *zero or more* properties and *zero or more* methods. The second big takeaway is there are essentially *three ways* to create/design objects. We'll introduce all three in the demo walkthrough.
+</Aside>
+
+## Demo Walkthrough
+
+When students first open up `demo.js`, they are going to see a change in how the heading information is displayed. Because the previous lesson introduced functions, we're now going to see a function `displayHeading()` that will help us output headings while saving us some typing.
+
+```js title="demo.js" {1-5}
+/**
+ * Display a heading in the console with a leading blank line.
+ * @param {string} text The heading text
+ * @param {string?} marker The underline character (defaults to `-`)
+ */
+function displayHeading(text, marker = "-") {
+  console.log(); // Blank line before the heading
+  console.log(text);
+  console.log(marker.repeat(text.length));
+}
+```
+
+Part of what's unique and new here is the JSDoc comment. You can make note of it, but **JSDoc comments** are covered in the lesson on *JavaScript Modules*.
+
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="6" folder="~/inclass/06/" file="demo.js" lang="js" />
+
+### Assignment Credits...
+
+<Aside type="tip" title="Initial commit">
+  Have the student enter their name as a comment at the top of `demo.js` and then perform a commit.
+
+  ```ps title="Commit Example"
+  git add .
+  git commit -m "Begin lesson 06"
+  ```
+</Aside>
+
+### Plain Object Literal
+
+In earlier lessons, we've used object literals to group related values together. This is still one of the most common ways to create a single object.
+
+<Steps>
+1. Open the `~/inclass/06/demo.js` file in VS Code and then run it in Node's "watch" mode. You should see the following output.
+
+    ```ps title="Output"
+    Lesson 06 demo.js has loaded
+    =============================
+
+    ```
+
+    Our starter script confirms that the file is running.
+
+1. Add a small helper function that will describe any object we pass in.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      // Begin Lesson 06
+    + 
+    + displayHeading("Objects in the Hobby Workshop");
+    + 
+    + function describeObject(value) {
+    +   console.log("The value is:", value);
+    +   console.log("The data type is:", typeof value);
+    +   console.log("It is based on:", value.constructor.name);
+    +   console.log();
+    + }
+    ```
+
+    This function lets us describe objects as the demo grows. The `.constructor.name` detail gives us a hint about what kind of object was created.
+
+    <Aside type="note" title="A Utility Function">
+      This helper function is not the main focus of the lesson. It is here so we can reuse the same inspection code several times.
+
+      It also reinforces Lesson 06: functions help us name and reuse a repeated task.
+    </Aside>
+
+1. Create a plain object literal for a loose tool on the Electronics bench. Append this to the end of your script.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      function describeObject(value) {
+        console.log("The value is:", value);
+        console.log("The data type is:", typeof value);
+        console.log("It is based on:", value.constructor.name);
+        console.log();
+      }
+    +
+    + displayHeading("Plain object literal");
+    +
+    + let looseTool = {
+    +   name: 'soldering iron',
+    +   station: 'Electronics Bench'
+    + };
+    + 
+    + describeObject(looseTool);
+    ```
+
+1. Objects in JavaScript are "loosely typed" (also referred to as "dynamically typed"). Part of what that means is that we can arbitrarily add properties to any object. Let's add a location for the loose tool.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      describeObject(looseTool);
+    + 
+    + console.log("Add a location label for the tool");
+    + looseTool.location = "Table 9";
+    + describeObject(looseTool);
+    ```
+
+1. (📍 `scissors`) The object literal works well for one object. But this approach would mean we need to repeat the declaration every time we need to create a separate object with the same structure. 
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      describeObject(looseTool);
+    + 
+    + let scissors = {
+    +   name: "scissors",
+    +   station: "Crafting Station",
+    +   location: "Table 2",
+    + };
+    + describeObject(scissors);
+    ```
+
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Plain Object Literal"
+> ```
+
+### Constructor Function
+
+A constructor function gives us a reusable way to create objects with the same property names. This is older JavaScript syntax, but it helps explain what class syntax is doing for us later.
+
+<Steps>
+1. (📍 `SupplyItem`) Add a constructor function for supply items. (Add a `console.clear()` to remove prior output.)
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      describeObject(scissors);
+    +
+    + console.clear();
+    + displayHeading("Constructor function");
+    +
+    + /**
+    + * A SupplyItem represents some consumable item in our workshop.
+    + * @param {string} name Item name
+    + * @param {number} quantity The amount of items in stock
+    + * @param {string} unit The per-unit quantity
+    + */
+    + function SupplyItem(name, quantity, unit) {
+    +   this.name = name;
+    +   this.quantity = quantity;
+    +   this.unit = unit;
+    + }
+    ```
+
+    Inside the constructor, `this` refers to the new object being created.
+
+    <Aside type="note" title="The this Keyword">
+      `this` is one of the more important JavaScript keywords students will meet.
+
+      In this constructor function, `this.name = name` means "put a `name` property on the new object, and store the `name` argument in it."
+
+      The meaning of `this` can change depending on how a function is called. For today, keep the focus on constructor functions and methods.
+    </Aside>
+
+1. (📍 `maskingTape`) Use the `new` keyword to create two supply items.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      function SupplyItem(name, quantity, unit) {
+        this.name = name;
+        this.quantity = quantity;
+        this.unit = unit;
+      }
+    +
+    + let maskingTape = new SupplyItem('masking tape', 6, 'rolls');
+    + let glueSticks = new SupplyItem('glue sticks', 24, 'sticks');
+    + describeObject(maskingTape);
+    + describeObject(glueSticks);
+    ```
+
+    The `new` keyword creates a new object and calls the constructor function to initialize it.
+
+    <Aside type="note" title="Constructor Naming">
+      Constructor functions are usually named with an initial capital letter, such as `SupplyItem`.
+
+      JavaScript does not require that capital letter, but it is a strong convention that tells readers "this function is meant to be used with `new`."
+    </Aside>
+
+    Notice that `maskingTape` and `glueSticks` are separate objects, but they were created with the same constructor.
+
+1. Just as with object literals, we can add new properties or functions to existing objects. But if we had used object literals, we would need to add those new properties/functions one-by-one. But since we have *Constructor Function*, we have effectively defined a **prototype** for creating `SupplyItem` objects.
+1. (📍 `SupplyItem`) Let's add a `use()` function to all our supply item objects. This will automatically update the quantity on hand of that supply item as people use them in their hobby projects.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      describeObject(glueSticks);
+    + SupplyItem.prototype.use = function (amount) {
+    +   this.quantity = this.quantity - amount;
+    + };
+    ```
+
+1. (📍 `maskingTape`) With this in place, all our `SupplyItem` instances will now have the `use()` function.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      SupplyItem.prototype.use = function (amount) {
+        this.quantity = this.quantity - amount;
+      };
+    +
+    + maskingTape.use(2);
+    +
+    + console.log(`${maskingTape.name} remaining: ${maskingTape.quantity} ${maskingTape.unit}`);
+    + 
+    + glueSticks.use(3);
+    + console.log(`${glueSticks.name} remaining: ${glueSticks.quantity} ${glueSticks.unit}`);
+    +
+    + describeObject(makingTape);
+    + describeObject(glueSticks);
+    ```
+
+1. There is one drawback to using Constructor Functions. The developer must always remember to use the `new` keyword when calling/invoking constructor functions.
+
+    Try the following code.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      describeObject(glueSticks);
+    + 
+    + let cardstock = SupplyItem("cardstock", 50, "sheet");
+    ```
+
+    Everything seems like it's working. No errors are reported. But watch what happens if we try to describe the object. Head's up! It will crash (but not in the place you might think it will)!
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      let cardstock = SupplyItem("cardstock", 50, "sheet");
+    + describeObject(cardstock);
+    ```
+
+
+1. Remember to use the `new` keyword with constructor functions. Let's fix the code.
+
+    ```diff lang="js" title="~/inclass/06/demo.js" "new"
+      describeObject(glueSticks);
+    - let cardstock = SupplyItem("cardstock", 50, "sheet");
+    + let cardstock = new SupplyItem("cardstock", 50, "sheet");
+    + //              \_/  Developer must remember to use the new keyword
+      describeObject(cardstock);
+    ```
+
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Constructor Function"
+> ```
+
+### Classes in JavaScript
+
+Classes offer an alternative to constructor functions. Among the benefits, a huge advantage is the fact that you will always get a direct error message if you forget the `new` keyword. (This is a lot nicer than just having it break farther down the line.)
+
+<Aside type="tip" title="Why are we learning classes now?">
+    Why are we learning classes?
+        - Classes are the foundation upon which objects are built in JavaScript.
+        - We are almost always using objects in one way or another.
+        - We need to dispel any notions of "magic" around what objects are.
+        - When we introduce HTML, students will immediately be exposed to the Document OBJECT Model
+        - Classes are not hard
+            - they are essentially an alternate to constructor functions
+            - they provide the benefit of requiring the `new` keyword for code to compile
+    What is covered:
+        - constructor
+        - methods
+    What are we NOT learning now?
+        - No property declarations
+        - No `get`/`set`
+        - No `static`
+        - No private members
+</Aside>
+
+Some of the tools/items used in this hobby workshop have to be signed out from the main office. These are often specialty items that are not available for each hobby station or table.
+
+<Steps>
+1. Let's clear our display and put up a heading about using JavaScript classes.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+    + // C.1)
+    + console.clear();
+    + displayHeading("JavaScript Classes");
+    ```
+
+1. We'll dive into our first class - `CheckoutItem`. To declare a class, we use the `class` keyword. A class is a **bluepring** for creating objects. Additionally, a class definition should have a **constructor** (using the keyword `constructor`), which is simply a function that puts values in new object's properties; it's very similar to the work of that the *constructor function* did in the last section of this tutorial.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      displayHeading("JavaScript Classes");
+    + 
+    + class CheckoutItem {
+    +   constructor(assetTag, description, location) {
+    +     this.assetTag = assetTag;
+    +     this.description = description;
+    +     this.location = location;
+    +   }
+    + };
+    ```
+
+    <Aside title="The job of the constructor">
+      The constructor's sole job/purpose is to ensure that any newly created object has *meaningful values* for its properties/state.
+
+      But what do we mean by "meaningful"? Basically, that will depend upon the whole purpose of the class.
+    </Aside>
+
+1. (📍 `camera`) With our class definition in place, let's create some **instances** of the class with the `new` keyword.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+    + let camera = new CheckoutItem("EQ-1042", "DSLR Camera kit", "Media Cabinet");
+    + let microphone = new CheckoutItem("EQ-1188", "USB microphone", "Media Cabinet");
+    + describeObject(camera);
+    + describeObject(microphone);
+    ```
+
+    Notice how creating objects based on classes looks exactly the same as how we created objects using constructor functions.
+1. Let's add a bit more information to our checkout item. We need to know who is checking out the item. And, let's make a distinction between the regular/permanent storage location of the item.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      class CheckoutItem {
+        constructor(assetTag, description, location) {
+          this.assetTag = assetTag;
+          this.description = description;
+          this.location = location;
+    +     this.checkedOutTo = null;
+    +     this.storage = location;
+    +   }
+    + };
+    ```
+
+1. We've got a reasonable state for our objects. Now, we should have some *behaviour*. We'll do this by adding three methods to our class.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+      class CheckoutItem {
+        constructor(assetTag, description, location) {
+          this.assetTag = assetTag;
+          this.description = description;
+          this.location = location;
+          this.checkedOutTo = null;
+          this.storage = location;
+        }
+    + 
+    +   checkout(studentName, station) {
+    +     this.checkedOutTo = studentName;
+    +     this.location = station;
+    +   }
+    + 
+    +   returnItem() {
+    +     this.checkedOutTo = null;
+    +     this.location = this.storage;
+    +   }
+    + 
+    +   moveTo(location) {
+    +     this.location = location;
+    +     this.storage = location;
+    +   }
+      };
+    ```
+
+    Notice something interesting about classes. When we add functions/methods to our class, we don't use the `function` keyword. (We also didn't use `function` with our `constructor`.) The fact that they *are* functions is implied by their *grammar*:
+    
+    ```js
+    functionName(parameters) {
+      // body
+    }
+    ```
+
+    What's key here is that this grammar *only applies within the context of a **class definition***.
+1. (📍 `camera`) Now that we have the ability to call methods on our objects, let's do so.
+
+    ```diff lang="js" title="~/inclass/06/demo.js"
+    + displayHeading("Using Checkout Items", "~");
+    + camera.checkout("Samira Patel", "Recording Pod 1");
+    + describeObject(camera);
+    + 
+    + microphone.moveTo("Sound Cabinet");
+    + describeObject(microphone);
+    ```
+
+</Steps>
+
+<Aside type="note" title="What is a Class?">
+A **class* is a *blueprint* for creating objects. It defines
+- what an object "looks like" (its *state*/*properties*), and
+- how an object "behaves" (its methods/functions)
+</Aside>
+
+### Demo Verification
+
+To verify that your demo has the correct items, add the following to the end of your script file. These will be checked in your bucket assignment's automated tests.
+
+```js title="~/inclass/06/demo.js"
+export { scissors, maskingTape, camera, SupplyItem }
+```
+
+> ```ps
+> git add .
+> git commit -m "Finish intro to arrays"
+> ```
+
+----
+
+## Conclusion
+
+/* Homework
+    Add a JSDoc comment for the CheckoutItem class
+*/
+
+> **Assigned homework:** Complete [Homework: Practice Object Creation Patterns](./homework/070-homework.mdx). It reinforces today's object work and gives fallback practice for constructor functions, prototypes, class expressions, class declarations, and methods.
+
+JavaScript gives us several ways to create and use objects. Object literals are great for individual objects. Constructor functions and classes give us a reusable pattern for creating multiple objects with the same structure and shared behaviours.
+
+<Aside type="tip" title="Understanding JavaScript 👀">
+  The key idea in this lesson is that objects can combine **state** and **behaviour**.
+
+  Properties hold state. Methods describe behaviour. Constructor functions and classes give us a repeatable way to create objects that have both.
+</Aside>
+

@@ -5,6 +5,8 @@ import starlight from '@astrojs/starlight';
 import tailwindcss from '@tailwindcss/vite';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
 
+import mermaid from 'astro-mermaid';
+
 import clerk from '@clerk/astro';
 
 // https://astro.build/config
@@ -13,6 +15,7 @@ export default defineConfig({
 
     integrations: [
         clerk(),
+        mermaid(),
         starlight({
             title: 'DG In-Class',
             pagefind: {
@@ -48,7 +51,7 @@ export default defineConfig({
             //     },
             //     {
             //         label: 'Reference',
-            //         autogenerate: { directory: 'reference' },
+            //         items: [{ autogenerate: { directory: 'reference' } }]
             //     },
             // ],
             plugins: [
@@ -93,10 +96,12 @@ export default defineConfig({
                         items: [
                             { label: "References", items: ['sdev-1150','sdev-1150/qna']},
                             { 
-                                label: "Lessons", autogenerate: { directory: 'sdev-1150/lessons' }
+                                label: "Lessons",
+                                items: [{ autogenerate: { directory: 'sdev-1150/lessons' } }]
                             },
                             {
-                                label: "Notes", autogenerate: { directory: 'sdev-1150/notes'}
+                                label: "Notes",
+                                items: [{ autogenerate: { directory: 'sdev-1150/notes'} }]
                             },
                         ],
                     },
@@ -108,10 +113,12 @@ export default defineConfig({
                         items: [
                             { label: "References", items: ['sdev-2150','sdev-2150/qna']},
                             {
-                                label: "Lessons", autogenerate: { directory: 'sdev-2150/lessons' }
+                                label: "Lessons",
+                                items: [{ autogenerate: { directory: 'sdev-2150/lessons' } }]
                             },
                             {
-                                label: "Notes", autogenerate: { directory: 'sdev-2150/notes'}
+                                label: "Notes",
+                                items: [{ autogenerate: { directory: 'sdev-2150/notes'} }]
                             },
                         ],
                     },
@@ -137,11 +144,11 @@ export default defineConfig({
                         items: [
                             {
                                 label: 'Guides',
-                                autogenerate: { directory: 'guides' },
+                                items: [{ autogenerate: { directory: 'guides' }} ] 
                             },
                             {
                                 label: 'Reference',
-                                autogenerate: { directory: 'reference' },
+                                items: [{ autogenerate: { directory: 'reference' }} ] 
                             },
                         ],
                     },

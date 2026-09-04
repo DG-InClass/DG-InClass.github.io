@@ -1,0 +1,331 @@
+---
+title: Styling Custom Elements
+description: Instructor guide for styling Shadow DOM with host selectors, slotted content, CSS custom properties, parts, and observed attributes
+draft: true
+---
+
+import { Aside, FileTree, Steps } from '@astrojs/starlight/components';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 4" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="60-90">
+- Lecture: **20-30 minutes**
+- Demo Walkthrough: **45-60 minutes**
+
+- This lesson is somewhat longer than lesson 02 and builds directly on the previous custom-element demo.
+- Students type through setup, scoped component styles, host variants, slotted content, and attribute-change responses.
+- The walkthrough needs time to connect styling hooks with component boundaries.
+- The estimate allows extra time for slower typing and visual verification in the browser.
+</Instructor>
+
+----
+
+## Lecture
+
+The previous lesson created a working `<user-card>`. This lesson focuses on the styling boundary created by Shadow DOM.
+
+Styles inside a shadow root affect the component's internal markup. Page styles do not freely reach into the shadow root, but the containing page can still style the host element and any intentional hooks the component exposes.
+
+### Styling Hooks
+
+Use the following hooks deliberately:
+
+- `:host` styles the custom element from inside its own shadow root.
+- `:host()` targets the host only when it matches a selector, such as an attribute.
+- `::slotted()` styles light-DOM content assigned to a slot.
+- CSS custom properties let the page provide theme values to the component.
+- `part` and `::part` expose specific internal elements for external styling.
+
+### Attribute Changes
+
+The avatar image path is still a simple attribute. To respond when it changes after the element is created, the component needs:
+
+```js
+static get observedAttributes() {
+  return ['avatar'];
+}
+```
+
+and:
+
+```js
+attributeChangedCallback(name, oldValue, newValue) {
+  // update rendered state
+}
+```
+
+Useful references:
+
+- https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM
+- https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
+- https://developer.mozilla.org/en-US/docs/Web/CSS/::part
+- https://developer.mozilla.org/en-US/docs/Web/CSS/::slotted
+
+----
+
+## Demo Walkthrough
+
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="22" folder="~/inclass/22/demo/" file="js/user-card.js" lang="js" />
+
+
+This demo starts from the previous lesson's `UserCard` and adds styling hooks without making the page reach directly into the shadow tree.
+
+### Starter Files
+
+<FileTree>
+- demo
+  - css
+    - styles.css
+  - js
+    - main.js
+    - user-card.js
+    - users.js
+  - public
+    - assets
+      - avatars/
+  - index.html
+  - package.json
+  - ReadMe.md
+</FileTree>
+
+### Install and Run
+
+<Steps>
+1. Open the `~/inclass/22/demo` folder in VS Code.
+
+1. Install dependencies and start the dev server.
+
+    ```ps title="Terminal"
+    pnpm install
+    pnpm dev
+    ```
+
+1. Take a moment to look at the `index.html` and the card declarations. Note how the cards are mostly the same except for one having an `id` attribute and another having a `variant` attribute.
+
+    ```html title="index.html" "variant=\"featured\"" "id=\"avatar-demo\""
+      <main class="card-grid">
+        <user-card avatar="assets/avatars/clarence-james.jpg">
+          <span slot="name">Clarence James</span>
+          <span slot="description">Enjoys helping teams turn rough ideas into clear, working prototypes.</span>
+        </user-card>
+
+        <user-card avatar="assets/avatars/brayden-silva.jpg" variant="featured">
+          <span slot="name">Brayden Silva</span>
+          <span slot="description">Likes practical tools, clean interfaces, and small improvements that save time.</span>
+        </user-card>
+
+        <user-card id="avatar-demo" avatar="assets/avatars/sarah-armstrong.jpg">
+          <span slot="name">Sarah Armstrong</span>
+          <span slot="description">Keeps projects organized and enjoys making technical details easier to understand.</span>
+        </user-card>
+      </main>
+    ```
+
+</Steps>
+
+### Toggling Themes
+
+We need a way to demonstrate the ability to open our components up for styling from "outside" of the component. We're going to accomplish this using a button to toggle the page's themes.
+
+<Steps>
+1. Open `main.js`. We'll modify the event listener for toggling the themes.
+
+    ```diff lang="js" title="js/main.js"
+      themeToggle.addEventListener('click', () => {
+    -   // TODO: Toggle a data-theme value on document.documentElement.
+    +   darkMode = !darkMode;
+    +   document.documentElement.dataset.theme = darkMode ? 'dark' : 'light';
+    +   themeToggle.textContent = darkMode ? 'Use Light Theme' : 'Use Dark Theme';
+      });
+    ```
+
+1. Notice the effect when we press the button to toggle the page theme. By default, our component will retain its styling independent of the page.
+</Steps>
+
+### Add Scoped Component Styles
+
+<Steps>
+1. Open the `user-card.js`. Note the comments about where we will be focusing our code. We're going to be editing the template string that has the styling for our component.
+
+    ```js title="js/user-card.js"
+    const template = document.createElement('template');
+
+    template.innerHTML = `
+      <style>
+        /* TODO: Add :host defaults for display and CSS custom properties. */
+        /* TODO: Use :host([variant="featured"]) for a featured card style. */
+        /* TODO: Use ::slotted([slot="name"]) to style assigned light-DOM content. */
+    ```
+
+
+1. Add `:host` variable names with default values. Because we are exposing this with the `:host` pseudo-element, we've opened up our CSS variables to be over-ridden by stylesheets outside of our component (the `css/styles.css`).
+
+    ```diff lang="html" title="js/user-card.js"
+        <style>
+    -     /* TODO: Add :host defaults for display and CSS custom properties. */
+    +     :host {
+    +       --card-bg: var(--user-card-bg, #ffffff);
+    +       --card-color: var(--user-card-color, #172033);
+    +       --card-accent: var(--user-card-accent, #0f766e);
+    +       display: block;
+    +     }
+    +
+          /* TODO: Use :host([variant="featured"]) for a featured card style. */
+          /* TODO: Use ::slotted([slot="name"]) to style assigned light-DOM content. */
+    ```
+
+1. We'll make use of the custom properties inside our `.card` class.
+
+    ```diff lang="css" title="js/user-card.js"
+          /* TODO: Use :host([variant="featured"]) for a featured card style. */
+          /* TODO: Use ::slotted([slot="name"]) to style assigned light-DOM content. */
+
+          .card {
+            display: grid;
+            grid-template-columns: 72px 1fr;
+            gap: 0.85rem;
+            align-items: center;
+            min-height: 124px;
+            padding: 1rem;
+            border: 1px solid #9aa8ba;
+            border-radius: 8px;
+    -       background: #ffffff;
+    -       color: #172033;
+    +       background: var(--card-bg);
+    +       color: var(--card-color);            
+          }
+    ```
+
+1. When we toggle the theme, we can now see changes in background and text colors.
+1. Take a moment to examine the code in the `css/styles.css` file.
+</Steps>
+
+### Style Host Variants, Slotted Content, and `::part` Pseudo-Elements
+
+There are other ways we can expose the internals of our custom element to the styling preferences of our host. These are through the `::slotted` and `::part` pseudo-elements.
+
+- The `::slotted` pseudo-elements are CSS styles we add to the inside of our custom element
+- The <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/::part" target="_blank">::part` pseudo-element`</a> is styled in the host, but linked up to the children of our custom element through the <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/part" target="_blank">`part` attribute</a>.
+
+<Steps>
+1. We'll also add a custom "variant" attribute that the host can access to apply custom styles.
+
+    ```diff lang="css" title="js/user-card.js"
+          :host {
+            --card-bg: var(--user-card-bg, #ffffff);
+            --card-color: var(--user-card-color, #172033);
+            --card-accent: var(--user-card-accent, #0f766e);
+            display: block;
+          }
+     
+    -     /* TODO: Use :host([variant="featured"]) for a featured card style. */
+    +     :host([variant="featured"]) .card {
+    +       border-color: var(--card-accent);
+    +     }
+    ```
+
+1. We'll style assigned slot content with `::slotted()` styles.
+
+    ```diff lang="css" title="js/user-card.js"
+          img {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+          }
+
+    +     ::slotted([slot="name"]) {
+    +       display: block;
+    +       color: var(--card-accent);
+    +       font-weight: 700;
+    +     }
+
+    +     ::slotted([slot="description"]) {
+    +       display: block;
+    +       margin-top: 0.25rem;
+    +       color: var(--card-muted);
+    +       line-height: 1.4;
+    +     }
+
+    ```
+
+1. Ask students to identify which parts of `css/styles.css` from the host are being applied to the custom element when we toggle the theme.
+1. We'll add a `part` attribute to the `<img>` element of our template. This makes our image shadow DOM element "visible" to the parent DOM, allowing us to apply CSS styles based on the `::part` pseudo-element.
+
+    ```diff lang="html" title="js/user-card.js" "part="
+        </style>
+
+        <article class="card" part="card">
+    -     <img src="" alt="">
+    +     <img part="avatar" src="" alt="">
+          <div>
+            <slot name="name">Unknown user</slot>
+            <slot name="description">No description provided.</slot>
+          </div>
+        </article>
+    ```
+
+1. Now, we can modify our `css/styles.css` to include an outline to our avatar image. 
+
+    ```diff lang="css" title="css/styles.css"
+      user-card {
+        --user-card-bg: var(--surface);
+        --user-card-color: var(--text);
+        --user-card-muted: var(--muted);
+        --user-card-accent: var(--accent);
+      }
+    + 
+    + user-card::part(avatar) {
+    +   outline: 3px solid color-mix(in srgb, var(--accent), white 40%);
+    + }
+    ```
+
+</Steps>
+
+### Respond to Attribute Changes
+
+Remember how we added the `observedAttributes` property and the `attributeChangedCallback()` function to our custom element? We'll leverage that by programmatically changing the avatar image as the user clicks on a card.
+
+<Steps>
+1. Change the avatar attribute from a event listener in `main.js` when the demo card is clicked.
+
+    ```diff lang="js" title="js/main.js"
+      avatarDemo.addEventListener('click', () => {
+    -   // TODO: Change the avatar attribute to another local avatar path.
+        avatarIndex = (avatarIndex + 1) % users.length;
+    +   avatarDemo.setAttribute('avatar', users[avatarIndex].avatar);
+      });
+    ```
+
+1. Watch the effect in the browser. Confirm the internal image updates without recreating the whole card.
+</Steps>
+
+### Common Errors and Fixes
+
+| Issue | Likely Cause | Fix |
+| ----- | ------------ | --- |
+| Page CSS does not style internal markup | Shadow DOM encapsulation is working | Expose a CSS custom property or `part` |
+| Slotted name style does not apply | Selector is targeting internal text instead of assigned light DOM | Use `::slotted([slot="name"])` |
+| Host variant does not apply | Attribute selector is written for an internal element | Use `:host([variant="featured"])` |
+| Avatar does not update | Attribute is not observed | Add `avatar` to `observedAttributes` |
+
+
+### Demo Verification
+
+Students can verify their work on this bucket assignment by running the unit tests.
+
+```ps
+pnpm test
+```
+
+Remind students that they need to commit and push their changes.
+
+## Conclusion
+
+Students should leave with a practical understanding of styling boundaries: keep component internals scoped, expose only intentional hooks, and respond to attribute changes when the outside page updates component configuration.

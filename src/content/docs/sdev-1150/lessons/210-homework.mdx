@@ -1,0 +1,105 @@
+---
+title: Homework - Practice Guarded API Rendering
+description: Fallback practice for guarded fetch helpers, joined data, detail rendering, and review operations.
+sidebar:
+  label: 21 Homework
+draft: true
+---
+
+This homework should take about **60-90 minutes**.
+
+Class likely covered fetching one endpoint. This tutorial preserves the REST-consuming material that may not fit: guarded fetch helpers, static backend files, joining endpoint data, rendering a detail view, and preparing add/edit/delete review requests.
+
+## Start the Catalog API and App
+
+Open `sk/21/homework/`. Start the JSON server for `db.json`, then start the Vite app.
+
+Confirm the console shows:
+
+```txt
+Lesson 21 homework loaded
+```
+
+## Write a Guarded Fetch Helper
+
+In `src/main.js`, complete:
+
+```js
+async function getJson(url) {
+  let response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+
+  return await response.json();
+}
+```
+
+Expected behavior: a bad URL should go to your `catch` block instead of silently rendering broken data.
+
+## Load Static Backend Data
+
+Fetch both endpoints:
+
+```js
+let catalog = await getJson('http://localhost:3000/catalog');
+let reviews = await getJson('http://localhost:3000/reviews');
+```
+
+Log both arrays and compare them to `db.json`.
+
+## Join Reviews onto Catalog Items
+
+```js
+let catalogWithReviews = catalog.map(function (item) {
+  let itemReviews = reviews.filter(function (review) {
+    return review.catalogId === item.id;
+  });
+
+  return {
+    ...item,
+    reviews: itemReviews
+  };
+});
+```
+
+Expected behavior: each catalog item now has a `reviews` array.
+
+## Render a Detail View
+
+Render the first item:
+
+```js
+let selectedItem = catalogWithReviews[0];
+
+detail.innerHTML = `
+  <h2>${selectedItem.title}</h2>
+  <p>${selectedItem.reviews.length} review(s)</p>
+`;
+```
+
+## Prepare Review Request Helpers
+
+Stub helpers for later UI work:
+
+```js
+async function addReview(review) {
+  return await fetch('http://localhost:3000/reviews', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(review)
+  });
+}
+```
+
+Create similar `updateReview(id, updates)` and `deleteReview(id)` helpers using `PATCH` and `DELETE`.
+
+## Final Verification
+
+- The API and app both run.
+- `getJson(url)` checks `response.ok`.
+- You fetched `catalog` and `reviews`.
+- You joined review data onto catalog items.
+- The detail area renders a selected item.
+- You wrote add, edit, and delete review request helpers.

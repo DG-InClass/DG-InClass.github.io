@@ -1,0 +1,80 @@
+---
+title: Homework - Practice Loop Control
+description: Fallback practice for while loops, stop conditions, nested loops, and optimization.
+sidebar:
+  label: 13 Homework
+draft: true
+---
+
+This homework should take about **45-75 minutes**.
+
+Class likely covered the basic loop shape. This tutorial preserves the slower loop-control material: `while` loops, stop conditions, nested loops, and improving code after the loop already works.
+
+## Start the Study Tracker
+
+Open `homework.js` and run:
+
+```ps
+node homework.js
+```
+
+You will model a study plan that stops when a goal is reached.
+
+## Use a While Loop
+
+Create a savings-style loop:
+
+```js
+let minutesStudied = 0;
+let goalMinutes = 90;
+let session = 0;
+
+while (minutesStudied < goalMinutes) {
+  session = session + 1;
+  minutesStudied = minutesStudied + 25;
+  console.log(`Session ${session}: ${minutesStudied} minutes`);
+}
+```
+
+Expected behavior: the loop stops after the goal is reached.
+
+## Add a Maximum Attempt Limit
+
+Add a second stop condition:
+
+```js
+let attempts = 0;
+let maxAttempts = 5;
+let solved = false;
+
+while (!solved && attempts < maxAttempts) {
+  attempts = attempts + 1;
+  solved = attempts === 3;
+}
+```
+
+Log whether the task was solved or stopped by the limit.
+
+## Use Nested Loops
+
+Create nested loops for days and practice blocks:
+
+```js
+for (let day = 1; day <= 3; day = day + 1) {
+  for (let block = 1; block <= 2; block = block + 1) {
+    console.log(`Day ${day}, block ${block}`);
+  }
+}
+```
+
+## Optimize After It Works
+
+After your loops work, move one repeated calculation into a helper function, such as `formatMinutes(minutes)`.
+
+## Final Verification
+
+- `node homework.js` runs without syntax errors.
+- You wrote a `while` loop with a clear stop condition.
+- You wrote a loop with a maximum attempt limit.
+- You wrote nested loops.
+- You improved one repeated calculation after the original loop worked.

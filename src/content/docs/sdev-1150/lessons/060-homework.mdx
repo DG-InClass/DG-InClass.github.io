@@ -1,0 +1,93 @@
+---
+title: Homework - Practice Functions as Values
+description: Fallback practice for function expressions, callbacks, returned functions, and state.
+sidebar:
+  label: 06 Homework
+draft: true
+---
+
+This homework should take about **45-75 minutes**.
+
+Class likely had time for declaring and calling functions. This tutorial continues into the function-as-value ideas that often need a slower second pass: function expressions, callbacks, functions that return functions, and separate closure state.
+
+## Start the Task Runner
+
+Open `homework.js` and run:
+
+```ps
+node homework.js
+```
+
+You will build a small study task runner.
+
+## Store a Function in a Variable
+
+Create a function expression:
+
+```js
+let formatTask = function (taskName, minutes) {
+  return `${taskName} (${minutes} min)`;
+};
+
+console.log(formatTask('Practice callbacks', 20));
+```
+
+Expected output:
+
+```txt
+Practice callbacks (20 min)
+```
+
+## Pass a Callback
+
+Create a function that receives another function:
+
+```js
+function runTask(taskName, action) {
+  console.log(`Starting ${taskName}`);
+  action();
+  console.log(`Finished ${taskName}`);
+}
+
+runTask('review notes', function () {
+  console.log('Reading the callback section.');
+});
+```
+
+Expected behavior: the callback message appears between the start and finish messages.
+
+## Return a Function
+
+Create a function that creates counters:
+
+```js
+function createProgressCounter(label) {
+  let completed = 0;
+
+  return function () {
+    completed = completed + 1;
+    return `${label}: ${completed}`;
+  };
+}
+```
+
+Create two counters:
+
+```js
+let readingCounter = createProgressCounter('reading');
+let codingCounter = createProgressCounter('coding');
+
+console.log(readingCounter());
+console.log(readingCounter());
+console.log(codingCounter());
+```
+
+Expected behavior: each returned function keeps its own `completed` value.
+
+## Final Verification
+
+- `node homework.js` runs without syntax errors.
+- You created at least one function expression.
+- You passed a callback into another function.
+- You returned a function from a function.
+- You showed two returned functions with separate state.

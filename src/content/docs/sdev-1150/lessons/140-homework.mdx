@@ -1,0 +1,97 @@
+---
+title: Homework - Practice Array Methods
+description: Fallback practice for map, find, filter, slice, splice, sort, and script arguments.
+sidebar:
+  label: 14 Homework
+draft: true
+---
+
+This homework should take about **45-75 minutes**.
+
+Class likely covered looping through arrays. This tutorial keeps the array-method comparison work that may not fit in class: `map`, `find`, `filter`, `slice` versus `splice`, copied-array sorting, and optional command-line arguments.
+
+## Start the Course Task Report
+
+Open `homework.js` and run:
+
+```ps
+node homework.js
+```
+
+The starter has an array of course task objects.
+
+## Create Display Strings with `map`
+
+```js
+let taskLabels = courseTasks.map(function (task) {
+  return `${task.title} - ${task.minutes} min`;
+});
+
+console.log(taskLabels);
+```
+
+Expected behavior: the original objects remain unchanged, and the new array contains strings.
+
+## Locate One Task with `find`
+
+```js
+let codingTask = courseTasks.find(function (task) {
+  return task.type === 'code';
+});
+
+console.log(codingTask);
+```
+
+## Create a Smaller List with `filter`
+
+```js
+let longerTasks = courseTasks.filter(function (task) {
+  return task.minutes >= 20;
+});
+
+console.log(longerTasks);
+```
+
+## Compare `slice` and `splice`
+
+Create a copy for the destructive method:
+
+```js
+let firstTwo = courseTasks.slice(0, 2);
+let copiedTasks = courseTasks.slice();
+let removed = copiedTasks.splice(1, 1);
+
+console.log(firstTwo);
+console.log(removed);
+console.log(copiedTasks);
+```
+
+Expected behavior: `slice` copies without changing the original; `splice` changes the copied array.
+
+## Sort a Copied Array
+
+```js
+let sortedByMinutes = courseTasks.slice().sort(function (a, b) {
+  return a.minutes - b.minutes;
+});
+
+console.log(sortedByMinutes);
+```
+
+## Optional: Read a Script Argument
+
+Try:
+
+```ps
+node homework.js code
+```
+
+Then read `process.argv[2]` and filter by that type when an argument is provided.
+
+## Final Verification
+
+- `node homework.js` runs without syntax errors.
+- You used `map`, `find`, and `filter`.
+- You showed the difference between `slice` and `splice`.
+- You sorted a copied array, not the original.
+- Optional: `node homework.js code` changes the displayed task list.

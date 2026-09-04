@@ -1,0 +1,112 @@
+---
+title: Homework - Practice Math and Text
+description: Fallback practice for the string, number, rounding, and Math material that may not fit in class.
+sidebar:
+  label: 03 Homework
+draft: true
+---
+
+This homework should take about **45-75 minutes**.
+
+In class, you likely had time for the first pass through strings, numbers, and simple calculations. This tutorial preserves the formatting and rounding work that may not fit in class by having you build a bike repair inventory report in `homework.js`.
+
+## Start the Report
+
+Open `homework.js` in this folder and run:
+
+```ps
+node homework.js
+```
+
+Use the starter values instead of inventing new data. They represent rough inventory text from a repair station.
+
+## Clean the Project Name
+
+Create formatted versions of `rawProjectName`:
+
+```js
+let projectName = rawProjectName.trim();
+let reportSlug = projectName.toLowerCase().replaceAll(' ', '-');
+
+console.log(projectName.toUpperCase());
+console.log(reportSlug);
+```
+
+Expected behavior: the extra spaces disappear, and the slug uses lowercase words separated by hyphens.
+
+## Build Aligned Console Lines
+
+Use `.padEnd()` and `.padStart()` to make report rows:
+
+```js
+let itemName = 'Tire patch kits';
+let itemCount = '12';
+
+console.log(itemName.padEnd(22, '.') + itemCount.padStart(8, '.'));
+```
+
+Expected output should look similar to:
+
+```txt
+Tire patch kits.......12
+```
+
+## Parse Inventory Numbers
+
+Convert starter text into numbers:
+
+```js
+let tirePatchKits = parseInt(tirePatchKitsText, 10);
+let chainLubePrice = parseFloat(chainLubeText);
+let workStands = parseInt(workStandText, 10);
+let invalidAmount = parseFloat(invalidAmountText);
+
+console.log(`Invalid amount is NaN: ${isNaN(invalidAmount)}`);
+```
+
+Expected output:
+
+```txt
+Invalid amount is NaN: true
+```
+
+## Calculate and Round
+
+Calculate a subtotal, then compare raw output, `.toFixed(2)`, and `roundToPlaces(...)`:
+
+```js
+let lubeTotal = tirePatchKits * chainLubePrice;
+
+console.log(lubeTotal);
+console.log(lubeTotal.toFixed(2));
+console.log(roundToPlaces(lubeTotal, 2));
+```
+
+Use modulo to answer a report question:
+
+```js
+let kitsPerStand = 5;
+let leftoverKits = tirePatchKits % kitsPerStand;
+console.log(`Kits left after grouping by stand: ${leftoverKits}`);
+```
+
+## Show a Rounding Error Clearly
+
+Add this calculation:
+
+```js
+let roundingProblem = 2.35 + 2.4;
+console.log(roundingProblem);
+console.log(roundingProblem.toFixed(2));
+console.log(roundToPlaces(roundingProblem, 2));
+```
+
+Expected behavior: the raw value may be longer than expected, while the formatted values are suitable for a report.
+
+## Final Verification
+
+- `node homework.js` runs without syntax errors.
+- Your report uses `.replaceAll()`, `.padStart()`, and `.padEnd()`.
+- You used `parseInt()`, `parseFloat()`, and `isNaN()`.
+- You used modulo, `.toFixed(2)`, and `roundToPlaces(value, places)`.
+- Your console output includes at least three aligned report lines.

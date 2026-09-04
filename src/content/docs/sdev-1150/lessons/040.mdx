@@ -1,0 +1,561 @@
+---
+title: Arrays as a Structure
+description: Instructor guide for arrays, indexes, and arrays of objects
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 1" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="90-120">
+> ⚠️ Be mindful of delivery time; this walkthrough can easily run long if discussion expands.
+
+- This lesson is longer and denser than lesson 02.
+- Students type through array creation, index access, updates, related arrays, object comparison, bracket notation, and objects inside arrays.
+- The walkthrough needs time for discussion around ordered data, index matching, and when arrays or objects are the clearer structure.
+- The estimate allows extra time for slower typing, debugging index mistakes, and conceptual comparisons.
+</Instructor>
+
+
+----
+
+## Lecture
+
+- Identify LOGs for today
+- Encourage students to add comments to their code
+- Remind students to make notes after class to refresh their memory
+
+## Demo Walkthrough
+
+We're going to explore arrays as a way to keep multiple values in one ordered structure. We'll use a grocery pickup scenario so that we can compare separate arrays, object properties, and objects inside an array.
+
+<Aside type="tip" title="Frequent, small commits">
+We'll also practice version control by **making a commit after each group of steps**. Commits in git are a two-step process: First, we stage what changes we want to commit. Then we do the actual commit.
+
+```ps title="Commit Example"
+git add .
+git commit -m "Create arrays"
+```
+</Aside>
+
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="4" folder="~/inclass/04/" file="demo.js" lang="js" />
+
+
+### Creating Arrays
+
+An <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array" target="_blank">array</a> is an ordered list-like object. Arrays are especially useful when we need to keep several values in a single variable and preserve their order.
+
+<Steps>
+1. Open the `~/inclass/04/demo.js` file in VS Code and then run it in Node's "watch" mode. You should see the following output.
+
+    ```ps title="Output"
+    Lesson 04 demo.js has loaded
+    =============================
+
+    ```
+
+    Our starter script is the same basic shape we've used in the prior lessons.
+
+    ```js title="~/inclass/04/demo.js"
+    console.log('Lesson 04 demo.js has loaded');
+    console.log('=============================');
+    console.log();
+    ```
+
+1. (📍 `pickupItems`, `itemIsFrozen`) Let's add a first section and create three arrays for a grocery pickup order.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log('Lesson 04 demo.js has loaded');
+      console.log('=============================');
+      console.log();
+    +
+    + console.log('Creating arrays');
+    + console.log('---------------');
+    +
+    + let pickupItems = ['bread', 'milk', 'apples', 'coffee'];
+    + let itemPrices = [3.49, 4.25, 5.99, 12.5];
+    + let itemIsFrozen = [false, false, false, false];
+    ```
+
+    The square brackets create an array literal. The values inside the array are called entries or elements.
+
+1. Display the first array and inspect it with `typeof`, `.length`, and `Array.isArray()`.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      let pickupItems = ['bread', 'milk', 'apples', 'coffee'];
+      let itemPrices = [3.49, 4.25, 5.99, 12.5];
+      let itemIsFrozen = [false, false, false, false];
+    +
+    + console.log(pickupItems);
+    + console.log(`pickupItems is a ${typeof pickupItems}.`);
+    + console.log(`pickupItems has ${pickupItems.length} entries.`);
+    + console.log(`Is pickupItems an array? ${Array.isArray(pickupItems)}`);
+    + console.log();
+    ```
+
+    Notice that `typeof pickupItems` gives us `object`. Arrays are a special kind of object, so we use `Array.isArray()` when we specifically need to know whether a value is an array.
+
+    <Aside type="note" title="Arrays are Objects">
+      This is a good place to connect back to the previous lesson. Arrays are not primitive values. They are objects with special behaviours for ordered entries.
+
+      `typeof` is useful, but it is not specific enough to distinguish a regular object from an array. It only gives us information about the *fundamental* data type. Recall that JavaScript has only <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#data_structures_and_types" target="_blank">eight fundamental data types</a>. The `Object` data type is the only non-primitive, and it serves as the *basis* for other "custom types", such as dates and arrays.
+
+      It might be handy to note that we'll discover more about "custom types" that *inherit* from `Object` when we introduce *constructor functions* and *classes* in a future lesson.
+    </Aside>
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Create arrays"
+> ```
+
+### Accessing Entries by Index
+
+Arrays preserve order. Each position in the array has an index, and JavaScript array indexes start at `0`.
+
+<Steps>
+1. Add a section where we read specific entries from the `pickupItems` array.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log(`Is pickupItems an array? ${Array.isArray(pickupItems)}`);
+      console.log();
+    +
+    + console.log('Accessing entries by index');
+    + console.log('--------------------------');
+    +
+    + console.log(`First item: ${pickupItems[0]}`);
+    + console.log(`Second item: ${pickupItems[1]}`);
+    + console.log(`Last item: ${pickupItems[pickupItems.length - 1]}`);
+    ```
+
+    The first item is at index `0`, not index `1`. That can feel strange at first, but it is one of the most important array habits for students to build.
+
+    <Aside type="note" title="Zero-Based Indexing">
+      When humans count items, they naturally start at one. When JavaScript indexes array positions, it starts at zero. This is not unusual to JavaScript; most programming languages start array indexes as zero.
+
+      This means the final valid index is usually `array.length - 1`, not `array.length`.
+    </Aside>
+
+1. Let's intentionally ask for two positions that do not give us normal array entries.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log(`First item: ${pickupItems[0]}`);
+      console.log(`Second item: ${pickupItems[1]}`);
+      console.log(`Last item: ${pickupItems[pickupItems.length - 1]}`);
+    + console.log(`Item at index 10: ${pickupItems[10]}`);
+    + console.log(`Item at index -1: ${pickupItems[-1]}`);
+    + console.log();
+    ```
+
+    In both cases, JavaScript gives us `undefined` because there is no normal entry at those positions.
+
+    <Aside type="caution" title="Undefined is a Clue">
+      When students see `undefined`, treat it as a clue to investigate. It often means they are reading a variable, property, or array position that does not currently hold a value.
+    </Aside>
+</Steps>
+
+### Updating Array Entries
+
+Arrays can change. We can replace an existing entry, and we can add a new entry at the end of the array.
+
+<Steps>
+1. (📍 `pickupItems`) Let's update the milk entry to oat milk and adjust its price. Here, we are focused on *changing* existing information in one part of the arrays.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log(`Item at index 10: ${pickupItems[10]}`);
+      console.log(`Item at index -1: ${pickupItems[-1]}`);
+      console.log();
+    +
+    + console.log('Updating array entries');
+    + console.log('----------------------');
+    +
+    + pickupItems[1] = 'oat milk';
+    + itemPrices[1] = 5.15;
+    ```
+
+    The value at index `1` is the second entry in each array. This is another place to slow down and reinforce zero-based indexing.
+
+1. (📍 `pickupItems`, `itemIsFrozen`) Add a new item to the end of each related array. Our focus to *expand* the array by **appending** a new item to an array. (We'll actually do this for all three arrays, because we are maintaining these as parallel arrays.)
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      pickupItems[1] = 'oat milk';
+      itemPrices[1] = 5.15;
+    + pickupItems[pickupItems.length] = 'frozen peas';
+    + itemPrices[itemPrices.length] = 3.75;
+    + itemIsFrozen[itemIsFrozen.length] = true;
+    ```
+
+    Because the next open position is equal to the current length, assigning to `pickupItems[pickupItems.length]` adds an entry at the end.
+
+    <Aside type="note" title="Array Length">
+      The `.length` property tells us how many entries are in the array. It is also one more than the last normal index.
+
+      If an array has four entries, its last index is `3`, and the next open index is `4`.
+    </Aside>
+
+1. Display the updated list. This time, however, let's get a better visualization of the data in the console. We'll use `console.table()`.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      pickupItems[pickupItems.length] = 'frozen peas';
+      itemPrices[itemPrices.length] = 3.75;
+      itemIsFrozen[itemIsFrozen.length] = true;
+    +
+    + console.table(pickupItems);
+    + console.table(itemPrices);
+    + console.table(itemIsFrozen);
+    + console.table();
+    ```
+
+    <Aside type="tip" title="Tabular Output 💫">
+      The students first experience of `console.table()` is often "Cool!" or "Wow!"
+    </Aside>
+</Steps>
+
+
+
+> ```ps
+> git add .
+> git commit -m "Update array entries"
+> ```
+
+### Related Arrays Need Matching Indexes
+
+Our three arrays are related by position. The item at index `0`, the price at index `0`, and the frozen status at index `0` all describe the same grocery item.
+
+<Steps>
+1. Let's pull the first item details from all three arrays.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log(`The list now has ${pickupItems.length} entries.`);
+      console.log();
+    +
+    + console.log('Related arrays need matching indexes');
+    + console.log('------------------------------------');
+    +
+    + let firstItem = pickupItems[0];
+    + let firstPrice = itemPrices[0];
+    + let firstFrozenStatus = itemIsFrozen[0];
+    +
+    + console.log(`${firstItem} costs $${firstPrice.toFixed(2)}.`);
+    + console.log(`Frozen item? ${firstFrozenStatus}`);
+    ```
+
+1. Now do the same thing for the last item.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log(`${firstItem} costs $${firstPrice.toFixed(2)}.`);
+      console.log(`Frozen item? ${firstFrozenStatus}`);
+    +
+    + let lastIndex = pickupItems.length - 1;
+    + let lastItem = pickupItems[lastIndex];
+    + let lastPrice = itemPrices[lastIndex];
+    + let lastFrozenStatus = itemIsFrozen[lastIndex];
+    +
+    + console.log(`${lastItem} costs $${lastPrice.toFixed(2)}.`);
+    + console.log(`Frozen item? ${lastFrozenStatus}`);
+    + console.log();
+    ```
+
+    This works, but only because all three arrays have matching positions.
+
+    <Aside type="caution" title="Parallel Arrays are Fragile">
+      These are sometimes called **parallel arrays** because the same index in each array refers to related information.
+
+      They are useful for demonstrating indexes, but they are easy to break. If one array gets out of order or has a missing entry, the relationship among the values becomes unreliable.
+    </Aside>
+</Steps>
+
+### Arrays Compared with Objects
+
+Arrays and objects both use bracket notation, but we use the brackets for different kinds of access.
+
+<Steps>
+1. Begin this with an output that clears the screen and displays the heading.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log(`${lastItem} costs $${lastPrice.toFixed(2)}.`);
+      console.log(`Frozen item? ${lastFrozenStatus}`);
+      console.log();
+    +
+    + console.clear(); // clears the screen
+    + console.log('Arrays compared with objects');
+    + console.log('----------------------------');
+    ```
+
+    <Aside type="note" title="Clearing the screen">
+      Here we introduce `console.clear()` as a way to clear the terminal. Since this lesson's output is growing (in part due to all the data in the arrays), it's handy to have a clean screen for our output.
+    </Aside>
+
+1. Create a simple `store` object and compare it to one of our arrays.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log('Arrays compared with objects');
+      console.log('----------------------------');
+    +
+    + let store = {
+    +   name: 'Corner Market',
+    +   aisleCount: 9,
+    +   pickupAvailable: true
+    + };
+    +
+    + console.log(`Is store an array? ${Array.isArray(store)}`);
+    + console.log(`Is itemPrices an array? ${Array.isArray(itemPrices)}`);
+    ```
+
+    This is another chance to reinforce that all arrays are objects, but not all objects are arrays.
+
+1. Show dot notation, bracket notation for object properties, and bracket notation for array entries.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log(`Is store an array? ${Array.isArray(store)}`);
+      console.log(`Is itemPrices an array? ${Array.isArray(itemPrices)}`);
+    + console.log(`Store name with dot notation: ${store.name}`);
+    + console.log(`Store name with bracket notation: ${store['name']}`);
+    + console.log(`Array entry with bracket notation: ${pickupItems[2]}`);
+    + console.log();
+    ```
+
+    With arrays, the bracket usually contains a numeric index. With objects, the bracket usually contains a property name as a string.
+
+    <Aside type="note" title="Bracket Notation">
+      Bracket notation is not only for arrays. Objects can also use bracket notation to access properties.
+
+      For beginners, keep the distinction practical: array brackets usually answer "which position?", while object brackets usually answer "which property name?"
+    </Aside>
+</Steps>
+
+### Property Names That Need Bracket Notation
+
+Dot notation is convenient, but it only works when the property name fits JavaScript's identifier rules. Some property names require bracket notation.
+
+<Aside type="tip" title="When we eventually reach HTML Forms...">
+Why is this section important?
+
+When we eventually get to HTML forms, we may have elements like `<input name="first-name" />` and find we need to access it with the form's `.elements['first-name']`. This is in contrast to how `<input name="password">` gives us the smooth `.element.password` to get the element. Students will need to know **how to adapt accordingly**.
+</Aside>
+
+<Steps>
+1. Create an object whose property names include spaces.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log(`Array entry with bracket notation: ${pickupItems[2]}`);
+      console.log();
+    +
+    + console.log('Property names that need bracket notation');
+    + console.log('-----------------------------------------');
+    +
+    + let pickupDetails = {
+    +   'order number': 'GM-2048',
+    +   'customer name': 'Riley Morgan',
+    +   status: 'ready'
+    + };
+    ```
+
+    The quotes are required because `order number` and `customer name` are not valid variable-style names.
+
+1. Read the spaced property names with bracket notation and the regular property with dot notation.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      let pickupDetails = {
+        'order number': 'GM-2048',
+        'customer name': 'Riley Morgan',
+        status: 'ready'
+      };
+    +
+    + console.log(`Order number: ${pickupDetails['order number']}`);
+    + console.log(`Customer: ${pickupDetails['customer name']}`);
+    + console.log(`Status: ${pickupDetails.status}`);
+    + console.log();
+    ```
+
+    <Aside type="note" title="Readable Property Names">
+      We usually prefer property names like `orderNumber` and `customerName` because dot notation is simpler to read and write.
+
+      Bracket notation matters because outside data does not always arrive with property names that follow our preferred style.
+    </Aside>
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Compare arrays and objects"
+> ```
+
+### Objects Inside an Array
+
+Instead of keeping related information in separate arrays, we can place related values inside objects and then put those objects into an array.
+
+<Steps>
+1. (📍 `cart`) Create a `cart` array where each entry is an object.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log(`Status: ${pickupDetails.status}`);
+      console.log();
+    +
+    + console.log('Objects inside an array');
+    + console.log('-----------------------');
+    +
+    + let cart = [
+    +   {
+    +     name: 'bread',
+    +     price: 3.49,
+    +     quantity: 1
+    +   },
+    +   {
+    +     name: 'oat milk',
+    +     price: 5.15,
+    +     quantity: 2
+    +   },
+    +   {
+    +     name: 'frozen peas',
+    +     price: 3.75,
+    +     quantity: 1
+    +   }
+    + ];
+    ```
+
+    The array still preserves order, but each entry now carries its own related values together.
+
+1. Display the cart and use array indexing plus object property access to read the second cart item.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      let cart = [
+        {
+          name: 'bread',
+          price: 3.49,
+          quantity: 1
+        },
+        {
+          name: 'oat milk',
+          price: 5.15,
+          quantity: 2
+        },
+        {
+          name: 'frozen peas',
+          price: 3.75,
+          quantity: 1
+        }
+      ];
+    +
+    + console.table(cart);
+    + console.log('We can isolate a single object in the array:\n', cart[0])
+    + console.log('We can isolate a single property from an object in the array:');
+    + console.log(`The second item is: ${cart[1].name}`);
+    + console.log();
+    ```
+
+    `cart[1].name` is doing two things. First, `cart[1]` gets the second object in the array. Then `.name` gets the `name` property from that object.
+
+    <Aside type="note" title="Composing Access">
+      This is one of the first places where students see access expressions chained together. It's one way to "drill down" to the particular piece of data we're interested in.
+
+      Read `cart[1].name` from left to right: from the `cart` array, get the entry at index `1`, then from that object, get the `name` property.
+
+      You might want to introduce code comments to help students visualize how the computer is processing the instruction:
+
+      ```js title="demo.js"
+      //   cart[1] is { name: 'oat milk', price: 5.15, quantity: 2 }
+      console.log(`The second item is: ${cart[1].name}`);
+      //                                 \_____/\___/
+      // A) the object at index position 1  |     |
+      //                                  {...}   | B) the property of the object
+      ```
+    </Aside>
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Create an array of objects"
+> ```
+
+### Final Boundary Reminder
+
+Before finishing, we'll reinforce the boundary between valid and invalid array indexes.
+
+<Steps>
+1. Add a final reminder about the first valid index, last valid index, and the first invalid index just past the end.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log(`Second cart item subtotal: $${(cart[1].price * cart[1].quantity).toFixed(2)}`);
+      console.log();
+    +
+    + console.log('Final boundary reminder');
+    + console.log('-----------------------');
+    + console.log(`First valid index: 0`);
+    + console.log(`Last valid index: ${cart.length - 1}`);
+    + console.log(`cart[cart.length] gives ${cart[cart.length]}`);
+    ```
+
+1. Take some time to ask students to explain why `cart[cart.length]` is `undefined`.
+
+    The answer should come back to zero-based indexing. If `cart.length` is `3`, the valid indexes are `0`, `1`, and `2`.
+
+1. What happens if we attempt to "drill down" to an object that is 'undefined'?
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log(`cart[cart.length] gives ${cart[cart.length]}`);
+    + console.log(`cart[cart.length].price gives ${cart[cart.length].price}`);
+    ```
+
+    We get a **TypeError**.
+
+    ```ps title="TypeError in our code" ".price" "'price'"
+    console.log(`cart[cart.length].price gives ${cart[cart.length].price}`);
+                                                                   ^
+
+    TypeError: Cannot read properties of undefined (reading 'price')
+    ```
+
+    <Aside type="tip" title="READ the error message">
+      Students' eyes might start to glaze over all the details of the error message. Encourage students to take the time to **read the error** and help them pick out the important clues that direct them back to their code.
+    </Aside>
+
+1. Let's comment out the code and add a reminder to ourselves about this.
+
+    ```diff lang="js" title="~/inclass/04/demo.js"
+      console.log(`cart[cart.length] gives ${cart[cart.length]}`);
+    - console.log(`cart[cart.length].price gives ${cart[cart.length].price}`);
+    + // console.log(`cart[cart.length].price gives ${cart[cart.length].price}`);
+    + // 🐞 The code above produces a TypeError.
+    ```
+
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Finish intro to arrays"
+> ```
+
+### Demo Verification
+
+To verify that your demo has the correct items, add the following to the end of your script file. These will be checked in your bucket assignment's automated tests.
+
+```js title="~/inclass/04/demo.js"
+export { cart, pickupItems, itemPrices, itemIsFrozen }
+```
+
+> ```ps
+> git add .
+> git commit -m "Finish intro to arrays"
+> ```
+
+----
+
+## Conclusion
+
+> **Assigned homework:** Complete [Homework: Practice Arrays and Object Boundaries](./homework/050-homework.mdx). It reinforces today's array basics and gives fallback practice for matching indexes, bracket notation, arrays compared with objects, and objects inside arrays.
+
+Arrays let us keep several values in one ordered structure. They are objects, but they have special behaviour around numeric indexes and `.length`.
+
+<Aside type="tip" title="Understanding JavaScript 👀">
+  The most important habit in this lesson is to keep track of indexes carefully.
+
+  Arrays start at index `0`. The last normal index is `array.length - 1`. When an array holds objects, we can combine index access and property access to reach the exact value we need.
+</Aside>

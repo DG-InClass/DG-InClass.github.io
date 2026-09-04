@@ -1,0 +1,476 @@
+---
+title: Intro to Custom Elements (Web Components)
+description: Instructor guide for defining custom elements, using Shadow DOM, slots, attributes, and declarative or programmatic component creation
+draft: true
+---
+
+import { Aside, FileTree, Steps } from '@astrojs/starlight/components';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 4" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="35-50">
+- Lecture: **35-50 minutes**
+- Demo Walkthrough: **35-50 minutes**
+
+- Coding-wise, this is much shorter than other demos. However, you may need to allot more time for questions since this is introducing slightly more advanced DOM concepts.
+</Instructor>
+
+
+----
+
+## Lecture
+
+Custom elements let students define their own HTML tags with JavaScript. This lesson keeps the first component small: a neutral `<user-card>` that displays a profile photo, a name, and a short description.
+
+### Custom Element Names
+
+Custom element names must contain a hyphen, such as `<user-card>`. The hyphen prevents collisions with built-in HTML elements.
+
+There are two broad categories:
+
+- **Autonomous custom elements** extend `HTMLElement` and use their own tag name, such as `<user-card>`.
+- **Customized built-in elements** extend an existing element, such as a custom button. Mention these conceptually, but keep the demo focused on autonomous custom elements.
+
+### Templates and Shadow DOM
+
+A `<template>` stores markup the browser does not render immediately. JavaScript can clone the template and place the copy inside a component.
+
+Shadow DOM gives the component an internal DOM tree. In this lesson, students use `this.attachShadow({ mode: 'open' })`, clone the template, and append the clone to the shadow root.
+
+### Attributes and Slots
+
+Attributes are useful for simple string configuration, such as the avatar image path.
+
+Slots let the page provide light-DOM content for the component to display. The demo uses:
+
+- a named `name` slot
+- a named `description` slot
+- fallback text when no slotted content is provided
+
+### Constructor Boundary
+
+The constructor should focus on creating the component's initial internal structure. Work that depends on the element being connected to the document belongs in a later lifecycle lesson.
+
+Useful references:
+
+- <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements" target="_blank">Using Custom Elements</a>
+- <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM" target="_blank">Using the Shadow DOM</a>
+- <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_templates_and_slots" target="_blank">Using Templates and Slots</a>
+
+----
+
+## Demo Walkthrough
+
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="21" folder="~/inclass/021/demo/" file="js/main.js" lang="js" />
+
+
+This demo introduces one custom element and uses local profile data derived from <a href="https://randomuser.me" target="_blank">RandomUser.me</a> including downloaded images. The runtime code does not fetch remote data or remote images.
+
+The fallback `avatar.png` is from <a href="https://icons8.com/illustrations/illustration/fogg-avatar" target="_blank">Icons8</a>.
+
+### Starter Files
+
+The main focus of our code is `user-card.js` and `main.js`, but it can be helpful to take a look at some of the other files in the starter kit.
+
+<FileTree>
+- demo
+  - css
+    - styles.css
+  - js
+    - **main.js**
+    - **user-card.js**
+    - users.js Hard-coded data
+  - public
+    - assets
+      - avatars/
+  - index.html Hard-coded `<user-card>` elements
+  - package.json
+  - ReadMe.md
+</FileTree>
+
+### Install and Run
+
+<Steps>
+1. Open the `~/inclass/21/demo` folder in VS Code.
+
+1. Install dependencies and start the Vite dev server..
+
+    ```ps title="Terminal"
+    pnpm install
+    pnpm dev
+    ```
+
+1. Open the Vite URL in the browser.
+1. Observe what is and *isn't* displayed. The browser does not know how to render `<user-card>` information.
+</Steps>
+
+### Define the Component
+
+<Steps>
+1. Notice that there is a `'template'` element already defined in `js/user-card.js`, and that it already has some `.innerHTML` of a style tag and an `<article>` as the main container of content we want to render.
+
+1. Define a `UserCard` class that extends `HTMLElement`.
+
+    ```js title="js/user-card.js"
+    class UserCard extends HTMLElement {
+      constructor() {
+        super();
+      }
+    }
+    ```
+
+1. Attach an open shadow root to our `UserCard` instance (`this.`). This means that our "shadow DOM" is "open" for querying elements inside our component.
+
+    ```diff lang="js" title="js/user-card.js"
+      class UserCard extends HTMLElement {
+        constructor() {
+          super();
+    +     const shadow = this.attachShadow({ mode: 'open' });
+        }
+      }
+    ```
+
+1. Clone the template and append it to the shadow root of our component.
+
+    ```diff lang="js" title="js/user-card.js"
+    -     const shadow = this.attachShadow({ mode: 'open' });
+    +     const content = template.content.cloneNode(true);
+    +     shadow.append(content);
+    ```
+
+1. Register the element so that the browser will associate a tag name of `user-card` with our `UserCard` class. This is a critical step and is a **one-time registration**.
+
+    ```diff lang="js" title="js/user-card.js" "'user-card'"
+      class UserCard extends HTMLElement {
+        constructor() {
+          super();
+          const shadow = this.attachShadow({ mode: 'open' });
+          const content = template.content.cloneNode(true);
+          shadow.append(content);
+        }
+      }
+    + 
+    + customElements.define('user-card', UserCard);
+    ```
+
+    Note that all custom elements must use **hypenated tag names**, so as to never be confused with pre-defined HTML elements/tags.
+
+1. Take a moment to see what gets rendered in the browser. Compare what is actually in the browser's HTML with what is in the HTML of our custom element's template.
+
+    ```html title="template of user-card.js"
+    <article class="card">
+      <img src="" alt="">
+      <div>
+        <slot name="name" class="name">Unknown user</slot>
+        <slot name="description" class="description">No description provided.</slot>
+      </div>
+    </article>
+    ```
+
+    Named `<slot>`s from our template are identified in the hard-coded `<user-card>`'s child elements.
+
+    ```html title="index.html" "name" "description"
+    <user-card avatar="assets/avatars/clarence-james.jpg">
+      <span slot="name">Clarence James</span>
+      <span slot="description">Enjoys helping teams turn rough ideas into clear, working prototypes.</span>
+    </user-card>
+    ```
+
+    In the browser's dev tools, you can turn on the ability to view the shadow dom (see <a href="https://devtoolstips.org/tips/en/inspect-user-agent-dom/" target="_blank">Inspect the user-agent DOM</a>)
+</Steps>
+
+### Use Attributes and Slots
+
+Notice that of all the items rendered so far in the browser, we're missing the user's image. To display that, we have to get the value of the `avatar` attribute.
+
+<Steps>
+1. First, we'll get a reference to the `<img>` element in our template's content. Since every image should have an `alt` text, we'll get the name of the user from our slot.
+
+    ```diff lang="js" title="js/user-card.js" "content.querySelector" "this.querySelector" "[slot=\"name\"]"
+      class UserCard extends HTMLElement {
+        constructor() {
+          super();
+          const shadow = this.attachShadow({ mode: 'open' });
+          const content = template.content.cloneNode(true);
+    +     const image = content.querySelector('img');
+    +     const name = this.querySelector('[slot="name"]')?.textContent ?? 'user';
+    +
+          shadow.append(content);
+        }
+      }
+    ```
+
+    The query selector for our slot is somewhat different than you might expect. That's because we're querying the actual child elements from our HTML (via `this.`), not the template's content.
+
+    ```html title="index.html" "name"
+    <user-card avatar="assets/avatars/clarence-james.jpg">
+      <span slot="name">Clarence James</span>
+      <span slot="description">Enjoys helping teams turn rough ideas into clear, working prototypes.</span>
+    </user-card>
+    ```
+
+1. Next, we'll read the `avatar` attribute and assign it to the internal image's `src`, with a "fallback" value of one of the images we already have. We'll also set the `alt` property.
+
+    ```diff lang="js" title="js/user-card.js" "content.querySelector" "this.querySelector" "[slot=\"name\"]"
+      class UserCard extends HTMLElement {
+        constructor() {
+          super();
+          const shadow = this.attachShadow({ mode: 'open' });
+          const content = template.content.cloneNode(true);
+          const image = content.querySelector('img');
+          const name = this.querySelector('[slot="name"]')?.textContent ?? 'user';
+     
+    +     image.src = this.getAttribute('avatar') || 'assets/avatars/avatar.png';
+    +     image.alt = `Profile photo for ${name}`;
+    +
+          shadow.append(content);
+        }
+      }
+    ```
+
+1. Once again, view the results in the browser. Play with the `index.html` to see what gets displayed as you manually edit the `<user-card>`.
+</Steps>
+
+### Create Cards Programmatically
+
+<Steps>
+1. Open `main.js` and note the general steps we'll be taking to create our user card programmatically.
+
+    ```diff lang="js" title="js/main.js" "TODO:"
+      import './user-card.js';
+      import { users } from './users.js';
+
+      const programmaticCards = document.querySelector('#programmatic-cards');
+
+      function createUserCard(user) {
+      // TODO: Create a <user-card> element with document.createElement().
+      // TODO: Create slotted spans for the name and description.
+      // TODO: Set the avatar attribute before appending the element.
+      // TODO: Append the finished card to programmaticCards.
+      }
+
+      users.slice(2).forEach(createUserCard);
+    ```
+
+1. We'll use the `document.createElement()` function to create an instance of our custom element. Because we registered the `user-card` tag name, the browser knows how to render it.
+
+    ```diff lang="js" title="js/main.js"
+      import './user-card.js';
+      import { users } from './users.js';
+
+      const programmaticCards = document.querySelector('#programmatic-cards');
+
+      function createUserCard(user) {
+      // TODO: Create a <user-card> element with document.createElement().
+    +   const card = document.createElement('user-card');
+      // TODO: Create slotted spans for the name and description.
+      // TODO: Set the avatar attribute before appending the element.
+      // TODO: Append the finished card to programmaticCards.
+      }
+
+      users.slice(2).forEach(createUserCard);
+    ```
+
+1. Since our `UserCard` constructor will put in a default name and image for the user, we can append the incomplete card to the DOM. We should see the default data appearing for each of our new users.
+
+    ```diff lang="js" title="js/main.js"
+      import './user-card.js';
+      import { users } from './users.js';
+
+      const programmaticCards = document.querySelector('#programmatic-cards');
+
+      function createUserCard(user) {
+      // TODO: Create a <user-card> element with document.createElement().
+        const card = document.createElement('user-card');
+      // TODO: Create slotted spans for the name and description.
+      // TODO: Set the avatar attribute before appending the element.
+      // TODO: Append the finished card to programmaticCards.
+    +   programmaticCards.append(card);
+      }
+
+      users.slice(2).forEach(createUserCard);
+    ```
+
+1. For the slotted text, we'll need some `<span>` elements. We should create those using DOM APIs rather than `.innerHTML`. Since there will have to be two such `<span>` elements, we'll code a function that can construct the element.
+
+    ```diff lang="js" title="js/main.js"
+      import './user-card.js';
+      import { users } from './users.js';
+
+      const programmaticCards = document.querySelector('#programmatic-cards');
+
+    + function createSlottedText(slotName, text) {
+    +   const span = document.createElement('span');
+    +   span.slot = slotName;
+    +   span.textContent = text;
+    +   return span;
+    + }
+    +
+      function createUserCard(user) {
+    ```
+
+1. Now we can add in our users' name and description.
+
+    ```diff lang="js" title="js/main.js"
+      function createUserCard(user) {
+      // TODO: Create a <user-card> element with document.createElement().
+        const card = document.createElement('user-card');
+      // TODO: Create slotted spans for the name and description.
+    +   card.append(
+    +     createSlottedText('name', user.name),
+    +     createSlottedText('description', user.about),
+    +   );
+      // TODO: Set the avatar attribute before appending the element.
+      // TODO: Append the finished card to programmaticCards.
+        programmaticCards.append(card);
+      }
+    ```
+
+    At this point, we should see our user's text information clearly.
+
+1. We'll add an attribute value using `.setAttribute` to set up our image.
+
+    ```diff lang="js" title="js/main.js"
+      function createUserCard(user) {
+      // TODO: Create a <user-card> element with document.createElement().
+        const card = document.createElement('user-card');
+      // TODO: Create slotted spans for the name and description.
+        card.append(
+          createSlottedText('name', user.name),
+          createSlottedText('description', user.about),
+        );
+      // TODO: Set the avatar attribute before appending the element.
+    +   card.setAttribute('avatar', user.avatar);
+    +
+      // TODO: Append the finished card to programmaticCards.
+      }
+    ```
+
+1. 🤔 Why is the default image not replaced by our `avatar` attribute? The secret lays in the fact that the `UserCard` constructor runs at the point we called `document.createElement()`. The image's source is only set inside the constructor, and that function exited long before we went to set the card's `avatar` attribute!
+
+    Programmatically, we have to create the element before we can add attributes. It's not just a single-step process. But why are the user's name and description populated with the correct information? That's because we used **slots** for those child elements, and the *browser* takes on full responsibility for replacing the slotted elements. 
+
+    If that's the case, then why were the `<user-card>`s in the HTML rendered correctly? That's because in the HTML, those are **declaratively** generated, and the browser sees the `avatar` attribute at the point that it *parses* the HTML to render the page.
+
+    <Aside type="tip" title="Declarative vs. Imperative Programming">
+      If the student hasn't yet discovered the difference between **declarative** programming and **imperative** programming, this is a great time to point out the difference.
+
+      - **Declarative** languages such as HTML are ones in which we tell the computer ***what*** we want. It's the *browser's job* to figure out *how* to achieve that.
+      - **Imperative** languages such as JavaScript are ones in which we the computer ***how*** to do something. We, the software developers, tell the browser exactly what steps to take to achieve what we want.
+    </Aside>
+</Steps>
+
+### Fixing our `UserCard`
+
+<Aside title="Homework from last class...">
+  Our original look at JavaScript classes near the start of the term was only a shallow overview.
+
+  Students should have completed the assigned homework on **advanced JavaScript classes** from the previous class. If they skipped it, remind them to spend the time reviewing that homework assignment.
+</Aside>
+
+We need to design our custom `UserCard` element in a way that the browser can *observe* when the `avatar` attribute is changed, regardless of whether the component is created declaratively in the HTML or programmatically in JavaScript. It's a two-part process.
+
+1. Identify what attribute names the browser should "watch".
+2. Set up a callback for the browser to call when the attribute is changed.
+
+This interactivity between the browser and our custom elements is similar to the event-driven interactivity through event listeners. When the browser detects changes to the observed attributes, a callback is invoked as a **hook** which our custom element can implement.
+
+<Steps>
+1. Begin by adding a static `observedAttributes` "getter" property to the `UserCard`. This is a special property name that the browser will "look for" when the component is registered.
+
+    ```diff lang="js" title="js/user-card.js"
+      class UserCard extends HTMLElement {
+        constructor() {
+          super();
+          const shadow = this.attachShadow({ mode: 'open' });
+          const content = template.content.cloneNode(true);
+          const image = content.querySelector('img');
+          const name = this.querySelector('[slot="name"]')?.textContent ?? 'user';
+     
+          image.src = this.getAttribute('avatar') || 'assets/avatars/avatar.png';
+          image.alt = `Profile photo for ${name}`;
+     
+          shadow.append(content);
+        }
+    +
+    +   static get observedAttributes() {
+    +     return ['avatar'];
+    +   }
+      }
+    ```
+
+1. Add a property to reference the image via the constructor. We'll also clean up the constructor by removing the old code that tried to modify the image and just use fallback values.
+
+    ```diff lang="js" title="js/user-card.js"
+        constructor() {
+          super();
+          const shadow = this.attachShadow({ mode: 'open' });
+          const content = template.content.cloneNode(true);
+    +     this.image = content.querySelector('img');
+    +     this.image.src = 'assets/avatars/avatar.png';
+    +     this.image.alt = `Profile photo for user`;
+    -     const image = content.querySelector('img');
+    -     const name = this.querySelector('[slot="name"]')?.textContent ?? 'user';
+    -
+    -     image.src = this.getAttribute('avatar') || 'assets/avatars/avatar.png';
+    -     image.alt = `Profile photo for ${name}`;
+     
+          shadow.append(content);
+        }
+    ```
+
+1. Add an `attributeChangedCallback` to process any changes to the `avatar` attribute. Again, the name `attributeChangedCallback` is a special function name that the browser will attempt to invoke when it sees changes to any of the observed attributes.
+
+    ```diff lang="js" title="js/user-card.js"
+        static get observedAttributes() {
+          return ['avatar'];
+        }
+    +
+    +   attributeChangedCallback(name, oldValue, newValue) {
+    +     if(name === 'avatar' && oldValue !== newValue) {
+    +       this.image.src = newValue || 'assets/avatars/avatar.png';
+    +       let name = this.querySelector('[slot="name"]')?.textContent ?? 'user';
+    +       this.image.alt = `Profile photo for ${name}`;
+    +     }
+    +   }
+    ```
+
+1. Notice how our remaining users are now appearing in the browser.
+</Steps>
+
+### Common Errors and Fixes
+
+| Issue | Likely Cause | Fix |
+| ----- | ------------ | --- |
+| Component does not upgrade | `customElements.define()` is missing or the import did not run | Import `user-card.js` from `main.js` |
+| Browser rejects the name | Custom element name does not contain a hyphen | Use a name such as `user-card` |
+| Slot content is missing | Slot names do not match | Match `slot="name"` with `<slot name="name">` |
+| Image is blank | Attribute path is wrong or read after the wrong step | Check the local `assets/avatars` path |
+
+### Demo Verification
+
+Students can verify their work on this bucket assignment by running the unit tests.
+
+```ps
+pnpm test
+```
+
+Remind students that they need to commit and push their changes.
+
+## Conclusion
+
+<Aside title="Remaining class time today is for homework">
+If time is left during the class, students are encouraged to begin the associated homework assignment from today's class.
+</Aside>
+
+> **Assigned homework:** Complete [Homework: Practice Custom Element Details](./homework/220-homework.mdx). It reinforces today's custom-element model and gives fallback practice for attributes, slots, programmatic creation, and common custom-element errors.
+
+
+
+Students should leave with a working mental model of a custom element as a reusable HTML tag backed by a JavaScript class, a cloned template, a shadow root, and optional light-DOM content.

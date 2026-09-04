@@ -1,0 +1,551 @@
+---
+title: JavaScript and HTML - Intro
+description: Instructor guide for connecting JavaScript to HTML, using the browser console, selecting DOM elements, and updating content, attributes, and styles
+sidebar:
+  label: Intro to JavaScript and HTML
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 1" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="90-125">
+> ⚠️ Be mindful of delivery time; this walkthrough can easily run long if discussion expands.
+
+- This lesson is longer and more workflow-heavy than lesson 02.
+- Students type through repeated project setup, JavaScript-to-HTML connection, DOM selection, scoped searching, and content, attribute, and style updates.
+- The walkthrough needs time for browser verification, selector debugging, and discussion around how JavaScript reaches into an HTML document.
+- The estimate allows extra time for slower typing, setup repetition, and troubleshooting browser-visible results.
+</Instructor>
+
+----
+
+## Lecture
+
+<Aside type="tip" title="Student Notes">
+  A blank `ReadMe.md` is included with the demo as a place for students to add their own notes from the lecture and demo walkthrough.
+</Aside>
+
+### HTML, CSS, and JavaScript
+
+This lesson moves from project tooling into the browser page itself. The page already contains HTML and CSS. Students will add JavaScript so they can inspect the page, select elements, and update what the user sees.
+
+Keep the language responsibilities separate:
+
+- **HTML** provides structure and content.
+- **CSS** controls presentation.
+- **JavaScript** adds behaviour and can update the page while it is running.
+
+The main idea is that JavaScript does not edit the original HTML file. JavaScript works with the page that the browser built from that HTML.
+
+### The DOM
+
+The DOM is the browser's object representation of the page. Once the browser reads the HTML, it builds a tree of objects. JavaScript can select objects from that tree, read them, and change them.
+
+Students do not need the full DOM API today. They need the first habit: use JavaScript to find one element, store it in a variable, inspect it in the console, and then change one thing about it.
+
+<Aside type="note" title="DOM Vocabulary">
+  Use "HTML" for the source document and "DOM" for the live page structure in the browser.
+
+  That distinction helps students understand why JavaScript can change the page without rewriting the `index.html` file.
+</Aside>
+
+### Selectors
+
+The `document.querySelector()` method uses CSS-style selector strings. That means students can use selector patterns they may already recognize from CSS.
+
+- `h1` selects the first `<h1>` element.
+- `.container` selects the first element with the `container` class.
+- `#brand-name` selects the element with the `brand-name` id.
+
+Later, students can use `.querySelector()` from a specific element instead of from `document`. That lets them search inside one smaller part of the DOM.
+
+### Browser Console
+
+The browser console is the easiest place to confirm that JavaScript is running and inspect values selected from the DOM.
+
+In this lesson, use the console deliberately. Do not treat `console.log()` as throwaway output. It is a way to ask the browser, "What did JavaScript find?"
+
+----
+
+## Demo Walkthrough
+
+The Lesson 12 demo intentionally repeats the Node/Vite setup from Lesson 11. Keep that repetition brief. The reason is not to reteach package management in full; it is to reinforce the project workflow and make this lesson self-contained before we focus on JavaScript and the DOM.
+
+After the setup, students should only edit `index.html` once to add the `<script>` tag. The rest of the lesson should happen in `js/main.js`.
+
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="5" folder="~/inclass/05/" file="demo.js" lang="js" />
+
+
+
+<Aside type="tip" title="Frequent, small commits">
+We'll also practice version control by **making a commit after each group of steps**. Commits in git are a two-step process: First, we stage what changes we want to commit. Then we do the actual commit.
+
+```ps title="Commit Example"
+git add .
+git commit -m "Set up browser project"
+```
+</Aside>
+
+### Starter Files
+
+The starter demo is intentionally similar to Lesson 11.
+
+<FileTree>
+- demo
+  - css
+    - styles.css
+  - img
+    - icons8-javascript-48.png
+    - undraw_building-a-website_1wrp.svg
+    - undraw_code-review_jdgp.svg
+  - js
+    - credits.js
+    - main.js
+  - index.html
+  - ReadMe.md
+</FileTree>
+
+The `main.js` file starts empty. The `index.html` file has a placeholder comment where the module script tag will be added.
+
+### Project Setup
+
+<Steps>
+1. Open the `~/inclass/11/demo` folder in VS Code.
+
+    The visible page is already built. Students should not write new HTML content during this lesson.
+
+1. Initialize the project.
+
+    ```ps title="Terminal"
+    pnpm init
+    ```
+
+    This creates `package.json`.
+
+1. Install Vite as a development dependency.
+
+    ```ps title="Terminal"
+    pnpm add -D -E vite
+    ```
+
+    This is the same setup pattern from Lesson 11. The `-D` flag records Vite as a development dependency, and `-E` pins the exact version.
+
+1. Since this starter kit has some tests built-in, add `vitest` and `jsdom` as well.
+
+    ```ps title="Terminal"
+    pnpm add -D -E vitest jsdom
+    ```
+
+1. Install PicoCSS as a regular dependency.
+
+    ```ps title="Terminal"
+    pnpm add -E @picocss/pico
+    ```
+
+    The starter CSS and page layout continue from Lesson 11, so we will load PicoCSS again from JavaScript.
+
+1. Add the `dev` script and modify the `test` script.
+
+    ```diff lang="json" title="package.json"
+      "scripts": {
+    +   "dev": "vite",
+    -   "test": "echo \"Error: no test specified\" && exit 1"
+    +   "test": "vitest"
+      },
+    ```
+
+1. Add a `vitest.config.js` file and enter the following content. (This is needed for automated testing.)
+
+    ```js title="vitest.config.js"
+    import { defineConfig } from 'vitest/config'
+
+    export default defineConfig({
+      test: {
+        environment: 'jsdom', // or 'happy-dom', 'node'
+      },
+    });
+    ```
+
+1. Run the development server.
+
+    ```ps title="Terminal"
+    pnpm dev
+    ```
+
+1. Type `o` and press <kbd>Enter</kbd> to open the page in the browser.
+
+1. Open the browser's Developer Tools Console.
+
+    The page should load, but no custom JavaScript is connected yet.
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Set up browser project"
+> ```
+
+### Connect JavaScript to HTML
+
+<Steps>
+1. Add the module script tag in `index.html`.
+
+    ```diff lang="html" title="~/inclass/11/demo/index.html"
+      <link rel="shortcut icon" href="./img/icons8-javascript-48.png" type="image/x-icon">
+      <link rel="stylesheet" href="./css/styles.css">
+    - <!-- Place script tag here -->
+    + <script type="module" src="./js/main.js"></script>
+    ```
+
+    This is the only required HTML edit in the lesson.
+
+    <Aside type="note" title="Module Script">
+      `type="module"` tells the browser to load `main.js` as an ES Module.
+
+      We are not importing another file yet, but this keeps the project structure consistent with the previous lesson.
+    </Aside>
+
+1. Add a first console message in `main.js`.
+
+    ```js title="~/inclass/11/demo/js/main.js"
+    console.log('Lesson 12 main.js loaded');
+    ```
+
+    Check the browser console. This confirms that the HTML page is loading the JavaScript file.
+
+1. Import the PicoCSS stylesheet.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+    + import '@picocss/pico/css/pico.green.min.css';
+    +
+      console.log('Lesson 12 main.js loaded');
+    ```
+
+    This keeps the page visually consistent with Lesson 11. The important point for today is that JavaScript modules can import resources that the development server knows how to bundle.
+
+1. Add a few values to inspect in the console.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      import '@picocss/pico/css/pico.green.min.css';
+      
+      console.log('Lesson 12 main.js loaded');
+    +
+    + const courseCode = 'SDEV-1150';
+    + const lessonNumber = 12;
+    +
+    + console.log(courseCode);
+    + console.log(`Lesson number: ${lessonNumber}`);
+    ```
+
+    This gives students a familiar bridge from earlier console-based lessons into browser JavaScript.
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Connect browser script"
+> ```
+
+### Select Elements From the DOM
+
+`document.querySelector()` selects the first matching element from the DOM.
+
+<Steps>
+1. Select the page heading by tag name.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      console.log(courseCode);
+      console.log(`Lesson number: ${lessonNumber}`);
+    +
+    + const pageHeading = document.querySelector('h1');
+    + console.log(pageHeading);
+    ```
+
+    The selector string `'h1'` matches the first `<h1>` element.
+
+1. Don't be confused by the output of `console.log(pageHeading)`. `pageHeading` is ***NOT* a string**! You can confirm this by including the folowing.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      const pageHeading = document.querySelector('h1');
+      console.log(pageHeading);
+    + console.log(typeof pageHeading);
+    + console.log(pageHeading.__proto__.constructor.name);
+    ```
+
+1. Let's resume with using other selector strings. Select the brand area by it's `id` attribute value.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      const pageHeading = document.querySelector('h1');
+      console.log(pageHeading);
+      console.log(typeof pageHeading);
+      console.log(pageHeading.__proto__.constructor.name);
+    +
+    + const brandName = document.querySelector('#brand-name');
+    + console.log(brandName);
+    ```
+
+    The selector string `'#brand-name'` uses the same `#` pattern students may know from CSS id selectors.
+
+    ```ps title="Browser Dev Tools Console"
+      ▶ <li id="brand-name">…</li>
+    ```
+
+    Notice that we have the `▶` triangle. Have the students click on it to expand the HTMLElement and see its internal content.
+
+1. Select the first container by class.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      const brandName = document.querySelector('#brand-name');
+      console.log(brandName);
+    +
+    + const firstContainer = document.querySelector('.container');
+    + console.log(firstContainer);
+    ```
+
+    The selector string `'.container'` uses the same `.` pattern as CSS class selectors.
+
+    <Aside type="caution" title="First Match Only">
+      `querySelector()` returns the first matching element.
+
+      This page has more than one `.container`, but this line only selects the first one. That is enough for today; Lesson 14 will go deeper with selecting multiple elements.
+    </Aside>
+
+1. Try a selector that does not match anything.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      const firstContainer = document.querySelector('.container');
+      console.log(firstContainer);
+    +
+    + const missingElement = document.querySelector('.missing-card');
+    + console.log(missingElement);
+    ```
+
+    The console shows `null`. That means JavaScript searched the DOM but did not find a matching element.
+</Steps>
+
+### Search Inside a Smaller Part of the Page
+
+Once JavaScript has selected an element, it can search inside that element.
+
+<Steps>
+1. Select the main page area.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      const missingElement = document.querySelector('.missing-card');
+      console.log(missingElement);
+    +
+    + const mainContent = document.querySelector('main');
+    + console.log(mainContent);
+    ```
+
+1. Search for the list inside `mainContent`.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      const mainContent = document.querySelector('main');
+      console.log(mainContent);
+    +
+    + const languageList = mainContent.querySelector('ul');
+    + console.log(languageList);
+    ```
+
+    This is still a tag selector, but it searches inside `mainContent` instead of searching the whole document.
+
+    <Aside type="note" title="Subset of the DOM">
+      Searching from a smaller element is a useful habit.
+
+      It makes the selector more specific without needing to create more ids in the HTML.
+    </Aside>
+
+1. Compare and constrast the results of searching for the first `ul` in the document as a whole.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      const languageList = mainContent.querySelector('ul');
+      console.log(languageList);
+    +
+    + const firstUnorderedList = document.querySelector('ul');
+    + console.log(firstUnorderedList);
+    ```
+
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Select DOM elements"
+> ```
+
+### Modify Content, Attributes, and Styles
+
+Now that students can select elements, they can change the live page.
+
+<Steps>
+1. Change the heading text.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      console.log(firstUnorderedList);
+    +
+    + pageHeading.textContent = 'JavaScript Can Update the DOM';
+    ```
+
+    The browser updates the visible heading. The original `index.html` file does not change.
+
+    <Aside type="caution" title="Prefer .textContent over .innerText">
+      Most of the time, the choice between using `.innerText` and `.textContent` is not relevant. There are subtle differences between the two, but those won't appear until the student well beyond this course.
+
+      However, to simplify the **automated testing** (jsdom), instruct the students to **use `.textContent`** instead of `.innerText`.
+    </Aside>
+
+1. Change text inside the brand area.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      pageHeading.textContent = 'JavaScript Can Update the DOM';
+    +
+    + const brandLabel = brandName.querySelector('strong');
+    + brandLabel.textContent = 'Dynamic DOM';
+    ```
+
+    This uses a selected element, `brandName`, as the starting point for another query.
+
+1. Use trusted HTML markup to replace the language list.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      const brandLabel = brandName.querySelector('strong');
+      brandLabel.textContent = 'DOM Demo';
+    +
+    + const threeTrustedLanguages = `
+    +   <li><strong>HTML</strong> gives the page <u>structure</u>.</li>
+    +   <li><strong>CSS</strong> controls how the page <u>looks</u>.</li>
+    +   <li><strong>JavaScript</strong> can <u>update</u> the live DOM.</li>
+    + `;
+    +
+    + languageList.innerHTML = threeTrustedLanguages;
+    ```
+
+    `.innerHTML` treats the assigned string as HTML. That is useful when the JavaScript needs to insert markup, but it should only be used when the content assigned to `.innerHTML` is trusted.
+
+    <Aside type="danger" title="Untrusted HTML">
+      Do not put user-provided or untrusted content into `.innerHTML`. The browser parses the string as HTML, so dangerous markup can run code.
+
+      For example, this string is not safe to assign to `.innerHTML`:
+
+      ```html
+      <img src=x onerror="alert('DANGER!');" />
+      ```
+
+      If the content is plain text, prefer `.textContent`.
+    </Aside>
+
+1. Change an image attribute.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      const brandLabel = brandName.querySelector('strong');
+      brandLabel.textContent = 'DOM Demo';
+      const threeTrustedLanguages = `
+        <li><strong>HTML</strong> gives the page structure.</li>
+        <li><strong>CSS</strong> controls how the page looks.</li>
+        <li><strong>JavaScript</strong> can update the live DOM.</li>
+      `;
+      languageList.innerHTML = threeTrustedLanguages;
+    +
+    + const asideImage = document.querySelector('aside img');
+    + asideImage.setAttribute('width', '180');
+    + asideImage.setAttribute('alt', 'A person building a website');
+    + asideImage.src = './img/undraw_code-review_jdgp.svg';
+    ```
+
+    The `setAttribute()` method changes an HTML attribute on the live DOM element. Some attributes, such as `.src` are, are so relevant for the particular type of HTML Element that their attribute has a corresponding property available.
+
+    <Aside type="tip" title="VS Code Intellisense">
+      When we use `.querySelector()`, it's only promise is that it will either return an `HTMLElement` or `null`. We don't get anything more specific than that.
+
+      That's the reason you don't see the `.src` appear in intellisense when typing `asideImage.src`.
+
+      If you *really* want to see that intellisense, then add a JSDoc comment above your variable declaration.
+
+      ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      + /** @type {HTMLImageElement} */
+        const asideImage = document.querySelector('aside img');
+      ```
+    </Aside> 
+
+1. Change a style.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      const asideImage = document.querySelector('aside img');
+      asideImage.setAttribute('width', '180');
+      asideImage.setAttribute('alt', 'A person building a website');
+    +
+    + languageList.style.borderLeft = '0.4rem solid var(--pico-primary)';
+    + languageList.style.paddingLeft = '1rem';
+    ```
+
+    This applies **inline styles** through JavaScript. The larger styling job still belongs in CSS, but this is a clear way to see JavaScript changing presentation at runtime.
+
+1. Import and use the supplied footer helper.
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      import '@picocss/pico/css/pico.green.min.css';
+    + import { fillCredits } from './credits';
+      
+      console.log('Lesson 12 main.js loaded');
+    ```
+
+    ```diff lang="js" title="~/inclass/11/demo/js/main.js"
+      languageList.style.borderLeft = '0.4rem solid var(--pico-primary)';
+      languageList.style.paddingLeft = '1rem';
+    +
+    + fillCredits(2026, 'Stew Dent'); // Use YOUR name
+    ```
+
+    This helper is already in the starter. It selects the copyright spans in the footer and fills them with text.
+
+    <Aside type="note" title="JavaScript-Only Changes">
+      After the script tag, every visible update in this lesson happens from JavaScript.
+
+      That is intentional. The HTML is already prepared so students can focus on selecting and changing DOM elements.
+    </Aside>
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Update DOM content"
+> ```
+
+### What About The Tests?
+
+<Steps>
+1. In the terminal, go ahead and stop the dev server if it's still running. We won't need our application to be running in the browser for the provided unit tests to work.
+
+    The easiest way is to just press <kbd>q</kbd> and then <kbd>enter</kbd>. And alternative is to press <kbd>ctrl</kbd> + <kbd>c</kbd>.
+
+1. Now type `pnpm test` and watch the test results. If you've assembled everything correctly, then you should see all checkmarks.
+1. If any of the tests fail, check the messages in the terminal. Your instructor can help you interpret the messages for failing tests.
+</Steps>
+
+### Demo Verification
+
+This is the first bucket assignment that checks to see if the student's JavaScript code is actually modifying the DOM as expected. For reinforcement of the package setup, the automated tests also ensure `package.json` was correctly set up in the intial stages.
+
+> ```ps
+> git add .
+> git commit -m "Finish intro to arrays"
+> ```
+
+----
+## Conclusion
+
+> **Assigned homework:** Complete [Homework: Practice DOM Selection and Updates](./homework/120-homework.mdx). It reinforces today's browser JavaScript workflow and gives fallback practice for subtree selection plus content, attribute, and style updates.
+
+Today's lesson connects JavaScript to a browser page. Students used the console to confirm their code was running, selected elements from the DOM with `querySelector()`, and changed content, attributes, and styles without rewriting the HTML file.
+
+<Aside type="tip" title="Understanding JavaScript 👀">
+  The key habit in this lesson is to slow down after each selector.
+
+  Select the element, log it, confirm JavaScript found what you expected, and only then change it.
+</Aside>

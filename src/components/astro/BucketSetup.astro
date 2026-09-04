@@ -1,0 +1,42 @@
+---
+import { Aside, Code, Steps } from "@astrojs/starlight/components";
+
+interface Props {
+    folder: string;
+    file: string;
+    lessonNumber: string;
+    lang?: string
+}
+
+const { folder, file, lessonNumber, lang = 'js' } = Astro.props as Props;
+const filePath = `${folder}${file}`;
+const code = `// Stew Dent - Sep 8, 2026`;
+const commit = `git add .
+git commit -m "Start lesson ${lessonNumber}"`;
+---
+
+<p>This is a <b>bucket assignment</b> worth marks. As part of the setup for today's lesson, ensure the students put the following at the <b>top</b> of their <code>{file}</code>. This helps establish an opening commit timestamp for the lesson.</p>
+
+<ol role="list" class="sl-steps">
+  <li>
+    <p>Open the {filePath} and put your name and the current date as a comment on the <b>first</b> line.</p>
+    <Code code={code} lang={lang} title={filePath} />
+  </li>
+  <li>
+    <p>Open the terminal in <code>{folder}</code> and commit your changes.</p>
+    <Code code={commit} lang="ps" title={folder} />
+  </li>
+</ol>
+
+<Aside type="caution" title="Instructors: Be careful!">
+  <p>Steps marked with a 📍 include some variable or function that is <a href="#demo-verification">exported</a> and picked up in the <b>automated tests</b>. Do not deviate from the guide on these items.</p>
+
+  <ol role="list" class="sl-steps">
+    <li>
+      <p>📍 In this step...</p>
+    </li>
+  </ol>
+
+  <p>Ensure you follow the lesson exactly in regard to these variables/items, as they are used in the automated tests as part of the bucket assignment. When the class is done, the students should have the correct values from today's lesson inside those variables.</p>
+</Aside>
+

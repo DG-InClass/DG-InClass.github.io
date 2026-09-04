@@ -1,0 +1,17 @@
+---
+interface Props {
+    label: string,
+    message: string,
+    color?: string,
+    logo?: string,
+    style?: string
+}
+const { label, message, color = '', logo = '', style='for-the-badge'}:Props = Astro.props;
+const lbl = label.replaceAll(' ', '%20').replaceAll('-','--');
+const msg = message.replaceAll(' ', '%20').replaceAll('-','--');
+const cl = color.trim()?`-${color}`:''
+const lg = logo.trim()?`&logo=${logo.trim()}`:'';
+const src = `https://img.shields.io/badge/${lbl}-${msg}${cl}?style=${style}${lg}`
+---
+
+<img alt="Static Badge" src={src}>

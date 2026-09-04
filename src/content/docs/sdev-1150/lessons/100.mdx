@@ -1,0 +1,449 @@
+---
+title: Node Projects for Frontend Development
+description: Instructor guide for creating Node-based frontend projects with package management, package scripts, dependencies, and ES Modules
+sidebar:
+  label: Intro to Node Projects
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 1" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="80-105">
+> ⚠️ Be mindful of delivery time; this walkthrough can easily run long if discussion expands.
+
+- This lesson is longer than lesson 02, but much of the complexity is workflow rather than JavaScript syntax.
+- Students type through project setup, `package.json`, dependencies, browser console work, JavaScript files, and dependency exploration.
+- The walkthrough needs time for terminal commands, file navigation, and discussion around what Node project tooling is doing.
+- The estimate allows extra time for setup friction, slower typing, and differences in local development environments.
+</Instructor>
+
+
+We're going to shift from individual JavaScript files into the kind of project structure students will see in modern frontend development. The main idea is that Node is not only a way to run JavaScript in the terminal. It also gives us the project tooling used to install packages, track project metadata, and run repeatable commands.
+
+In this lesson, students should see `package.json` as the centre of a Node project. It records the project settings, the scripts we can run, and the packages the project depends on. From there, we can connect the package-management workflow to frontend code by using ES Module `import` and `export` syntax.
+
+
+----
+
+## Lecture
+
+<Aside type="tip" title="Student Notes">
+  A blank `ReadMe.md` is included with the demo as a place for students to add their own notes from the lecture and demo walkthrough.
+</Aside>
+
+### What Changes Today
+
+So far, most of our JavaScript has been written as individual files that we run directly. That is a good way to learn the language, but most frontend work eventually grows into a project.
+
+A project needs a few more pieces:
+
+- a folder that contains the project files
+- a `package.json` file that describes the project
+- packages that the project depends on
+- scripts that let us repeat common commands
+- a development server that can deliver the page to the browser
+
+The important shift is that Node becomes project tooling. We are not using Node because the final application will run in Node. We are using Node because the frontend development workflow uses Node-based tools.
+
+### The `package.json` File
+
+The `package.json` file is the project record. It can hold the project name, version, scripts, dependencies, development dependencies, and package-manager details.
+
+Students do not need to memorize every field today. They should understand the big idea: when we install packages or add scripts, `package.json` is where the project keeps track of that information.
+
+<Aside type="note" title="Project Memory">
+  A useful way to describe `package.json` is that it gives the project a memory.
+
+  Without it, a folder is just a collection of files. With it, the folder becomes a Node project that can remember which packages and commands it needs.
+</Aside>
+
+### Dependencies and Development Dependencies
+
+Packages can be installed as regular dependencies or development dependencies.
+
+Regular dependencies are packages the application uses as part of its actual code. In this lesson, PicoCSS and `smartquotes` are used by the frontend code, so they belong in `dependencies`.
+
+Development dependencies are tools used while building, running, testing, or maintaining the project. Vite is a development server and build tool, so it belongs in `devDependencies`.
+
+<Aside type="caution" title="Do Not Overload This Distinction">
+  Keep this beginner-sized.
+
+  Students should not leave this lesson thinking the distinction is always obvious in every professional project. The practical habit for now is to ask: "Is this package used by the app code, or is it a tool we use while developing the app?"
+</Aside>
+
+### Browser Console
+
+The browser's Developer Tools Console is where frontend JavaScript can report messages while the page is running. In previous lessons, `console.log()` printed to the terminal because Node was running the script. In this lesson, the browser runs the script, so `console.log()` appears in the browser console.
+
+This is a useful moment to reinforce that the same JavaScript language can run in different environments. The environment affects what tools and APIs are available, and where output appears.
+
+
+----
+
+## Demo Walkthrough
+
+Keep the pacing practical. The important concept is not memorizing every package-manager command; it is recognizing the project workflow:
+
+1. Create the project.
+1. Install the tools and libraries the project needs.
+1. Use scripts so common commands are easy to repeat.
+1. Connect JavaScript to the browser with a module script.
+1. Import code from packages and local modules.
+
+This lesson is also a good place to point out the difference between dependencies needed by the app and development dependencies needed while building the app. Beginners often see both listed in `package.json` and assume they are the same kind of thing.
+
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="5" folder="~/inclass/05/" file="demo.js" lang="js" />
+
+> 📍 All the steps are important for the unit tests to generate the correct results.
+
+
+### Demo Folder Contents
+
+You've been supplied with HTML, CSS, a local JavaScript module, and some images.
+
+<FileTree>
+- demo
+  - css
+    - styles.css
+  - img
+    - icons8-javascript-48.png
+    - undraw_building-a-website_1wrp.svg
+  - js
+    - credits.js
+  - tests
+    - ..
+  - index.html
+  - ReadMe.md
+</FileTree>
+
+The `main.js` file is not present at the start. Students will create it during the walkthrough so they can see how the browser starts loading JavaScript from the HTML page.
+
+### Project Setup
+
+import unstyled from './100/unstyled.png';
+
+<Steps>
+1. Open the `~/inclass/10/demo` folder in the integrated terminal of VS Code.
+
+    This folder already contains the starter HTML, CSS, image assets, and a `credits.js` module.
+
+    <Aside type="danger" title="Check Your Path!">
+      Have the students double-check (or *triple-check*) that they are in the correct folder. The next steps involve running terminal commands, and those commands are **trusting you** to be in the right place!
+    </Aside>
+
+1. Initialize the project.
+
+    ```ps title="Terminal"
+    pnpm init
+    ```
+
+    Notice that this generates a `package.json` file. Open the file and point out that the project now has metadata.
+
+    <Aside type="note" title="Generated File">
+      `pnpm init` creates the starting `package.json`.
+
+      The file will change again when we install packages and add scripts.
+    </Aside>
+
+1. Install Vite as a development dependency.
+
+    ```ps title="Terminal"
+    pnpm add -D vite -E
+    ```
+
+    The `-D` flag installs Vite as a development dependency. The `-E` flag pins the exact version number instead of saving a version range.
+
+1. Since this starter kit has some tests built-in, add `vitest` as well.
+
+    ```ps title="Terminal"
+    pnpm add -D vitest -E
+    ```
+
+1. Install PicoCSS as a regular dependency.
+
+    ```ps title="Terminal"
+    pnpm add @picocss/pico -E
+    ```
+
+    PicoCSS will be imported by the frontend code, so it is installed as a regular dependency.
+
+1. Open `package.json` and compare `dependencies` with `devDependencies`.
+
+    The exact version numbers may be different depending on when the lesson is delivered.
+
+    ```json title="package.json"
+    {
+      "devDependencies": {
+        "vite": "...",
+        "vitest": "..."
+      },
+      "dependencies": {
+        "@picocss/pico": "..."
+      }
+    }
+    ```
+
+    <Aside type="note" title="Exact Versions">
+      The actual version number is less important than the shape of the file.
+
+      Students should notice that Vite and PicoCSS are tracked in different sections because they play different roles in the project.
+    </Aside>
+
+1. Add a `"dev"` script to `package.json`. While we're at it, let's modify the `"test"` script.
+
+    ```diff lang="json" title="package.json"
+      "scripts": {
+    +   "dev": "vite",
+    -   "test": "echo \"Error: no test specified\" && exit 1"
+    +   "test": "vitest"
+      },
+    ```
+
+    Scripts give a project a short, repeatable command. Instead of asking students to remember the Vite executable path, they can run `pnpm dev`.
+
+1. Launch the development server.
+
+    ```ps title="Terminal"
+    pnpm dev
+    ```
+
+    Vite will print a local URL in the terminal. Type `o` and press <kbd>Enter</kbd>. Vite opens the page in the browser.
+
+    <Aside type="note" title="Ugh!">
+        <Image src={unstyled} alt="Unstyled webpage" class="float-end pl-4 max-w-96" />
+
+        Yes, that looks terrible. Don't worry about how the page looks right now. Almost all the styling you see are the default styles your browser uses for the HTML elements in the page. It will look better soon...
+    </Aside>
+
+1. In the browser, open the Developer Tools Console. The page is running, but there is no custom JavaScript loaded yet.
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Initialize node project"
+> ```
+
+### Adding JavaScript
+
+<Steps>
+1. Create a new file named `main.js` inside the `js` folder.
+
+    <FileTree>
+    - demo
+      - js
+        - credits.js
+        - main.js
+    </FileTree>
+
+1. Add a module script tag in `index.html`.
+
+    ```diff lang="html" title="~/inclass/10/demo/index.html"
+      <link rel="shortcut icon" href="./img/icons8-javascript-48.png" type="image/x-icon">
+      <link rel="stylesheet" href="./css/styles.css">
+    - <!-- Place script tag here -->
+    + <script type="module" src="./js/main.js"></script>
+    ```
+
+    The `type="module"` attribute tells the browser to load this script as an ES Module.
+
+    <Aside type="note" title="Module Script">
+      This connects the browser lesson back to the previous module lesson.
+
+      We are still using `import` and `export`, but now the module starts from an HTML page instead of a Node command.
+    </Aside>
+
+1. Add a console message to `main.js`.
+
+    ```js title="~/inclass/10/demo/js/main.js"
+    console.log('main.js loaded');
+    ```
+
+    Check the browser's Developer Tools Console. The message should appear there, not in the terminal.
+
+1. Import the PicoCSS stylesheet through JavaScript.
+
+    ```diff lang="js" title="~/inclass/10/demo/js/main.js"
+      console.log('main.js loaded');
+    + import '@picocss/pico/css/pico.green.min.css';
+    ```
+
+    The page should visually change when Vite reloads it.
+
+    <Aside type="note" title="Importing Stylesheets">
+      There are a few things to note about this particular `import` statement. You've seen how regular `import` statements referencing local JavaScript modules will probably use relative paths (e.g.: ones that start with `./`). They also will tend to identify some named item from the JavaScript module they are importing.
+
+      This import, however, is a **stylesheet import**. We simply identify the path to the stylesheet, and then a `<style>` tag will get injected into the `<head>` of the webpage.
+
+      A "stylesheet import" is not something native to JavaScript. It's actually being pre-processed by the <a href="https://vite.dev/guide/features#css" target="_blank">Vite</a> development server.
+
+      One final note: See how the path starts with `@picocss/pico`? That tells Vite to look for the package inside `node_modules`. This is different from importing a local file such as `./credits`.
+    </Aside>
+
+1. Import the local `fillCredits()` function.
+
+    ```diff lang="js" title="~/inclass/10/demo/js/main.js"
+      console.log('main.js loaded');
+      import '@picocss/pico/css/pico.green.min.css';
+    + import { fillCredits } from './credits';
+    ```
+
+    Point out that Vite lets us import `./credits` without writing the `.js` file extension.
+
+1. Call the imported function.
+
+    ```diff lang="js" title="~/inclass/10/demo/js/main.js"
+      console.log('main.js loaded');
+      import '@picocss/pico/css/pico.green.min.css';
+      import { fillCredits } from './credits';
+    +
+    + fillCredits(2026, 'Stew Dent'); // Use your name instead
+    ```
+
+    The footer should now show the copyright year and author.
+
+1. Take a moment to inspect `credits.js`. We won't modify the code, but we will point out a few items of interest.
+
+    ```js title="~/inclass/10/demo/js/credits.js" "document.querySelector"
+    export function fillCredits(year, author) {
+        const yearSpan = document.querySelector('#copyright-year');
+        const authorSpan = document.querySelector('#copyright-author');
+
+        yearSpan.textContent = year;
+        authorSpan.innerText = author;
+    }
+    ```
+
+    This function is local project code. It uses the DOM to find two footer elements, then fills them with values from `main.js`.
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Load browser module"
+> ```
+
+### Exploring Dependencies
+
+<Steps>
+1. In a separate terminal, install another package dependency.
+
+    ```ps title="Terminal"
+    pnpm add smartquotes -E
+    ```
+
+    This package will be used by the frontend code, so it belongs in `dependencies`.
+
+1. Import and use `smartquotes` in `main.js`.
+
+    ```diff lang="js" title="~/inclass/10/demo/js/main.js"
+      console.log('main.js loaded');
+      import '@picocss/pico/css/pico.green.min.css';
+      import { fillCredits } from './credits';
+    + import smartquotes from 'smartquotes';
+    +
+    + let message = 'Exploring "dependencies"';
+    + console.log(message);
+    + console.log(smartquotes(message));
+    +
+      fillCredits(2026, 'Stew Dent');
+    ```
+
+    The browser console should show the original message and the transformed message.
+
+    <Aside type="tip" title="Default Imports">
+      Here's another new aspect of the `import` statement. We've seen named imports (like the one for `fillCredits`), but the one for `smartquotes` is a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#default_import" target="_blank">**default import**</a>.
+    </Aside>
+
+1. Let `smartquotes()` process the page.
+
+    ```diff lang="js" title="~/inclass/10/demo/js/main.js"
+      let message = 'Exploring "dependencies"';
+      console.log(message);
+      console.log(smartquotes(message));
+    + smartquotes();
+ 
+      fillCredits(2026, 'Stew Dent');
+    ```
+
+    The quote in the page's blockquote should be converted to typographic quotes.
+
+    <Aside>
+      Odds are that the smartquotes will change the page's quotes as soon as it's import, so this call to `smartquotes()` may not be needed. It doesn't really matter, however. The `smartquotes` package isn't one we will use beyond today's class.
+    </Aside>
+
+1. Compare package imports with local imports.
+
+    ```js title="~/inclass/10/demo/js/main.js"
+    import '@picocss/pico/css/pico.green.min.css';
+    import { fillCredits } from './credits';
+    import smartquotes from 'smartquotes';
+    ```
+
+    Package imports use a package name. Local imports use a relative path.
+
+1. Remove the package.
+
+    ```ps title="Terminal"
+    pnpm remove smartquotes
+    ```
+
+    You will probably also need to restart the dev server, either by stopping/restarting or by simply pressing `r` + `[enter]` in the terminal while the vite devserver is running.
+
+    The browser should now show an error because `main.js` still imports a package that is no longer installed.
+
+1. Re-add the package and restart the dev server (`r` + `[enter]` in the terminal).
+
+    ```ps title="Terminal"
+    pnpm add smartquotes -E
+    ```
+
+    The page should recover after the dependency is available again.
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Use package dependency"
+> ```
+
+### What About The Tests?
+
+<Steps>
+1. In the terminal, go ahead and stop the dev server if it's still running. We won't need our application to be running in the browser for the provided unit tests to work.
+
+    The easiest way is to just press <kbd>q</kbd> and then <kbd>enter</kbd>. And alternative is to press <kbd>ctrl</kbd> + <kbd>c</kbd>.
+
+1. Now type `pnpm test` and watch the test results. If you've assembled everything correctly, then you should see all checkmarks.
+</Steps>
+
+----
+
+### Demo Verification
+
+The unit tests in this lesson focus primarily on ensuring that the student's have the correct `package.json` settings. If they have followed the instructions carefully to set up the project, all the expected dependencies should be present and under the correct areas (e.g.: `dependencies` vs. `devDependencies`).
+
+> ```ps
+> git add .
+> git commit -m "Finish intro to arrays"
+> ```
+
+----
+
+## Conclusion
+
+> **Assigned homework:** Complete [Homework: Practice Node Project Workflow](./homework/110-homework.mdx). It reinforces today's project workflow and gives fallback practice for `package.json`, dependency roles, browser console checks, and how JavaScript reaches the page.
+
+Today's lesson connects JavaScript modules to a full frontend project workflow. Students initialized a Node project, installed dependencies, added a package script, launched a Vite development server, and imported both package code and local module code into the browser.
+
+<Aside type="tip" title="Understanding JavaScript 👀">
+  The key habit in this lesson is to watch where each piece of the project lives.
+
+  `package.json` tracks project configuration. `node_modules` stores installed packages. `index.html` starts the browser page. `main.js` becomes the module entry point for the frontend code.
+</Aside>

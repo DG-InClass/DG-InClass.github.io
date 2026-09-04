@@ -1,0 +1,626 @@
+---
+title: Custom Element Lifecycle and State Management
+description: Instructor guide for custom element lifecycle callbacks, properties, state, public methods, cleanup, and custom events
+draft: true
+---
+
+import { Aside, FileTree, Steps } from '@astrojs/starlight/components';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 4" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="60-85">
+- Lecture: **25-35 minutes**
+- Demo Walkthrough: **50-65 minutes**
+
+- This lesson is longer than lesson 02 and adds lifecycle, state, and event concepts to custom elements.
+- Students type through setup, lifecycle callbacks, properties, internal state, attribute synchronization, and custom events.
+- The walkthrough needs time for discussion around when component code runs and how state changes reach the page.
+- The estimate allows extra time for slower typing and browser-based debugging.
+</Instructor>
+
+----
+
+## Lecture
+
+This lesson moves `<user-card>` from a mostly static component to a stateful component. The page passes rich user data as a property, the component manages followed state internally, and the component emits a custom event when that state changes.
+
+### Constructor Versus Lifecycle
+
+The constructor creates the shadow root and stores internal element references. Work that depends on the element being in the document belongs in `connectedCallback()`.
+
+Use lifecycle callbacks for these responsibilities:
+
+- `connectedCallback()` attaches listeners and performs initial render work.
+- `disconnectedCallback()` removes listeners or cleans up resources.
+- `attributeChangedCallback()` synchronizes observed attribute changes with component state.
+
+### State, Properties, and Methods
+
+Attributes are strings. Properties can hold richer JavaScript values, such as the `user` object in this demo.
+
+The component exposes:
+
+- a `user` setter and getter
+- a read-only `followed` getter
+- `follow()` and `unfollow()` methods
+- internal followed state
+
+### Custom Events
+
+When followed state changes, the component dispatches `follow-change`. The event includes `detail` data and uses `bubbles: true` and `composed: true` so the containing page can listen outside the shadow boundary.
+
+Useful references:
+
+- https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
+- https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
+- https://developer.mozilla.org/en-US/docs/Web/API/Event/composed
+
+----
+
+## Demo Walkthrough
+
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="23" folder="~/inclass/23/demo/" file="js/user-card.js" lang="js" />
+
+
+This demo renders all five local user profiles programmatically, tracks followed cards, and updates a page-level counter from component events.
+
+### Starter Files
+
+<FileTree>
+- demo
+  - css
+    - styles.css
+  - js
+    - main.js
+    - user-card.js
+    - users.js
+  - public
+    - assets
+      - avatars/
+  - index.html
+  - package.json
+  - ReadMe.md
+</FileTree>
+
+### Install and Run
+
+<Steps>
+1. Open the `~/inclass/23/demo` folder in VS Code.
+
+1. Install dependencies, start the dev server, and open the browser.
+
+    ```ps title="Terminal"
+    pnpm install
+    pnpm dev
+    ```
+
+1. Notice that we don't have any user cards showing up on the page. That's because we're going to be dynamically adding user cards via JavaScript.
+</Steps>
+
+
+### Rendering User Data
+
+<Steps>
+1. Our `UserCard` is slightly different than the one we left off with from last class. Take a few moments to note the differences.
+
+    - The HTML temlate no longer has named slots. Instead, we have an `<h2>` and a couple of paragraphs as placeholders along with a `<button>`.
+    - Much of the styling is different, in large part because of the modifications to our HTML.
+    - The `UserCard` class has several `// TODO` statements along with a few new functions.
+
+    <details>
+      <summary>Click to see the `user-card.js` contents here</summary>
+
+      ```js title="js/user-card.js" "TODO"
+      const template = document.createElement('template');
+
+      template.innerHTML = `
+        <style>
+          :host {
+            display: block;
+          }
+
+          .card {
+            display: grid;
+            grid-template-columns: 72px 1fr;
+            gap: 0.85rem;
+            align-items: start;
+            min-height: 168px;
+            padding: 1rem;
+            border: 1px solid #9aa8ba;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #172033;
+          }
+
+          img {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+          }
+
+          h2 {
+            margin: 0;
+            font-size: 1.1rem;
+          }
+
+          p {
+            margin: 0.35rem 0 0;
+            color: #5f6f84;
+            line-height: 1.4;
+          }
+
+          button {
+            margin-top: 0.75rem;
+            cursor: pointer;
+            padding: 0.45rem 0.75rem;
+            border: 1px solid #0f766e;
+            border-radius: 6px;
+            background: #0f766e;
+            color: #ffffff;
+            font: inherit;
+            font-weight: 700;
+          }
+        </style>
+
+        <article class="card">
+          <img src="" alt="">
+          <div>
+            <h2></h2>
+            <p class="location"></p>
+            <p class="about"></p>
+            <button type="button">Follow</button>
+          </div>
+        </article>
+      `;
+
+      class UserCard extends HTMLElement {
+        // TODO: Add private fields for followed state and user data.
+
+        constructor() {
+          super();
+
+          const shadow = this.attachShadow({ mode: 'open' });
+          const content = template.content.cloneNode(true);
+
+          this.image = content.querySelector('img');
+          this.nameElement = content.querySelector('h2');
+          this.locationElement = content.querySelector('.location');
+          this.aboutElement = content.querySelector('.about');
+          // TODO: Add our button and bind its handler to this instance
+
+          shadow.append(content);
+        }
+
+        connectedCallback() {
+          // TODO: Add the button event listener.
+          // TODO: Render any user data that was set before the element connected.
+        }
+
+        disconnectedCallback() {
+          // TODO: Remove the button event listener.
+        }
+
+        static get observedAttributes() {
+          // TODO: Observe attributes that should sync to component state.
+          return [];
+        }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+          // TODO: Sync observed attribute changes to component state.
+        }
+
+        set user(value) {
+          // TODO: Store the user object and render the card.
+        }
+
+        get user() {
+          // TODO: Return the current user object.
+          return null;
+        }
+
+        get followed() {
+          // TODO: Return the current followed state.
+          return false;
+        }
+
+        follow() {
+          // TODO: Set followed state to true.
+        }
+
+        unfollow() {
+          // TODO: Set followed state to false.
+        }
+
+        handleButtonClick() {
+          // TODO: Toggle the followed state when the button is clicked.
+        }
+      }
+
+      customElements.define('user-card', UserCard);
+
+      ```
+
+    </details>
+
+1. Now open `main.js` and examine our starting code. Notice that we again have a different set of code with several `// TODO` statements inside of empty functions.
+
+    At the end of the file, we loop through each of the users to render them to the page.
+
+    ```js title="js/main.js"
+    users.forEach(renderUser);
+    ```
+    
+1. Let's add the code to render each user. Notice that the pattern we're using:
+    
+    - **Create the element fragment** using our standard `document.createElement()`.
+    - **Give it some data** by storing the user data (from the function's parameter) into our custom element by setting its `user` property.
+    - **Add it to the DOM**.
+
+    ```diff lang="js" title="js/main.js" "(user)" "card.user = user"
+      function renderUser(user) {
+    -   // TODO: Create a <user-card>.
+    +   const card = document.createElement('user-card');
+    -   // TODO: Set the user property with the user object.
+    +   card.user = user;
+    -   // TODO: Append the card to userList.
+    +   userList.append(card);
+      }
+    ```
+
+    Notice that our page renders the cards, but they simply appear as empty containers. That's because we have some work yet to do inside our `UserCard` class.
+
+1. Return to `user-card.js` and make the following edits. We'll start by adding in a couple of private properties. Those are going to be important throughout many of our `UserCard` functions.
+
+    ```diff lang="js" title="js/user-card.js"
+      class UserCard extends HTMLElement {
+    -   // TODO: Add private fields for followed state and user data.
+    +   #followed = false;
+    +   #user = null;
+    ```
+
+    <Aside type="tip" title="Component State">
+      Here is where we introduce a critical concept in web components: **Component State**.
+
+      "State" is simply about storing internal information or data. State can be controlled through getters/setters and various *hooks*, which we'll see as we progress through this lesson.
+    </Aside>
+
+1. Complete the setter property to capture the user information. We'll also invoke our rendering function to update the card's information.
+
+    ```diff lang="js" title="js/user-card.js"
+        set user(value) {
+    -     // TODO: Store the user object and render the card.    
+    +     this.#user = value;
+    +     this.render();
+        }
+    ```
+
+1. Implement the rendering function. It's worthwhile to note that our `UserCard` is assuming a certain familiarity in terms of what data exists inside the `#user` object.
+
+    ```diff lang="js" title="js/user-card.js"
+        render() {
+    -     // TODO: Render the current user information
+    +     const user = this.#user;
+    + 
+    +     if (user && this.shadowRoot) {
+    +       this.setAttribute('user-id', user.id);
+    +       this.setAttribute('avatar', user.avatar);
+    +       this.nameElement.textContent = user.name;
+    +       this.locationElement.textContent = user.location;
+    +       this.aboutElement.textContent = user.about;
+    +       this.image.alt = `Profile photo for ${user.name}`;
+    +       this.button.textContent = this.#followed ? 'Following' : 'Follow';
+    +     }
+        }
+    ```
+
+    Note also that we only render if we have a user and our shadow root.
+
+1. If you examine the web page, you'll see that everything is rendering except for the avatar image.
+1. In our previous version of `UserCard`, we had implemented the `observedAttributes` property and the `attributeChangedCallback()` function. Currently, those are just placeholders.
+
+    Once again, we'll watch for changes to the `avatar` attribute along with a new attribute: `followed`.
+
+    ```diff lang="js" title="js/user-card.js"
+        static get observedAttributes() {
+    -     // TODO: Observe attributes that should sync to component state.
+    -     return [];
+    +     return ['avatar', 'followed'];
+        }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+    -     // TODO: Sync observed attribute changes to component state.
+    +     if (oldValue === newValue) {
+    +       return;
+    +     }
+
+    +     if (name === 'avatar' && this.image) {
+    +       this.image.src = newValue || 'assets/avatars/clarence-james.jpg';
+    +     }
+
+    +     if (name === 'followed') {
+    +       this.setFollowed(newValue !== null, false);
+    +     }
+        }
+    ```
+
+    Don't worry that our call to `this.setFollowed()` won't do anything at the moment. We'll fill that in later.
+
+1. At this point, all of our significant content for each user is rendering on the page. 🎉
+</Steps>
+
+
+### Managing `#followed` State Internally
+
+One of the notable **state** properties in our component is the `#followed` state. There's going to be a bit of intricate involvement with this property as we wire up our component to internally handle the button clicks to toggle that state from `true` to `false`.
+
+<Steps>
+1. Let's return to our `user-card.js` and add in another style that applies to the host for the `followed` attribute. This will set us up with a good visual indicator of users that are followed.
+
+    ```diff lang="css" title="js/user-card.js"
+        .card {
+          display: grid;
+          grid-template-columns: 72px 1fr;
+          gap: 0.85rem;
+          align-items: start;
+          min-height: 168px;
+          padding: 1rem;
+          border: 1px solid #9aa8ba;
+          border-radius: 8px;
+          background: #ffffff;
+          color: #172033;
+        }
+
+    +   :host([followed]) .card {
+    +     border-color: #0f766e;
+    +     border-width: 2px;
+    +     box-shadow: 0 0 0 3px #ccfbf1;
+    +   }
+    + 
+        img {
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+    ```
+
+    The style simply changes the border color and width and adds a box-shadow.
+
+1. Let's address the getter and setter properties associated with `#followed` in our `UserCard` class.
+
+    ```diff lang="js" title="js/user-card.js"
+        get followed() {
+    -     // TODO: Return the current followed state.
+    -     return false;
+    +     return this.#followed;
+        }
+    ```
+
+    We'll omit the logic for the `emitEvent` flag for the moment.
+
+    ```diff lang="js" title="js/user-card.js"
+        setFollowed(value, emitEvent = true) {
+    -     // TODO: Set the followed state and trigger an event dispatch
+    +     this.#followed = Boolean(value);
+    +     this.button.textContent = this.#followed ? 'Following' : 'Follow';
+    +     this.toggleAttribute('followed', this.#followed);
+    + 
+    +     if (emitEvent) {
+    +       // TODO: dispatch a custom event regarding the state change
+    +     }
+        }
+    ```
+
+    <Aside type="tip" title="Toggling Our Own Attributes">
+      The `toggleAttribute('followed', this.followed)` will ensure CSS and state stay aligned. To see the effect of this line later on, inspect the HTML of the page to watch what happens when our button-click is working.
+    </Aside>
+
+1. There are also two methods we're exposing on our `UserCard`. These allow us to programmatically interact to follow/unfollow a user.
+
+
+    ```diff lang="js" title="js/user-card.js"
+        follow() {
+    -     // TODO: Set followed state to true.
+    +     this.setFollowed(true);
+        }
+
+        unfollow() {
+    -     // TODO: Set followed state to false.
+    +     this.setFollowed(false);
+        }
+    ```
+
+</Steps>
+
+
+Up to this point, we've added code that allows us to manage the `#followed` state internally. Now it's time to hook up the button so that when the user clicks on it, we will update our state.
+
+
+### Handling Button Clicks Internally
+
+<Steps>
+1. First, we'll set up our `handleButtonClick()` event listener.
+
+    ```diff lang="js" title="js/user-card.js"
+        handleButtonClick() {
+    -     // TODO: Toggle the followed state when the button is clicked.
+    +     this.setFollowed(!this.#followed);
+        }
+    ```
+
+1. Next, we'll track our button and ensure that the `handleButtonClick()` will be activated for each instance of our `<user-card>`. We'll need to do this inside our `constructor()`.
+
+    ```diff lang="js" title="js/user-card.js" ".bind(this)"
+        constructor() {
+          super();
+
+          const shadow = this.attachShadow({ mode: 'open' });
+          const content = template.content.cloneNode(true);
+
+          this.image = content.querySelector('img');
+          this.nameElement = content.querySelector('h2');
+          this.locationElement = content.querySelector('.location');
+          this.aboutElement = content.querySelector('.about');
+    -     // TODO: Add our button and bind its handler to this instance
+    +     this.button = content.querySelector('button');
+    +     this.handleButtonClick = this.handleButtonClick.bind(this);
+
+          shadow.append(content);
+        }
+    ```
+
+    Notice the `.bind(this)` call. All functions can be set up so that their `this` context is assigned. Why is `this` important? Because each `UserCard` instance on our page needs to have its event handler associated with itself. Otherwise, inside of our event handler, it will have no idea which user card's `#followed` state it needs to work with.
+
+    <Aside type="tip" title="Extra Student Reading">
+      Students are encouraged to read up on <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind" target="_blank">`.bind()`</a> on MDN.
+    </Aside>
+
+1. When the `#followed` state changes for our component, we should have our rendering function change the text of our button accordingly, so that the button acts as a "toggle".
+
+    ```diff lang="js" title="js/user-card.js"
+        render() {
+          const user = this.#user;
+
+          if (!user || !this.shadowRoot) {
+            return;
+          }
+
+          this.setAttribute('user-id', user.id);
+          this.setAttribute('avatar', user.avatar);
+          this.nameElement.textContent = user.name;
+          this.locationElement.textContent = user.location;
+          this.aboutElement.textContent = user.about;
+          this.image.alt = `Profile photo for ${user.name}`;
+    +     this.button.textContent = this.#followed ? 'Following' : 'Follow';
+        }
+    ```
+
+1. There's one more critical piece for us to address. Since our component can be *programmatically* **added** or **removed** from the DOM, we need a way to keep our component "aware" of when it's attached/detached from the page. This is done through the `connectedCallback()` and `disconnectedCallback()` hooks.
+
+    ```diff lang="js" title="js/user-card.js"
+        connectedCallback() {
+          // TODO: Add the button event listener.
+    +     this.button.addEventListener('click', this.handleButtonClick);
+          // TODO: Render any user data that was set before the element connected.
+    +     this.render();
+        }
+
+        disconnectedCallback() {
+          // TODO: Remove the button event listener.
+    +     this.button.removeEventListener('click', this.handleButtonClick);
+        }
+    ```
+
+    - **`connectedCallback()`** is important because it's where and ***when*** the event listener is attached to the button.
+    - **`disconnectedCallback()`** is important because we don't want event listeners on our `UserCard` instances if that instance is removed from the page.
+
+1. In your browser, watch what happens when you click the button of any of the users. Whenever a user is being followed, the text of the button should change to "Following" and the card outline becomes distinct.
+</Steps>
+
+At this point, our `<user-card>` component is "self-aware" and able to respond events on internal elements by altering its internal state &mdash; thus achieving **self-contained state management**.
+
+
+### Interfacing State Management Outside Our Components
+
+<Steps>
+1. Return to our `main.js`. We'll implement our `updateFollowCount()` so that we see a visible counter on our page when users are being followed.
+
+    ```diff lang="js" title="js/main.js"
+      const followCount = document.querySelector('#follow-count');
+
+      function updateFollowCount() {
+    -   // TODO: Count followed cards and update followCount.
+    +   const followedCards = userList.querySelectorAll('user-card[followed]');
+    +   followCount.textContent = `Following ${followedCards.length} user${followedCards.length === 1 ? '' : 's'}.`;
+      }
+    ```
+
+1. At present, this code won't do anything unless we call it. Let's write a bit of code to automatically follow our first user.
+
+    ```diff lang="js" title="js/main.js"
+      users.forEach(renderUser);
+    + // Auto-follow the first user in our list (you can remove this later)
+    + userList.querySelector('user-card')?.follow();
+    + updateFollowCount();
+    ```
+
+1. Reload the web page and notice what happens. Now we are programmatically following the first user in our `userList`. We even get a count of how many users we're following.
+
+    But what happens when you click on any of the buttons? Yes, the indivdual cards are changing their `#followed` state, but our page as a whole is *completely unaware* that our component has changed its state.
+
+1. We need to have a way for our custom element (web component) to "tell" the page that its state has changed. We do that by raising <a href="https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent" target="_blank">**custom events**</a>.
+1. Return to the `setFollowed()` method of our `UserCard` class.
+
+    ```diff lang="js" title="js/user-card.js"
+        setFollowed(value, emitEvent = true) {
+          this.#followed = Boolean(value);
+          this.button.textContent = this.#followed ? 'Following' : 'Follow';
+          this.toggleAttribute('followed', this.#followed);
+      
+          if (emitEvent) {
+            // TODO: dispatch a custom event regarding the state change
+    +       this.dispatchEvent(new CustomEvent('follow-change', {
+    +         detail: {
+    +           id: this.#user?.id ?? this.getAttribute('user-id') ?? null,
+    +           followed: this.#followed,
+    +         },
+    +         bubbles: true,
+    +         composed: true,
+    +       }));
+          }
+        }
+    ```
+
+    <Aside type="tip" title="Dispatching Events">
+      There's a lot of comments to make at this point. What are the `detail`, `bubbles`, and `composed` properties?
+    
+      Students should be encouraged to read up on the <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/dispatchEvent" target="_blank">`.dispatchEvent()`</a> method.
+    </Aside>
+
+1. Now that our component has a way let our page know that there has been a change to the `#followed` status, we can return to `main.js` and complete this lesson by adding the event listener logic to update our counter.
+
+    ```diff lang="js" title="js/user-card.js" "(event)" "event.detail"
+    - userList.addEventListener('follow-change', () => {
+    + userList.addEventListener('follow-change', (event) => {
+    -   // TODO: Update the follow count when a card dispatches follow-change.
+    +   console.log('follow-change', event.detail);
+    +   updateFollowCount();
+      });
+    ```
+
+1. Inside your browser, the page should now be notified whenever a button click on a user card changes the `#followed` state for that user.
+</Steps>
+
+
+### Common Errors and Fixes
+
+| Issue | Likely Cause | Fix |
+| ----- | ------------ | --- |
+| Button listener runs twice | Listener added repeatedly without cleanup | Add in `connectedCallback()` and remove in `disconnectedCallback()` |
+| Property data does not render | Setter stores data but does not call render | Call `render()` after setting `user` |
+| Event does not reach page listener | Event does not bubble or cross shadow boundary | Use `bubbles: true` and `composed: true` |
+| State and CSS disagree | Attribute and internal state are updated separately | Centralize updates in one state method |
+
+
+### Demo Verification
+
+Students can verify their work on this bucket assignment by running the unit tests.
+
+```ps
+pnpm test
+```
+
+Remind students that they need to commit and push their changes.
+
+## Conclusion
+
+> **Assigned homework:** Complete [Homework: Practice Custom Element Lifecycle and State](./homework/240-homework.mdx). It reinforces today's component boundary model and gives fallback practice for lifecycle callbacks, properties/state, attribute synchronization, and custom events.
+
+Students should leave with a component that behaves like a small interface boundary: the page passes data in through properties and attributes, calls public methods when needed, and listens for custom events when internal state changes.

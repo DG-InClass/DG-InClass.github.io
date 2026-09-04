@@ -1,0 +1,88 @@
+---
+title: Instructor's Eyes Only
+description: Notice about content for instructors only.
+sidebar:
+  hidden: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+<details class="open-close">
+<summary style="list-style:none">
+# Instructor-Only
+> *Estimated walkthrough time (with discussion): **{props.minutes} minutes***
+</summary>
+
+
+<Aside type="danger" title="Instructor Only">
+  This content is meant for **instructor's eyes only** 👀.
+
+  Students generate their own copy of this by hands-on participation in class. They follow the instructor and use a practice of *frequent small commits* to familiarize themselves with **version control** along with the course content material. ✅ Marks are earned by student's class participation in creating these demos.
+
+  Instructors may publish their own workbook copy for students to access after class.
+</Aside>
+
+> *Estimated walkthrough time (with discussion): **{props.minutes} minutes***
+>
+> ⚠️ Be mindful of delivery time; this walkthrough can easily run long if discussion expands.
+
+### Rationale:
+
+{props.children}
+
+<Aside type="note" title="Homework Check-In">
+  Before starting the walkthrough, ask students whether they completed the assigned homework before class. Use this as a quick pulse check for pacing and follow-up support.
+</Aside>
+</details>
+
+<style>
+{`
+/* Light styling for presentation */
+details.open-close {
+  border-block-end: 1px solid #000;
+  margin-block: .5rem;
+  padding-block: .5rem;
+}
+
+.open-close summary {
+  /* Pin the custom marker to the container */
+  position: relative;
+  /* Register summary as an anchor element */
+  anchor-name: --summary;
+  
+  &::marker {
+    content: "";
+  }
+  
+  &::before,
+  &::after {
+    /* Custom marker dimensions */
+    content: "";
+    border-block-start: 3px solid orangered;
+    height: 0;
+    width: 1rem;
+    
+    /* Positions the lines */
+    inset-block-start: 50%;
+    inset-inline-end: 0;
+    
+    /* Anchor the shape to the summary */
+    position: absolute;
+    position-anchor: --summary;
+    position-area: top end;
+  }
+  
+  /* Rotate just the ::after line to create a "+"" shape */
+  &::after {
+    transform: rotate(90deg);
+    transform-origin: 50%;
+  }
+}
+
+/* Rotate the line when open */
+details[open].open-close summary::after {
+  transform: rotate(0deg);
+}
+`}
+</style>

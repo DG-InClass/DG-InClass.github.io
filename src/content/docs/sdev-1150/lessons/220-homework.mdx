@@ -1,0 +1,90 @@
+---
+title: Homework - Practice Custom Element Details
+description: Fallback practice for attributes, slots, programmatic custom-element creation, and common errors.
+sidebar:
+  label: 22 Homework
+draft: true
+---
+
+This homework should take about **45-75 minutes**.
+
+Class likely covered defining one custom element. This tutorial preserves the extra Web Components details that may not fit: valid custom element names, templates or shadow DOM, attributes, slots, programmatic card creation, and common errors.
+
+## Start the User Card Page
+
+Open `sk/22/homework/` and run:
+
+```ps
+npm install
+npm run dev
+```
+
+Confirm the console shows:
+
+```txt
+Lesson 22 homework loaded
+```
+
+## Define a Valid Custom Element
+
+Custom element names need a hyphen. Define `user-card`:
+
+```js
+class UserCard extends HTMLElement {
+  connectedCallback() {
+    let username = this.getAttribute('username');
+
+    this.innerHTML = `
+      <article>
+        <h2>${username}</h2>
+        <slot></slot>
+      </article>
+    `;
+  }
+}
+
+customElements.define('user-card', UserCard);
+```
+
+Expected behavior: `<user-card>` elements render without a naming error.
+
+## Add Template or Shadow DOM Practice
+
+Try a template string first. If you want the content isolated, attach shadow DOM:
+
+```js
+let shadow = this.attachShadow({ mode: 'open' });
+shadow.innerHTML = `<article><slot></slot></article>`;
+```
+
+Use one approach and add a comment naming which one you chose.
+
+## Create Cards Programmatically
+
+Use the starter `users` array:
+
+```js
+let list = document.querySelector('#user-list');
+
+for (let user of users) {
+  let card = document.createElement('user-card');
+  card.setAttribute('username', user.username);
+  card.textContent = user.role;
+  list.append(card);
+}
+```
+
+Expected browser behavior: one card appears for each user.
+
+## Add Common Error Comments
+
+At the bottom of `src/main.js`, add two comments explaining common errors, such as defining a custom element name without a hyphen or calling `customElements.define(...)` twice with the same name.
+
+## Final Verification
+
+- `npm run dev` starts the project.
+- Your custom element name includes a hyphen.
+- The component reads an attribute.
+- The component renders slot content.
+- Cards are created from the starter `users` array.
+- You documented two common custom-element errors.

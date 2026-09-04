@@ -1,0 +1,78 @@
+---
+title: Homework - Practice Node Project Workflow
+description: Fallback practice for package.json, dependency roles, and browser project workflow.
+sidebar:
+  label: 11 Homework
+draft: true
+---
+
+This homework should take about **45-75 minutes**.
+
+Class likely got the project running with Vite. This tutorial preserves the workflow details that may not fit in class: reading `package.json`, separating dependencies from dev dependencies, using the browser console, and exploring an installed dependency.
+
+## Start the Project
+
+Open `sk/11/homework/` and install dependencies if needed:
+
+```ps
+npm install
+npm run dev
+```
+
+Open the local URL Vite prints in the terminal.
+
+## Inspect `package.json`
+
+Open `package.json` and find:
+
+- `"type": "module"`
+- `"scripts"`
+- `"devDependencies"`
+
+Add a comment in `src/main.js` that explains why Vite belongs in `devDependencies`: it helps build and run the project during development, but it is not app data your code imports at runtime.
+
+## Use the Browser Console
+
+Open the browser console and confirm this starter message appears:
+
+```txt
+Lesson 11 homework loaded
+```
+
+Add this to `src/main.js`:
+
+```js
+let app = document.querySelector('#app');
+console.log(app);
+```
+
+Expected behavior: the console should show the page element selected from the DOM.
+
+## Explore a Dependency
+
+Install a small runtime dependency, such as `nanoid`:
+
+```ps
+npm install nanoid
+```
+
+Import it in `src/main.js`:
+
+```js
+import { nanoid } from 'nanoid';
+
+console.log(`Generated id: ${nanoid(6)}`);
+```
+
+Expected behavior: the browser console should show a different short id after reload.
+
+## Compare Dependency Sections
+
+Reopen `package.json`. `nanoid` should be under `"dependencies"` and `vite` should be under `"devDependencies"`.
+
+## Final Verification
+
+- `npm run dev` starts the homework project.
+- The browser console shows the starter message and your generated id.
+- You can identify the scripts section in `package.json`.
+- You can explain the difference between `"dependencies"` and `"devDependencies"`.

@@ -1,0 +1,77 @@
+---
+title: Homework - Practice Modules and JSDoc
+description: Fallback practice for module scope, cross-module imports, JSDoc, and shape logic.
+sidebar:
+  label: 10 Homework
+draft: true
+---
+
+This homework should take about **45-75 minutes**.
+
+Class likely covered basic `import` and `export`. This tutorial preserves the module-scope, JSDoc, and multi-file documentation work that may not fit in class.
+
+## Start the Shape Calculator
+
+Run the starter module:
+
+```ps
+node sk/10/homework.js
+```
+
+Expected output should include square, rectangle, and circle areas.
+
+## Read Across Modules
+
+The starter has:
+
+- `homework.js`, which imports shape functions
+- `homework-shapes.js`, which exports shape functions
+- `homework-utils.js`, which exports `roundToPlaces(...)`
+
+Add one `console.log(...)` in `homework.js` that proves variables inside `homework-shapes.js` are not automatically available in `homework.js`. Use imports when you need cross-file access.
+
+## Add JSDoc to Utility Functions
+
+In `homework-utils.js`, document `roundToPlaces(...)`:
+
+```js
+/**
+ * Round a number to a fixed number of decimal places.
+ * @param {number} value The value to round.
+ * @param {number} places The number of decimal places.
+ * @returns {number} The rounded number.
+ */
+```
+
+Add one more exported utility with JSDoc, such as `double(value)`.
+
+## Add JSDoc to Shape Logic
+
+In `homework-shapes.js`, add JSDoc above each exported function. Include parameter and return types.
+
+Then add a constructor function with JSDoc:
+
+```js
+/**
+ * Create a labeled shape report.
+ * @constructor
+ * @param {string} label The report label.
+ */
+export function ShapeReport(label) {
+  this.label = label;
+}
+```
+
+## Import and Use the New Export
+
+Import your new export into `homework.js`, then log a value that proves the import works.
+
+Expected behavior: `node sk/10/homework.js` should still print the original areas plus your new module output.
+
+## Final Verification
+
+- `node sk/10/homework.js` runs without syntax errors.
+- You added JSDoc for functions in another module.
+- You imported from at least two local modules.
+- You documented a constructor function.
+- You can explain that module scope keeps file-local names private unless they are exported and imported.

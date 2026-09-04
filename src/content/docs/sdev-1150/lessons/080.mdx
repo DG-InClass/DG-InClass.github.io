@@ -1,0 +1,275 @@
+---
+title: More If-Else
+description: Instructor guide for comparison operators, logical operators, else-if chains, and truthy/falsy values
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 1" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="85-110">
+> ⚠️ Be mindful of delivery time; this walkthrough can easily run long if discussion expands.
+
+- This lesson is longer than lesson 02 and builds on the previous flow-control lesson.
+- Students type through helper functions, relational expressions, equality comparisons, logical operators, else-if chains, function calls inside decisions, and truthy/falsy checks.
+- The walkthrough needs time for discussion around strict equality, boolean logic, branch ordering, and readable predicate names.
+- The estimate allows extra time for slower typing and for students to reason through condition outcomes before running the code.
+</Instructor>
+
+
+
+
+
+----
+
+## Lecture Notes
+
+### Else-If Chains
+
+We saw nested if-else statements in the previous lesson. We'll explore the notion of "chaining" if statements with `else if` (which is simply nested if-else, but formatted to be read easily as a "chain" of distinct checks).
+
+### Logical Operators
+
+Logical operators let us combine or reverse conditions. JavaScript uses `&&` for "and", `||` for "or", and `!` for "not".
+
+<Aside type="note" title="Reading Logical Operators">
+  Encourage students to read logical conditions out loud.
+
+  `hasTicket && hasPhotoId` can be read as "has a ticket and has photo ID."
+
+  `hasTicket || hasPhotoId` can be read as "has a ticket or has photo ID."
+</Aside>
+
+
+### General Equality vs. Strict Equality
+
+We'll look at the distinction between
+
+- `==` vs. `===`
+- `!=` vs. `!==`
+
+### Helper Functions for Decisions
+
+Sometimes, having a helper function that checks a value is a useful addition in terms of
+
+- when the decision needs to be checked more then once
+- making the decision statement more "readable"
+
+----
+
+## Demo Walkthrough
+
+Relational operators are commonly used in if-else statements. So are **logical operators**. Logical operators open up the ability to create complex conditional expressions.
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="8" folder="~/inclass/08/" file="demo.js" lang="js" />
+
+### Assignment Credits...
+
+<Aside type="tip" title="Initial commit">
+  Have the student enter their name as a comment at the top of `demo.js` and then perform a commit.
+
+  ```ps title="Commit Example"
+  git add .
+  git commit -m "Begin lesson 08"
+  ```
+</Aside>
+
+### Beyond Simple If-Else
+
+<Steps>
+1. Open the `demo.js` file for editing and run the script using `node --watch`.
+1. Let's begin by adding a truth table to illustrate what happens when we use the logical operators on boolean values. Append the following code to `demo.js`.
+
+    ```diff lang="js" title="~/inclass/08/demo.js"
+    + function buildTruth(A, B) {
+    +   return { A, B, '&&': A && B, '||': A || B, '!A': !A}
+    + }
+    + 
+    + let truth = [
+    +   buildTruth(true, true),   // both true
+    +   buildTruth(true, false),  // left true
+    +   buildTruth(false, true),  // right true
+    +   buildTruth(false, false)  // both false
+    + ];
+    + 
+    + console.table(truth);
+    + 
+    ```
+
+1. (📍 `isPassingGrade`, `hasCompleteProfile`, `hasHonoursGrade`) Helper functions that return boolean values are a great tool to improve the readability of our code. Let's add three helper functions for working with grades.
+
+    ```diff lang="js" title="~/inclass/08/demo.js"
+    + // A.3) Setup some helper functions
+    + function isPassingGrade(score) {
+    +   return score >= 50;
+    + }
+    + 
+    + function hasHonoursGrade(score) {
+    +   return score >= 80;
+    + }
+    + 
+    + function hasCompleteProfile(student) {
+    +   return student.name.trim() != '' && student.email.trim() != '';
+    + }
+    + 
+    ```
+
+    All these functions return boolean values. The first two use simple relational operators. The third function uses a **logical *AND* operator**.
+
+    <Aside type="tip" title="Predicate Functions">
+      Some functions are written specifically to answer a yes/no question. These are often called **predicate functions**.
+
+      A predicate function answers a question.
+
+      Names such as `isPassingGrade()` and `hasHonoursGrade()` are useful because they sound like questions that can be answered with 'true'/'false' (yes/no).
+    </Aside>
+1. Since we're going to be comparing grades, let's add a `randomStudentScore()` to produce a random grade between 35% and 92%. Then we'll set up our student with a final score.
+
+    ```diff lang="js" title="~/inclass/08/demo.js"
+    + function randomStudentScore() {
+    +   let rnd = Math.random(); // value between 0 and 1
+    +   let lower = 35, higher = 92, diff = higher - lower;
+    +   rnd = Math.ceil(rnd * diff) + lower;
+    +   return rnd;
+    + }
+    + 
+    + let finalScore = randomStudentScore();
+    + let student = {
+    +   name: 'Randall Dom',
+    +   email: 'random@example.com'
+    + }
+    + 
+    ```
+
+    <Aside>
+    Why is this helpful? Since we'll be testing the grade with if-else statements, this saves us the trouble of manually updating our code to try and get different results. Now, we'll only have to press <kbd>Ctrl</kbd> + <kbd>s</kbd> to save and re-run our code.
+    </Aside>
+1. With the helper functions and grade calculations in place, let's explore some outputs.
+
+    ```diff lang="js" title="~/inclass/08/demo.js"
+    + displayHeading('Function Calls Inside If Statements');
+    + console.log(`${student.name} has a final score of ${finalScore} %`);
+    + 
+    + if (hasHonoursGrade(finalScore)) {
+    +   console.log('The student passed with honours. ✨');
+    + } else if (isPassingGrade(finalScore)) {
+    +   console.log('The student passed. 👍');
+    + } else {
+    +   console.log('😢 The student did not pass.');
+    + }
+    + console.log();
+    + 
+    ```
+
+    <Aside type="note" title="Name the Question">
+      Function names matter even more when functions appear inside conditions.
+
+      `if (isPassingGrade(finalScore))` reads like a question: "Is this a passing grade?"
+    </Aside>
+
+1. One of the handy things about if-else-if chains is that they neatly distinguish multiple paths of logic around a single interest. For example, we can use it to calculate a letter grade based on the percentage grade.
+
+    ```diff lang="js" title="~/inclass/08/demo.js"
+    + let letterGrade;
+    + if (finalScore >= 90) {
+    +   letterGrade = 'A+';
+    + } else if (finalScore >= 80) {
+    +   letterGrade = 'A';
+    + } else if (finalScore >= 70) {
+    +   letterGrade = 'B';
+    + } else if (finalScore >= 60) {
+    +   letterGrade = 'C';
+    + } else if (finalScore >= 50) {
+    +   letterGrade = 'D';
+    + } else {
+    +   letterGrade = 'F';
+    + }
+    + 
+    + console.log(`Score: ${finalScore}`);
+    + console.log(`Letter grade: ${letterGrade}`);
+    + console.log();
+    + 
+    + 
+    ```
+
+    JavaScript checks these conditions from top to bottom. Once a branch runs, the rest of the chain is skipped.
+
+    <Aside type="caution" title="Order Matters">
+      In an else-if chain, order matters.
+
+      The highest score checks come first because a score of `87` (for example) is also greater than `70`, `60`, and `50`. If the `>= 50` check came first, it would catch too many scores before the later checks had a chance to run.
+    </Aside>
+
+1. When we first encountered the equality (`==`) and inequality (`!=`) relational operators, we didn't explore the distinction between **general equality** (sometimes called *loose equality*) and **strict equality**. Let's create a function that explores that distinction.
+
+    ```diff lang="js" title="~/inclass/08/demo.js"
+    + function equalityCheck(left, right) {
+    +   console.log(left, '==', right, left == right);
+    +   console.log(left, '===', right, left === right);
+    + 
+    +   if(left == right && left === right) {
+    +     console.log('The are the same value and type')
+    +   } else if (left == right) {
+    +     console.log(`${left} is a ${typeof left} and ${right} is a ${typeof right}`);
+    +   } else if (typeof left == typeof right) {
+    +     console.log('They are at least the same data type:', typeof left);
+    +   } else {
+    +     console.log('They are not at all alike');
+    +   }
+    +   console.log();
+    + }
+    + 
+    ```
+
+1. With our `equalityCheck()` function in place, let's invoke it to compare different values.
+
+    ```diff lang="js" title="~/inclass/08/demo.js"
+    + displayHeading('General vs. Strict Equality')
+    + equalityCheck(42, 42);
+    + equalityCheck(42, '42');
+    + equalityCheck(9, 6);
+    + equalityCheck('7 * 2', 7 * 2);
+    ```
+
+    <Aside type="caution" title="Prefer Strict Equality">
+      This is an important habit to plant early.
+
+      In most cases, prefer `===` and `!==` over `==` and `!=`. Strict comparison avoids hidden type conversion and makes the condition easier to reason about.
+    </Aside>
+</Steps>
+
+----
+
+### Demo Verification
+
+To verify that your demo has the correct items, add the following to the end of your script file. These will be checked in your bucket assignment's automated tests.
+
+```js title="~/inclass/08/demo.js"
+export { isPassingGrade, hasCompleteProfile, hasHonoursGrade }
+```
+
+> ```ps
+> git add .
+> git commit -m "Finish intro to arrays"
+> ```
+
+----
+
+## Conclusion
+
+> **Assigned homework:** Complete [Homework: Practice More If-Else Decisions](./homework/090-homework.mdx). It reinforces today's decision-making work and gives fallback practice for equality, logical operators, else-if chains, function calls inside decisions, and truthy/falsy values.
+
+Today's lesson adds more tools for writing conditions. We can compare values, combine conditions, choose among several related branches, call predicate functions, and recognize that some non-boolean values can still guide an `if` statement.
+
+<Aside type="tip" title="Understanding JavaScript 👀">
+  A key habit in this lesson is to make conditions readable.
+
+  Prefer strict equality, order else-if chains carefully, and use clear function names when a condition starts to become more complicated.
+</Aside>

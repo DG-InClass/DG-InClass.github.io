@@ -1,0 +1,85 @@
+---
+title: Homework - Practice Primitive Values and Objects
+description: Fallback practice for object mutation, Date, URL, and built-in object method work.
+sidebar:
+  label: 04 Homework
+draft: true
+---
+
+This homework should take about **45-75 minutes**.
+
+Class likely covered primitive values, `typeof`, object literals, and reading properties. This tutorial continues with the object state changes and built-in object methods that may not fit in class.
+
+## Start the Workshop Tracker
+
+Open `homework.js` and run:
+
+```ps
+node homework.js
+```
+
+The starter data describes a workshop registration tracker.
+
+## Inspect Primitive Values
+
+Log each starter value with its type:
+
+```js
+console.log(`${workshopTitle}: ${typeof workshopTitle}`);
+console.log(`${seatsAvailable}: ${typeof seatsAvailable}`);
+console.log(`${registrationOpen}: ${typeof registrationOpen}`);
+```
+
+Expected output should include `string`, `number`, and `boolean`.
+
+## Read and Change Object State
+
+Use the starter `workshop` object:
+
+```js
+console.log(workshop.title);
+console.log(workshop.room);
+console.log(workshop.registered);
+```
+
+Then mutate it:
+
+```js
+workshop.registered = workshop.registered + 2;
+workshop.facilitator = 'Riley';
+workshop.waitlist = 3;
+
+console.log(workshop);
+```
+
+Expected behavior: the final object should include the new registration count plus `facilitator` and `waitlist`.
+
+## Use Date Methods
+
+Create the workshop date and a reminder date:
+
+```js
+let workshopDate = new Date('2026-06-10T18:00:00');
+let reminderDate = new Date(workshopDate);
+reminderDate.setDate(reminderDate.getDate() - 7);
+```
+
+Log `.toDateString()`, `.getFullYear()`, `.getMonth()`, and `.getDate()`.
+
+## Inspect a URL
+
+Create a signup URL:
+
+```js
+let signupUrl = new URL('https://library.example.test/signup?workshop=photo&room=media-lab');
+```
+
+Log `protocol`, `host`, `pathname`, and values from `searchParams.get('workshop')` and `searchParams.get('room')`.
+
+## Final Verification
+
+- `node homework.js` runs without syntax errors.
+- Your output shows at least three `typeof` results.
+- You read and then changed properties on the same object.
+- You used mutable date methods such as `.setDate(...)`.
+- You inspected a `URL` and read query-string values.

@@ -1,0 +1,101 @@
+---
+title: Homework - Practice Object Creation Patterns
+description: Fallback practice for constructors, prototypes, classes, and methods.
+sidebar:
+  label: 07 Homework
+draft: true
+---
+
+This homework should take about **45-75 minutes**.
+
+Class likely introduced object literals and one object-creation pattern. This tutorial preserves the later comparison material: constructor functions, prototype methods, class expressions, class declarations, and methods.
+
+## Start the Registration Models
+
+Open `homework.js` and run:
+
+```ps
+node homework.js
+```
+
+You will model workshop registrations in a few different ways.
+
+## Create a Constructor Function
+
+Add a constructor function:
+
+```js
+function Workshop(title, capacity) {
+  this.title = title;
+  this.capacity = capacity;
+  this.registered = 0;
+}
+```
+
+Create an instance:
+
+```js
+let repairWorkshop = new Workshop('Bike Repair Basics', 12);
+console.log(repairWorkshop);
+```
+
+## Add a Prototype Method
+
+Add a method shared through the prototype:
+
+```js
+Workshop.prototype.describe = function () {
+  return `${this.title}: ${this.registered}/${this.capacity} seats filled`;
+};
+
+repairWorkshop.registered = 5;
+console.log(repairWorkshop.describe());
+```
+
+Expected output:
+
+```txt
+Bike Repair Basics: 5/12 seats filled
+```
+
+## Use a Class Expression
+
+Create a class expression for supply items:
+
+```js
+let SupplyItem = class {
+  constructor(name, count) {
+    this.name = name;
+    this.count = count;
+  }
+
+  restock(amount) {
+    this.count = this.count + amount;
+  }
+};
+```
+
+## Use a Class Declaration
+
+Create a class declaration with a method:
+
+```js
+class Registration {
+  constructor(studentName, workshopTitle) {
+    this.studentName = studentName;
+    this.workshopTitle = workshopTitle;
+  }
+
+  summary() {
+    return `${this.studentName} registered for ${this.workshopTitle}`;
+  }
+}
+```
+
+## Final Verification
+
+- `node homework.js` runs without syntax errors.
+- You created an object with a constructor function and `new`.
+- You added and called a prototype method.
+- You created a class expression.
+- You created a class declaration with at least one method.

@@ -1,0 +1,445 @@
+---
+title: Understanding Functions
+description: Instructor guide for declaring, calling, passing, and returning functions
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 1" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="85-110">
+> ⚠️ Be mindful of delivery time; this walkthrough can easily run long if discussion expands.
+
+- This lesson is longer than lesson 02 and introduces a more abstract topic.
+- Students type through function declarations, expressions, callbacks, returned functions, local state, and using return values in larger expressions.
+- The walkthrough needs time for commentary around parameters, return values, function values, and state held by returned functions.
+- The estimate allows extra time for slower typing and for students to trace how values move through function calls.
+</Instructor>
+
+----
+
+## Lecture
+
+We're going to explore how functions let us package reusable work in JavaScript. We'll use a field trip planning scenario to practice declaring functions, calling functions, returning values, and treating functions as values.
+
+----
+
+## Demo Walkthrough
+
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="5" folder="~/inclass/05/" file="demo.js" lang="js" />
+
+
+### Function Declarations
+
+A <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function" target="_blank">function declaration</a> gives a reusable block of code a name. Once a function exists, we can call it whenever we need that work to happen.
+
+<Steps>
+1. Open the `~/inclass/05/demo.js` file in VS Code and then run it in Node's "watch" mode. You should see the following output.
+
+    ```ps title="Output"
+    Lesson 05 demo.js has loaded
+    =============================
+
+    ```
+
+    Our starter script confirms that the file is running.
+
+    ```js title="~/inclass/05/demo.js"
+    console.log('Lesson 05 demo.js has loaded');
+    console.log('=============================');
+    console.log();
+    ```
+
+1. Let's create a function that displays a heading and underline.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+      console.log('Lesson 05 demo.js has loaded');
+      console.log('=============================');
+      console.log();
+    +
+    + function displayHeading(text, marker) {
+    +   console.log(text);
+    +   console.log(marker.repeat(text.length));
+    + }
+    ```
+
+    This is called a **function declaration**. We use the keyword `function` followed by a name (*identifier*) for our function and then a set of parentheses for our *parameter list*.
+    
+    The `text` and `marker` names are called **parameters**. They are variables which act as placeholders for the information that will be supplied when the function is called.
+
+1. Let's replace our initial loading output with a call to the function.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+    - console.log('Lesson 05 demo.js has loaded');
+    - console.log('=============================');
+    + displayHeading('Lesson 05 demo.js has loaded', '=');
+      console.log();
+     
+      function displayHeading(text, marker) {
+        console.log(text);
+        console.log(marker.repeat(text.length));
+      }
+    ```
+
+    The new line of code we added is our **function *call***. Another term for calling a function is **invoking** a function.
+    
+    Essentially, we are telling the computer, "Jump into the function `displayHeading` and give its `text` parameter the value `'Lesson 06 demo.js has loaded'` and its `marker` parameter the value `'='`." The the code inside that function executes, and when it's finished we automatically return to the spot where we left off (which is where we do the `console.log();` statement).
+
+    <Aside type="note" title="Parameters and Arguments">
+      This is a useful vocabulary pause.
+
+      **Parameters** are the names listed in the function definition. **Arguments** are the actual values passed into the function call.
+
+      In `displayHeading('Lesson 06 demo.js has loaded', '=')`, the string values are arguments.
+    </Aside>
+
+1. Our `displayHeading()` function is re-usable, and we'll call it a few more times in this lesson.
+1. (📍 `calculateBusCount`, `calculateMealCost`, `formatMoney`) Let's create several utility functions that calculate values for a field trip.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+      let studentCount = 47, seatsPerBus = 48;
+      let mealPrice = 9.75, admissionPrice = 14.5;
+      let depositPaid = 200;
+    +
+    + function calculateBusCount(studentCount, seatsPerBus) {
+    +   return Math.ceil(studentCount / seatsPerBus);
+    + }
+    +
+    + function calculateMealCost(studentCount, mealPrice) {
+    +   return studentCount * mealPrice;
+    + }
+    +
+    + function formatMoney(amount) {
+    +   return `$ ${amount.toFixed(2)}`;
+    + }
+    ```
+
+    These functions are intentionally small so students can focus on the mechanics of function input, function work, and function output.
+
+    <Aside type="note" title="Return Values">
+      A function can display output with `console.log()`, but that is not the same thing as giving a value back to the rest of the program.
+
+      The `return` keyword sends a value back to the place where the function was called. That returned value can be assigned to a variable, used in a template string, or passed into another function.
+    </Aside>
+
+1. Now call the heading function and set up the field trip values.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+      function formatMoney(amount) {
+        return `$ ${amount.toFixed(2)}`;
+      }
+    + 
+    + displayHeading('Field Trip demo', '-');
+    + let studentCount = 75;
+    + let seatsPerBus = 18;
+    + let mealPrice = 9.75;
+    + let admissionPrice = 14.5;
+    + let depositPaid = 50;
+    ```
+
+    Recall that `displayHeading()` did not return a value. It didn't even have a `return` statement at all. Its job is to simply display output as a visible side effect.
+
+1. Use two of our calculation functions and display their returned values.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+      let admissionPrice = 14.5;
+      let depositPaid = 50;
+    +
+    + let busCount = calculateBusCount(studentCount, seatsPerBus);
+    + let mealCost = calculateMealCost(studentCount, mealPrice);
+    +
+    + console.log(`${studentCount} students need ${busCount} buses.`);
+    + console.log(`Meals will cost ${formatMoney(mealCost)}.`);
+    + console.log();
+    ```
+
+    `calculateBusCount()` returns a number. `formatMoney()` takes a number and returns a string suitable for display.
+1. Before we move to an alternate way of creating our functions, let's make a little change to our `displayHeading()` function. Most of the time, we'll use the `'-'` character for underlining our heading. Let's make it a default. Also, it will be nice to have a blank line before each heading.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+    - function displayHeading(text, marker) {
+    + function displayHeading(text, marker = '-') {
+    +   console.log(); // blank line
+        console.log(text);
+        console.log(marker.repeat(text.length));
+      }
+    ```
+
+    Now we can simplify the last call we made for the field trip heading.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+    - displayHeading('Field Trip demo', '-');
+    + displayHeading('Field Trip demo');
+    ```
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Create function declarations"
+> ```
+
+### Function Expressions
+
+Functions can also be stored in variables. This is called a <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Operators/function" target="_blank">function expression</a>. It's a slightly different way to declare functions.
+
+<Steps>
+1. (📍 `calculateAdmissionCost`) Add a new function expression for calculating admission cost.
+
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+      console.log(`${studentCount} students need ${busCount} buses.`);
+      console.log(`Meals will cost ${formatMoney(mealCost)}.`);
+    - console.log();
+    +
+    + // The following uses function expression syntax
+    + const calculateAdmissionCost = function(studentCount, admissionPrice) {
+    +   return studentCount * admissionPrice;
+    + };
+    + 
+    + displayHeading('Function expressions');
+    ```
+
+    This function is assigned to a `const` variable. The function itself can be considered the *value* assigned to the variable `calculateAdmissionCost`.
+
+    <Aside type="note" title="Functions are Values">
+      This is one of the bigger ideas in JavaScript.
+
+      A function is not only a set of instructions. It is also an object in its own right. As such, it can be assigned to a variable, passed around, and returned from another function.
+    </Aside>
+
+1. Call the function expression and inspect its type.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+      const calculateAdmissionCost = function(studentCount, admissionPrice) {
+        return studentCount * admissionPrice;
+      };
+    + 
+    + displayHeading('Function expressions');
+    +
+    + let admissionCost = calculateAdmissionCost(studentCount, admissionPrice);
+    +
+    + console.log(`Admission will cost ${formatMoney(admissionCost)}.`);
+    + console.log(`calculateAdmissionCost is a ${typeof calculateAdmissionCost}.`);
+    ```
+
+    Notice that `typeof calculateAdmissionCost` gives us `function`. This is one of the built-in primitive data types in JavaScript.
+</Steps>
+
+<Aside type="tip" title="Demonstrate Why">
+  Students might wonder which approach to use in declaring functions. Either is fine, but there's a subtle benefit to using a function expression with a const: we can ensure our function never gets "replaced" by some other part of our code.
+</Aside>
+
+> ```ps
+> git add .
+> git commit -m "Function expressions"
+> ```
+
+### Passing a Function into Another Function
+
+Because functions are values, we can pass a function into another function. A function passed this way is often called a **callback**.
+
+<Steps>
+1. (📍 `calculateAmount`) Add a function that receives another function as one of its parameters.
+
+    ```diff lang="js" title="~/inclass/05/demo.js" "operation"
+    +
+    + const calculateAmount = function(firstAmount, secondAmount, operation) {
+    +   return operation(firstAmount, secondAmount);
+    + };
+    ```
+
+    The `operation` parameter is going to hold or *reference* a function. Inside `calculateAmount()`, we call that function with `firstAmount` and `secondAmount`.
+
+1. Add two operation functions.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+      const calculateAmount = function(firstAmount, secondAmount, operation) {
+        return operation(firstAmount, secondAmount);
+      };
+    +
+    + const addAmounts = function(firstAmount, secondAmount) {
+    +   return firstAmount + secondAmount;
+    + };
+    +
+    + const subtractAmounts = function(firstAmount, secondAmount) {
+    +   return firstAmount - secondAmount;
+    + };
+    ```
+
+    The names make the intent clear. One function adds the two values, and the other subtracts the second value from the first.
+
+1. Use `calculateAmount()` with each operation function.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+      const subtractAmounts = function(firstAmount, secondAmount) {
+        return firstAmount - secondAmount;
+      };
+    +
+    + displayHeading("Passing functions into functions");
+    +
+    + let tripSubtotal = calculateAmount(mealCost, admissionCost, addAmounts);
+    + let remainingAfterDeposit = calculateAmount(tripSubtotal, depositPaid, subtractAmounts);
+    +
+    + console.log(`Meal + admission subtotal: ${formatMoney(tripSubtotal)}`);
+    + console.log(`Remaining after deposit: ${formatMoney(remainingAfterDeposit)}`);
+    + console.log();
+    ```
+
+    We are passing `addAmounts` and `subtractAmounts` without parentheses. That means we are passing the function itself, not calling it immediately.
+
+    <Aside type="caution" title="Function Name vs. Function Call">
+      - `addAmounts` is the function *name*.
+      - `addAmounts()` is a function *call*.
+
+      Notice how we pass those functions to the `operation` parameter in our calls to `calculateAmount()`. We pass in the *name* of the function.
+
+      Students will run into this distinction again when they work with event listeners and callbacks.
+    </Aside>
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Pass functions as values"
+> ```
+
+### Returning a Function from a Function
+
+A function can also return another function. This is an advanced-looking idea, but the example is practical: we'll create a numbered logger that remembers its current step.
+
+<Steps>
+1. (📍 `buildNumberedLogger`) Add a function expression that builds and returns another function.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+      console.log();
+    +
+    + const buildNumberedLogger = function() {
+    +   let currentStep = 1;
+    +
+    +   return function(text) {
+    +     console.log(`${currentStep}) ${text}`);
+    +     currentStep++;
+    +   };
+    + };
+    ```
+
+    The inner function uses `currentStep`, even though `currentStep` was declared in the outer function.
+
+    <Aside type="note" title="A First Closure">
+      This is a first look at a **closure**.
+
+      The returned inner function keeps access to the `currentStep` variable that existed when it was created. We do not need students to master the full theory here, but they should notice that the function remembers state.
+    </Aside>
+
+1. Build one numbered logger and call it several times.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+    +
+    + displayHeading('Returning a function from a function');
+    +
+    + let logStep = buildNumberedLogger();
+    +
+    + logStep(`Confirm ${studentCount} students.`);
+    + logStep(`Reserve ${busCount} buses.`);
+    + logStep(`Collect ${formatMoney(remainingAfterDeposit)} after the deposit.`);
+    + console.log();
+    ```
+
+    `buildNumberedLogger()` returns a function. We store that returned function in `logStep`, then call `logStep()` like any other function.
+1. If we call `buildNumberedLogger()` more than once, each returned function gets its own remembered `currentStep` variable.
+1. Create two separate checklists.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+      logStep(`Reserve ${busCount} buses.`);
+      logStep(`Collect ${formatMoney(remainingAfterDeposit)} after the deposit.`);
+      console.log();
+    +
+    + console.log('(each numbered logger has it own internal state....)\n');
+    + let morningChecklist = buildNumberedLogger();
+    + let afternoonChecklist = buildNumberedLogger();
+    ```
+
+1. Call each checklist function twice.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+      let morningChecklist = buildNumberedLogger();
+      let afternoonChecklist = buildNumberedLogger();
+    +
+    + morningChecklist('Take attendance.');
+    + morningChecklist('Load lunches.');
+    + afternoonChecklist('Board buses for return.');
+    + afternoonChecklist('Return to school.');
+    ```
+
+    Each checklist starts at `1` because each call to `buildNumberedLogger()` creates a separate `currentStep`.
+
+    <Aside type="note" title="State Belongs to the Returned Function">
+      Ask students why the afternoon checklist does not start at `3`.
+
+      The answer is that `morningChecklist` and `afternoonChecklist` are two separate returned functions, each with its own remembered state.
+    </Aside>
+1. Let's add a few more items to each checklist. This fieldtrip will be a whole school day.
+
+    ```diff lang="js" title="~/inclass/05/demo.js"
+    + displayHeading('Morning Checklist', '~');
+      morningChecklist('Take attendance.');
+      morningChecklist('Load lunches.');
+    + morningChecklist("Meet at school entrance");
+    + morningChecklist("Board buses for trip");
+    + morningChecklist("Offload at Edmonton Science Centre");
+    + 
+    + displayHeading('Afternoon Checklist', '~');
+    + afternoonChecklist('Meet outside for lunch');
+    + afternoonChecklist('Assemble at observatory');
+    + afternoonChecklist('Meet at the buses');
+    + afternoonChecklist('Take attendance');
+      afternoonChecklist('Board buses for return.');
+      afternoonChecklist('Return to school.');
+    ```
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Return functions with remembered state"
+> ```
+
+### Demo Verification
+
+To verify that your demo has the correct items, add the following to the end of your script file. These will be checked in your bucket assignment's automated tests.
+
+```js title="~/inclass/05/demo.js"
+export { 
+  buildNumberedLogger,
+  calculateAmount,
+  calculateMealCost,
+  calculateBusCount,
+  calculateAdmissionCost,
+  formatMoney
+}
+```
+
+> ```ps
+> git add .
+> git commit -m "Finish intro to arrays"
+> ```
+
+----
+
+## Conclusion
+
+> **Assigned homework:** Complete [Homework: Practice Functions as Values](./homework/060-homework.mdx). It reinforces today's function basics and gives fallback practice for function expressions, callbacks, returned functions, and state kept by returned functions.
+
+Functions let us name reusable work. Some functions display information, some functions return values, and some functions can even receive or return other functions.
+
+<Aside type="tip" title="Understanding JavaScript 👀">
+  The key habit in this lesson is to mentally distinguish **defining** a function from **calling** a function.
+
+  Function definitions describe work that can happen. Function calls make that work happen. If the function returns a value, that value comes back to the place where the function was called.
+</Aside>

@@ -1,0 +1,110 @@
+---
+title: Testing Custom Elements
+description: Test Web Components with Vitest, JSDOM, Browser Mode preview provider, Shadow DOM assertions, events, mocks, stubs, and network isolation.
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 4" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="60-85">
+- This lesson is somewhat longer than lesson 02 and applies testing habits to a browser component.
+- Students type through tests for registration, rendering, state updates, custom events, and avoiding real network calls.
+- The walkthrough needs time for discussion around component test boundaries and reliable test data.
+- The estimate allows extra time for slower typing and interpreting browser/component test failures.
+</Instructor>
+
+----
+
+## Lesson Focus
+
+This lesson extends the testing fundamentals from Lesson 25 into Web Components. The component remains the neutral `<user-card>` from the custom-element lessons so students can focus on testing behavior they already recognize.
+
+Use the Lesson 26 demo to show:
+
+- why DOM components need a browser-like test environment
+- what JSDOM can test well and where it differs from a real browser
+- how Vitest Browser Mode with the preview provider opens tests in a browser without Playwright or WebDriverIO
+- how to render a custom element in a test
+- how to query Shadow DOM safely
+- how to test properties, observed attributes, lifecycle behavior, methods, and events
+- how mocks and stubs isolate code from external systems
+- how `vi.stubGlobal('fetch', ...)` can replace a network call in a small demo
+- where `msw` becomes useful for larger request-mocking needs
+
+## Demo Walkthrough
+
+We're going to test a `<user-card>` custom element. The finished tests should prove that the element registers, renders user data, updates state, dispatches a useful custom event, and can be tested without making real network calls.
+
+<Aside type="tip" title="Frequent, small commits">
+We'll also practice version control by **making a commit after each step**. Commits in git are a two-step process: First, we stage what changes we want to commit. Then we do the actual commit.
+
+```ps title="Commit Example"
+git add .
+git commit -m "Test user-card follow event"
+```
+</Aside>
+
+<Steps>
+1. Add Vitest, JSDOM, and `@vitest/browser-preview` to the Lesson 26 demo project.
+1. Configure normal component tests with `environment: 'jsdom'`.
+1. Add a separate Browser Mode config that uses `provider: preview()` and an instance such as `{ browser: 'chromium' }`.
+1. Render `<user-card>` in a test by creating the element, assigning `card.user`, and appending it to `document.body`.
+1. Assert Shadow DOM output such as the name, location, avatar `src`, avatar `alt`, and button text.
+1. Test public behavior through `follow()`, `unfollow()`, observed attributes, and the `follow-change` event.
+1. Add a small `profile-service.js` helper and replace `fetch` with `vi.stubGlobal()` in tests.
+1. Run `pnpm test` for JSDOM tests and `pnpm run test:browser` for the preview-provider Browser Mode smoke test.
+</Steps>
+
+```js title="tests/user-card.test.js"
+import { describe, expect, it } from 'vitest';
+import '../src/user-card.js';
+
+describe('user-card', () => {
+  it('renders Shadow DOM content from the user property', () => {
+    const card = document.createElement('user-card');
+
+    card.user = {
+      id: 'test-user-1',
+      name: 'Test User',
+      avatar: 'assets/avatars/clarence-james.jpg',
+      location: 'Test City',
+      about: 'Writes tests before changing component behavior.',
+    };
+
+    document.body.append(card);
+
+    expect(card.shadowRoot.querySelector('h2').textContent).toBe('Test User');
+  });
+});
+```
+
+```js title="vitest.browser.config.js"
+import { preview } from '@vitest/browser-preview';
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    include: ['tests/**/*.browser.test.js'],
+    browser: {
+      enabled: true,
+      provider: preview(),
+      instances: [{ browser: 'chromium' }],
+    },
+  },
+});
+```
+
+## Teaching Notes
+
+JSDOM gives Vitest enough browser-like APIs to create elements, append them to the document, inspect Shadow DOM, dispatch events, and test many component behaviors quickly. It is not a complete browser engine. Layout, rendering, CSS visual behavior, and browser-specific interaction details may need Browser Mode or manual inspection.
+
+Vitest Browser Mode runs tests in a browser context. For this course demo, use the preview provider because it avoids adding Playwright or WebDriverIO dependencies. Explain that preview is useful for local inspection, while larger professional test suites may choose a fuller provider when they need headless CI execution, parallel browser automation, or deeper interaction APIs.
+
+A mock or stub replaces a real dependency during a test. In this demo, `vi.stubGlobal('fetch', ...)` replaces the browser's `fetch` function so the test can prove how the profile service reacts to successful and failed responses without depending on a live server. For larger applications, `msw` can intercept requests at the network boundary and keep request-mocking closer to how the app actually communicates.
+
+Component TDD follows the same loop as Lesson 25: write a failing behavior test, implement the smallest behavior that passes, then refactor while the tests remain green. For components, the behavior is usually visible through DOM output, public properties or methods, attributes, and events.

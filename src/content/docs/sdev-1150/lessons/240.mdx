@@ -1,0 +1,750 @@
+---
+title: Unit Testing Fundamentals
+description: Introduce automated testing, Vitest, test anatomy, Arrange-Act-Assert, TDD, failure interpretation, and coverage.
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 4" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="60-85">
+- This lesson is close to lesson 02 in delivery size but shifts attention from demo output to test feedback.
+- Students type through a small cart-calculation module and focused unit tests around pure functions.
+- The walkthrough needs time for discussion around test intent, expected values, and reading test results.
+- The estimate allows extra time for slower typing and first-time test-run troubleshooting.
+</Instructor>
+
+----
+
+## Lesson Focus
+
+This lesson introduces automated testing as a developer feedback tool. Keep the examples small and concrete: pure JavaScript functions are easier to test than browser pages, and they let students focus on test structure before adding DOM complexity.
+
+Use this demo to show:
+
+- automated testing as repeatable evidence that code still behaves as expected
+- the difference between unit, integration, end-to-end, and manual exploratory testing
+- Vitest project setup and scripts
+- the anatomy of a test file: imports, `describe`, `it` or `test`, and `expect`
+- the Arrange-Act-Assert pattern
+- the red-green-refactor TDD loop
+- failure messages as debugging information
+- watch mode for quick feedback
+- coverage as a clue about what ran, not proof that the code is correct
+
+## Demo Walkthrough
+
+### 💫 Setup
+{/* 
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="24" folder="~/inclass/24/demo/" file="src/main.js" lang="js" />
+ */}
+
+We will start our project from scratch, having only a shell of the initial JavaScript files representing our app. So, we must begin by creating our Node project.
+
+<Steps>
+1. Create the Vite project files and install `vite`, `vitest`, and `@vitest/coverage-v8`.
+
+    ```ps title="~/inclass/24/demo/"
+    pnpm init
+    pnpm add -D -E vitest @vitest/coverage-v8
+    ```
+
+1. Add appropriate scripts for running the tests
+
+    ```diff lang="json" title="package.json"
+        "scripts": {
+    +     "dev": "vite",
+    -     "test": "echo \"Error: no test specified\" && exit 1"
+    +     "test": "vitest",
+    +     "test:once": "vitest run",
+    +     "test:coverage": "vitest run --coverage"
+        },
+    ```
+
+    <Aside title="Other package.json settings">
+    It might be worthwhile to have the students take a couple of moments to update some other parts of their `package.json`, just so that they get in the habit of looking at it and customizing it accordingly. Specifically: `"name"`, `"version"`, `"description"`, `"license"`, and `"author"`.
+
+    <details>
+    <summary>Expand for full `package.json`</summary>
+
+    ```diff lang="json" title="package.json"
+      {
+    -   "name": "demo",
+    +   "name": "lesson-24-demo",
+    -   "version": "1.0.0",
+    +   "version": "0.1.0",
+    -   "description": "",
+    +   "description": "Starter demo for SDEV-1150 Lesson 25: Unit Testing Fundamentals",
+    -   "main": "index.js",
+        "scripts": {
+          "dev": "vite",
+          "test": "vitest",
+          "test:once": "vitest run",
+          "test:coverage": "vitest run --coverage"
+        },
+        "keywords": [],
+    -   "author": "",
+    +   "author": "Stewart Dent",
+    -   "license": "ISC",
+    +   "license": "MIT",
+        "devEngines": {
+          "packageManager": {
+            "name": "pnpm",
+            "version": "^11.4.0",
+            "onFail": "download"
+          }
+        },
+        "type": "module",
+        "devDependencies": {
+          "@vitest/coverage-v8": "4.1.8",
+          "vitest": "4.1.8"
+        }
+      }
+    ```
+    </details>
+    </Aside>
+
+1. Run `pnpm test` and read the output before changing any code. You should see the following:
+
+    ```ps title="No tests are present"
+    No test files found. You can change the file name pattern by pressing "p"
+
+    include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+    exclude:  **/node_modules/**, **/.git/**
+    ```
+
+    <Aside type="tip" title="Trust vitest">
+    You can leave this test running. `vitest` runs in "watch" mode during development, but is smart enough to detect a CI environment and only run once in continuous integration actions/workflows.
+    </Aside>
+</Steps>
+
+
+
+### Our Goal
+
+Of course, we must **not** begin with any code. Rather, we must begin with an *idea*. We're going to build and test a couple of small utility modules for a shopping cart.
+
+<Aside title="Lesson Scope">
+The goal is *not* to make a full shopping cart application. The goal is to practice writing clear unit tests around small functions.
+</Aside>
+
+<Aside type="caution" title="Begin with a plan">
+For us to get anywhere, we must first spend some time thinking about what expectations we're going to place on our cart calculator. We must think not only of the *information* our small application has to deal with, but also of the *transformation* that we want as the result of processing the information. Put in other words, we must identify our **inputs** and our **outputs**. Everything in between are the *functions* that achieve our final results. We can break it down into *steps*, deducing the calculations along the way.
+
+In other words, we need a **plan**.
+
+**TODO: Outline some plan in some way**, either on the whiteboard or as some code comments.
+</Aside>
+
+### Our Plan
+
+We will create tests for two modules: `formatter.js` and `cart.js`. We'll need some rules and expectations.
+
+The `formatter.js` will export a couple of functions (`formatCurrency` and `pluralizeItem`) that help us format information for text output. With regard to the formatters, we can say
+
+- it formats money for Canadian English readers
+- it uses the singular word item for a count of 1
+- it uses the plural word items for any other count
+
+The `cart-calculator.js` will export a single function: `calculateCartTotal`. With regard to this cart calculator,
+
+- it calculates a line total
+- it calculates a total from several items
+- it applies a percentage discount
+- it throws a useful error for an invalid discount rate
+
+### Testing `formatter.js`
+
+<Aside>
+We'll be naming our unit test files with the extension **`.spec.js`**. The reason to use "**spec**" instead of "test" is to **encourage a mental model** in the students that their unit tests are where **they define the *technical specifications*** of their program.
+</Aside>
+
+<Steps>
+1. Begin by creating `formatter.spec.js`. In it, we'll add our import statements.
+
+    ```diff lang="js" title="tests/formatters.spec.js"
+    + import { describe, expect, it } from 'vitest';
+    ```
+
+1. If the test runner isn't on, be sure to run `pnpm test` in the terminal. Notice that vitest detects our test file but reports that there are no active tests that it can run.
+1. We'll use a <a href="https://vitest.dev/guide/learn/writing-tests.html#grouping-tests-with-describe" target="_blank">`describe()`</a> to group our related tests.
+
+    ```diff lang="js" title="tests/formatters.spec.js"
+      import { describe, expect, it } from 'vitest';
+
+    + describe('formatters', () => {
+    + });
+    ```
+
+    Technically speaking, it's not required, but it's usually a good idea. In the "real world", your applications can have hundreds or thousands of tests.
+1. Let's list out our tests as "todo" items.
+
+    ```diff lang="js" title="tests/formatters.spec.js"
+      import { describe, expect, it } from 'vitest';
+
+      describe('formatters', () => {
+    +   it.todo('formats money for Canadian English readers', () => {
+        });
+    +
+    +   it.todo('uses the singular word item for a count of 1', () => {
+    +   });
+    +
+    +   it.todo('uses the plural word items for any other count', () => {
+    +   });
+      });
+    ```
+
+
+    <Aside type="tip" title="test vs. it">
+    I prefer to use the `it()` function over the `test()` function, largely because of two reasons:
+    
+    - I want to maintain a **specification mentality** instead of a testing mentality.
+    - It just simply reads nicer when you look at the code.
+
+    Most people think of "testing" as something they do *after* building something. On the other hand, people think of "specifying" as something they do *before* building something.
+    </Aside>
+
+1. When you look at the output, you should see the tests listed as "skipped" items.
+
+    As we move through building each test, we'll remove its `.todo` so that it's a real unit test. In the meantime, that "todo" list of tests helps you to work in small chunks. It also makes it easier to pause your work for a break or the end of the day and still "pick up" where you left off. 🎉
+
+1. We'll start our first test by following the "Triple-A" pattern: Arrange, Act, Assert.
+
+    ```diff lang="js" title="tests/formatters.spec.js"
+    -   it.todo('formats money for Canadian English readers', () => {
+    +   it('formats money for Canadian English readers', () => {
+    +     // Arrange
+    +     // Act
+    +     // Assert
+        });
+    ```
+
+    Notice that an "empty" test passes. That's *not good*. **We want a *failing* test** to start with. It's part of the "Red-Green-Refactor" rythm that a good software developer should build.
+
+1. Let's do the Arrange and Act portions of our first test.
+
+    ```diff lang="js" title="tests/formatters.spec.js"
+        it('formats money for Canadian English readers', () => {
+          // Arrange
+    +     const amount = 12.5;
+
+          // Act
+    +     const result = formatCurrency(amount);
+
+          // Assert
+        });
+    ```
+
+    🎉 HORRAY! It's broken! Let's fix it. 👀
+
+1. Create the `formatter.js` file and export **a *minimal* version** of the function we need. In this case, it's just a "stub".
+
+    ```diff lang="js" title="src/formatter.js"
+    + export function formatCurrency() {
+    + }
+    ```
+
+    We'll also need to import it in our specification file.
+
+    ```diff lang="js" title="tests/formatters.spec.js"
+      import { describe, expect, it } from 'vitest';
+    + import { formatCurrency } from '../src/formatters';
+    ```
+
+1. Our test passes, but we're not done. Now we need to **define our expectations**. Let's fill in the "Assert" section.
+
+    ```diff lang="js" title="tests/formatters.spec.js"
+        it('formats money for Canadian English readers', () => {
+          // Arrange
+          const amount = 12.5;
+
+          // Act
+          const result = formatCurrency(amount);
+
+          // Assert
+    +     expect(result).toBe('$12.50');
+        });
+    ```
+
+    Once again, our tests fail. 🎉
+
+1. Let's edit our function to make the test pass.
+
+    ```diff lang="js" title="src/formatter.js"
+    - export function formatCurrency() {}
+    + export function formatCurrency(amount) {
+        return `$${amount.toFixed(2)}`;
+      }
+    ```
+
+1. You've just had your first experience of **Test-Driven Development**. By writing our automated tests first, we build our *technical specifications*.
+
+    <Aside type="tip" title="WHY?">
+    Why should we follow this? One major reason: **To build *confidence* in our code.**
+    
+    There's another good reason: This is the point in which we are **thinking the hardest**. The point in time when we a) build our tests before our code and b) write the code to make our tests pass is when we are "in the weeds" of software development. If we "get it right" now, and check all our assumptions, then we make it easier to move on to other parts of our program.
+    </Aside>
+</Steps>
+
+💫 These first few steps of setting up our unit tests and then getting the first one to pass is how we build a *cadence* of work. As you practice this discipline 👀, writing unit tests and getting them to pass can be done in a matter of minutes. That's the "Red-Green" part. Where you really get the **quality** is when you spend some more time on the "Refactor" stage. Early on, you won't need to do much refactoring. But, as your code base grows, having these tests in place will help you **refactor with *confidence***. If any of your refactoring attempts "breaks" things, you'll know immediately because of failing tests. 🚀
+
+
+Let's continue building our formatter.
+
+<Steps>
+1. Did you know we could have "cheated" on that last test? To get it to pass, we could have done the following.
+
+    ```diff lang="js" title="src/formatter.js"
+      export function formatCurrency(amount) {
+    -   return `$${amount.toFixed(2)}`;
+    +   return "$12.50";
+      }
+    ```
+
+    That's not necessarily a bad thing. A key idea for when we create tests is to *do the simplest thing to make the tests pass*. That's a good practice (even if it's "overdone" here), because it helps us to **not over-engineer** our solution. **YAGNI** is a good principle to remember.
+
+1. If we wanted to keep ourselves honest, we could add more than one input. Refactor the test as follows.
+
+    ```diff lang="js" title="tests/formatters.spec.js"
+    +   it.each([
+    +     { amount: 12.5, expected: '$12.50' },
+    +     { amount: 42, expected: '$42.00' }
+    +   ])
+    +   ('formats money for Canadian English readers', ({amount, expected}) => {
+    -   it('formats money for Canadian English readers', () => {
+    -     // Arrange
+    -     const amount = 12.5;
+          // Act
+          const result = formatCurrency(amount);
+
+          // Assert
+    -     expect(result).toBe('$12.50');
+    +     expect(result).toBe(expected);
+        });
+    ```
+
+1. Now we have to restore our original solution.
+
+    ```diff lang="js" title="src/formatter.js"
+      export function formatCurrency(amount) {
+    -   return "$12.50";
+    +   return `$${amount.toFixed(2)}`;
+      }
+    ```
+
+1. Let's add another test - one that tries to format for the Japanese Yen. We didn't have that on our original list, but that's ok.
+
+    ```diff lang="js" title="tests/formatters.spec.js"
+    +   it('formats Japanese money for Canadian English readers', () => {
+    +     const result = formatCurrency('9.5', locale = 'en-CA', currency = 'YEN');
+    +
+    +     // Assert
+    +     expect(result).toBe('YEN 9.50');
+    +   });
+    ```
+
+1. To get this one to pass, we're going to have to make a much-more real-world implementation.
+
+    ```diff lang="js" title="src/formatter.js"
+    - export function formatCurrency(amount) {
+    + export function formatCurrency(amount, locale = 'en-CA', currency = 'CAD') {
+    -   return `$${amount.toFixed(2)}`;
+    +   return new Intl.NumberFormat(locale, {
+    +     style: 'currency',
+    +     currency,
+    +   }).format(amount);
+      }
+    ```
+
+1. Let's move on to testing our other function: `pluralizeItem`.
+
+    ```diff lang="js" title="tests/formatters.spec.js"
+    -   it.todo('uses the singular word item for a count of 1', () => {
+    +   it('uses the singular word item for a count of 1', () => {
+    +     // Arrange
+    +     const count = 1;
+    +     // Act
+    +     const label = pluralizeItem(count);
+    +     // Assert
+    +     expect(label).toBe('1 item');
+        });
+    ```
+
+1. We'll implement this in the simplest way possible.
+
+    ```diff lang="js" title="src/formatter.js"
+    + export function pluralizeItem(count) {
+    +   return '1 item';
+    + }
+    ```
+
+1. We need one more test to finish up this test suite: the one that pluralizes text appropriately.
+
+    ```diff lang="js" title="tests/formatters.spec.js"
+        it('uses the plural word items for any other count', () => {
+    +     // Arrange
+    +     const counts = [0, 2, 10];
+    +     // Act
+    +     const labels = counts.map(pluralizeItem);
+    +     // Assert
+    +     expect(labels).toEqual(['0 items', '2 items', '10 items']);
+        });
+    ```
+
+    Notice in this example that I didn't use `it.each()`. Our test data and results are pretty simple, so using arrays and the array's `.map()` still makes our code pretty readable.
+
+1. Now we can make our solution more realistic.
+
+    ```diff lang="js" title="src/formatter.js"
+      export function pluralizeItem(count) {
+    -   return '1 item';
+    +   return count === 1 ? '1 item' : `${count} items`;
+      }
+    ```
+
+</Steps>
+
+<Aside type="tip" title="How often should you commit?">
+How often should you commit your code? *When* should you commit your code?
+
+Try committing your code at the end of every test suite. If the test suite is big, then just commit after every few *passing* unit tests. Your commit messages can include phrases like:
+
+- "Primary use cases pass for ..."
+- "Alternate use cases pass for ..."
+- "Edge cases pass for ..."
+</Aside>
+
+### Testing `cart-calculator.js`
+
+Our cart calculator exposes a single function: `calculateCartTotal`. As we test this function, we'll start with "easy" inputs and progress to more involved inputs. Then we'll finish off with the edge cases.
+
+In all of these cases, the minimal "shape" of our input data is an array of cart items. Each item has two properties that we're interested in: `price` and `quantity`.
+
+<Steps>
+1. Let's create the stub of our test suite.
+
+    ```diff lang="js" title="tests/cart-calculator.spec.js"
+    + import { describe, expect, it } from 'vitest';
+
+    + describe('cart calculations', () => {
+    +   it.todo('calculates a line total', () => {
+    +   });
+    +
+    +   it.todo('calculates a total from several items', () => {
+    +   });
+    +
+    +   it.todo('applies a percentage discount', () => {
+    +   });
+    +
+    +   it.todo('throws a useful error for an invalid discount rate', () => {
+    +   });
+      });
+    ```
+
+1. If we have a single item in our cart, that's equivalent to getting something called a "line total": the price for one type of item. Let's get that test started.
+
+    ```diff lang="js" title="tests/cart-calculator.spec.js"
+    -   it.todo('calculates a line total', () => {
+    +   it('calculates a line total', () => {
+    +     // Arrange: create one cart item.
+    +     const given = [{ price: 5, quantity: 3 }];
+    +     // Act: call calculateCartTotal().
+    +     const actual = calculateCartTotal(given)
+    +     // Assert: expect the result to match price * quantity.
+        });
+      });
+    ```
+
+1. With the failing test in place, let's create our module and the exported method stub.
+
+    ```diff lang="js" title="src/cart-calculator.js"
+    + export function calculateCartTotal(items) {
+    + }
+    ```
+
+    Remember to import the function into our tests.
+
+    ```diff lang="js" title="tests/cart-calculator.spec.js"
+    - import { describe, expect, it } from 'vitest';
+    + import { calculateCartTotal } from '../src/cart-calculator.js';
+    ```
+
+1. Finish off the test's expectations by completing the "Assert" section.
+
+    ```diff lang="js" title="tests/cart-calculator.spec.js"
+        it('calculates a line total', () => {
+          // Arrange: create one cart item.
+          const given = [{ price: 5, quantity: 3 }];
+          // Act: call calculateCartTotal().
+          const actual = calculateCartTotal(given)
+          // Assert: expect the result to match price * quantity.
+    +     expect(actual).toBe(15);
+        });
+      });
+    ```
+
+1. Write the **minimal** code to pass the test.
+
+    ```diff lang="js" title="src/cart-calculator.js"
+      export function calculateCartTotal(items) {
+    +   return 15;
+      }
+    ```
+
+1. Do another test. This time, we want the cart total for two different items. Remember to choose test data that is easy to mentally verify.
+
+    ```diff lang="js" title="tests/cart-calculator.spec.js"
+    -   it.todo('calculates a total from several items', () => {
+    +   it('calculates a total from several items', () => {
+    +     // Arrange
+    +     const given = [
+    +       { price: 7.5, quantity: 2 },  // ==> 15.00
+    +       { price: 1.25, quantity: 4 }, // ==>  5.00
+    +     ];
+    +     // Act
+    +     const actual = calculateCartTotal(given);
+    +     // Assert
+    +     expect(actual).toBe(20);
+        });
+    ```
+
+1. Edit `calculateCartTotal` to do a proper calculation for all cart items.
+
+    ```diff lang="js" title="src/cart-calculator.js"
+      export function calculateCartTotal(items) {
+    +   const total = 0;
+    +   for(let index = 0; index < items.length; index++) {
+    +     total += items[index].price * items[index].quantity;
+    +   }
+    +   return total;
+    -   return 15;
+      }
+    ```
+
+1. Our next test is for including a discount on the cart total.
+
+    ```diff lang="js" title="tests/cart-calculator.spec.js"
+    -   it.todo('applies a percentage discount', () => {
+    +   it('applies a percentage discount', () => {
+    +     // Arrange
+    +     const givenCart = [
+    +       { price: 7.5, quantity: 2 },  // ==> 15.00
+    +       { price: 1.25, quantity: 4 }, // ==>  5.00
+    +     ];
+    +     const givenDiscount = 0.10; // 10%
+    +     // Act
+    +     const actual = calculateCartTotal(givenCart, givenDiscount);
+    +     // Assert
+    +     expect(actual).toBe(18);
+        });
+    ```
+
+1. Modifying our solution here means we need another parameter.
+
+    ```diff lang="js" title="src/cart-calculator.js"
+    - export function calculateCartTotal(items) {
+    + export function calculateCartTotal(items, discountRate = 0) {
+        const total = 0;
+        for(let index = 0; index < items.length; index++) {
+          total += items[index].price * items[index].quantity;
+        }
+    +   total -= total * discountRate;
+        return total;
+      }
+    ```
+
+1. We should deal with at least one edge case: a couple of invalid discount values. The most an item can be discounted for is 100%.
+
+    ```diff lang="js" title="tests/cart-calculator.spec.js" "() => calculateCartTotal(givenCart, givenDiscount)"
+    -   it.todo('throws a useful error for an invalid discount rate', () => {
+    +   it.each([1.01, -0.01])
+    +   ('throws a useful error for an invalid discount rate %d', (givenDiscount) => {
+    +     // Arrange
+    +     const givenCart = [
+    +       { price: 7.5, quantity: 2 },  // ==> 15.00
+    +       { price: 1.25, quantity: 4 }, // ==>  5.00
+    +     ];
+    +     // Act
+    +     const action = () => calculateCartTotal(givenCart, givenDiscount);
+    +     // Assert
+    +     expect(action).toThrow(RangeError);
+    +     expect(action).toThrow('between 0 and 1');
+        });
+    ```
+
+    Notice that we're *creating* a function, not *calling* a function. The actual call to our `calculateCartTotal` happens *inside* the `expect()` function.
+
+1. We fix our solution by adding a **guard clause** to validate the function's inputs before we do any processing.
+
+    ```diff lang="js" title="src/cart-calculator.js"
+      export function calculateCartTotal(items, discountRate = 0) {
+    +   if (discountRate < 0 || discountRate > 1) {
+    +     throw new RangeError('Discount rate must be between 0 and 1.');
+    +   }
+    +
+        const total = 0;
+        for(let index = 0; index < items.length; index++) {
+          total += items[index].price * items[index].quantity;
+        }
+        total -= total * discountRate;
+        return total;
+      }
+    ```
+
+1. **Question:** What other "edge" cases might we want to write tests for? What if the cart is empty? What if we have invalid prices or quantities?
+</Steps>
+
+
+### Refactoring `calculateCartTotal` (optional)
+
+<Aside>
+Note that this phase is optional. Complete it only if you have time in class.
+
+Additionally, there are *many* ways to refactor this. If you want to just see a sample endpoint, look here.
+
+<details>
+<summary>Sample Refactoring</summary>
+
+```js title="src/cart-calculator.js"
+function calculateCartTotal(item) {
+  return item.price * item.quantity;
+}
+
+function calculateSubtotal(items) {
+  return items.reduce((total, item) => total + calculateCartTotal(item), 0);
+}
+
+function applyDiscount(subtotal, discountRate = 0) {
+  return subtotal - subtotal * discountRate;
+}
+
+export function calculateCartTotal(items, discountRate = 0) {
+  if (discountRate < 0 || discountRate > 1) {
+    throw new RangeError('Discount rate must be between 0 and 1.');
+  }
+
+  const subtotal = calculateSubtotal(items);
+  return applyDiscount(subtotal, discountRate);
+}
+```
+
+</details>
+</Aside>
+
+<Steps>
+1. Create a function to calculate the line item subtotals.
+
+    ```diff lang="js" title="src/cart-calculator.js"
+    + function calculateCartTotal(item) {
+    +   return item.price * item.quantity;
+    + }
+    ```
+
+1. Create a function to calculate the subtotals of the array of items.
+
+    ```diff lang="js" title="src/cart-calculator.js"
+    + function calculateSubtotal(items) {
+    +   return items.reduce((total, item) => total + calculateCartTotal(item), 0);
+    + }
+    ```
+
+1. Create a function to apply the discounts.
+
+    ```diff lang="js" title="src/cart-calculator.js"
+    + function applyDiscount(subtotal, discountRate = 0) {
+    +   return subtotal - subtotal * discountRate;
+    + }
+    ```
+
+1. Modify original exported function
+
+    ```diff lang="js" title="src/cart-calculator.js"
+      export function calculateCartTotal(items, discountRate = 0) {
+        if (discountRate < 0 || discountRate > 1) {
+          throw new RangeError('Discount rate must be between 0 and 1.');
+        }
+     
+    -   const total = 0;
+    -   for(let index = 0; index < items.length; index++) {
+    -     total += items[index].price * items[index].quantity;
+    -   }
+    -   total -= total * discountRate;
+    -   return total;
+    +   const subtotal = calculateSubtotal(items);
+    +   return applyDiscount(subtotal, discountRate);
+      }
+    ```
+
+1. All the tests should still pass.
+</Steps>
+
+### Running `main.js`
+
+Automated tests don't mean you should completely ignore manual confirmation of your code. We have a `main.js` that attempts to use our cart modules.
+
+<Steps>
+1. Open another terminal in this demo folder. Run `node src/main.js`.
+1. You should see the following results.
+
+    ```ps title="terminal"
+    The cart has 2 items.        
+    Total after discount: $16.20
+    ```
+    
+</Steps>
+
+### Code Coverage
+
+<Steps>
+1. Stop the test runner by pressing <kbd>q</kbd> and <kbd>enter</kbd>.
+1. Run the test coverage script: `pnpm run test:coverage`
+
+    The terminal should show output like the following.
+
+    ```ps title="Running the Coverage Script"
+    ✓ tests/formatters.test.js (3 tests) 19ms
+
+    Test Files  2 passed (2)
+          Tests  10 passed (10)
+      Start at  12:27:43
+      Duration  372ms (transform 56ms, setup 0ms, import 99ms, tests 23ms, environment 0ms)
+
+    % Coverage report from v8
+    ---------------|---------|----------|---------|---------|-------------------
+    File           | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+    ---------------|---------|----------|---------|---------|-------------------
+    All files      |     100 |      100 |     100 |     100 |                   
+    cart.js       |     100 |      100 |     100 |     100 |                   
+    formatters.js |     100 |      100 |     100 |     100 |                   
+    ---------------|---------|----------|---------|---------|-------------------
+    ```
+
+1. The results appear under a folder called "coverage". Open the `index.html` report in VS Code's new integrated browser.
+1. **Question:** Explain what the coverage report does and does not prove.
+</Steps>
+
+### Demo Verification
+
+Encourage students to not simply rely upon their automated tests. There is still a role for manual testing, *especially* when venturing into learning new material.
+
+That being said, there is a `~/inclass/24/test-the-tests/` project folder to do a "loose" check that students have worked on this assignment in class.
+
+## Conclusion
+
+Automated tests are code that checks other code. A unit test checks one small unit in isolation, usually a function or module. Integration tests check whether multiple pieces work together. End-to-end tests check a user-like workflow through a running application. Manual exploratory testing still matters because humans notice confusing behavior that a scripted test may not describe.
+
+Vitest test names should describe behavior, not implementation. Prefer test names like "throws for an invalid discount rate" over "calls applyDiscount." Students should learn that a useful failure message points to a specific expectation.
+
+The TDD loop is:
+
+1. Red: write a failing test that describes the behavior you want.
+1. Green: write the simplest code that makes the test pass.
+1. Refactor: improve the code while keeping the tests passing.
+
+Coverage reports show which lines, branches, and functions executed during the test run. High coverage can still miss important cases if the expectations are weak, so coverage is a prompt for better questions rather than a final grade for quality.

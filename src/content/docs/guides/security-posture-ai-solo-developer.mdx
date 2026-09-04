@@ -1,0 +1,255 @@
+---
+title: Security Posture for Solo Developers in the Age of AI
+description: Practical habits for managing supply-chain, credential, dependency, and AI-assisted development risk as an individual developer.
+sidebar:
+  label: Solo Dev Security Posture
+draft: false
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside title="AI-Generated" type="caution">
+  I used AI to generate this a while back. When/if I get the time to circle back to this, I plan to make my own edits/notes/corrections. But it was somewhat informative for me as I was thinking through the rash of attacks and vulnerabilities that hit around the second quarter of 2026. The landscape of security is changing....
+
+  *BTW - don't blind "copy/paste" content from here to hand off to your AI. Like I said, it's not vetted. And at the speed of change in our industry, it'll be out-of-date pretty soon.*
+</Aside>
+
+Security posture is not a product you install once. It is the set of habits, defaults, tools, and recovery plans that make you harder to compromise and faster to recover when something goes wrong.
+
+That matters more for solo developers now because AI has changed the speed of development. We can build faster, install more packages, generate more configuration, and paste more code than before. That speed is useful, but it also makes it easier to import risk without noticing it.
+
+Recent npm supply-chain incidents make the point sharply. In the [TanStack npm supply-chain compromise postmortem](https://tanstack.com/blog/npm-supply-chain-compromise-postmortem), TanStack reported that on May 11, 2026, an attacker published 84 malicious versions across 42 `@tanstack/*` npm packages by chaining GitHub Actions trust-boundary issues, cache poisoning, and OIDC token extraction. Socket's write-up also described the incident as compromised TanStack package artifacts with credential-stealing behavior in the wider npm ecosystem: [TanStack npm Packages Compromised in Ongoing Mini Shai-Hulud Supply-Chain Attack](https://socket.dev/blog/tanstack-npm-packages-compromised-mini-shai-hulud-supply-chain-attack).
+
+The lesson is not "never use open source." Modern development depends on open source. The lesson is that your project depends on people, automation, package registries, CI systems, tokens, and your own decision-making under pressure. A good security posture gives each of those pieces less room to fail catastrophically.
+
+<Aside type="caution" title="Security is risk reduction, not certainty">
+The goal is not to become impossible to compromise. The goal is to reduce obvious risk, catch suspicious changes earlier, limit the damage of a compromise, and know what to do when you need to respond.
+</Aside>
+
+## Start with a threat model you can actually use
+
+A threat model is a plain-language answer to four questions:
+
+- What am I protecting?
+- Who might want it or accidentally expose it?
+- How could it be reached?
+- What would I do first if it leaked or broke?
+
+For a solo developer, the important assets are usually:
+
+- source code;
+- GitHub, npm, cloud, database, and deployment accounts;
+- API keys and personal access tokens;
+- environment variables;
+- production data;
+- local development machines;
+- CI/CD workflows;
+- package-lock files and dependency manifests;
+- private notes, prompts, logs, screenshots, and exported debugging data.
+
+Write this down in a short `SECURITY.md` file or private project note. Do not over-engineer it. A useful one-page model beats a theoretical document nobody reads.
+
+## Treat dependencies as code you chose to run
+
+Most package installs execute code during development, build, test, or runtime. Some packages run install scripts. Some packages bring hundreds of transitive dependencies. Some are maintained by one tired person with an inbox full of phishing attempts.
+
+Practical habits:
+
+- Prefer boring, widely maintained packages for security-sensitive work.
+- Check the package name carefully before installing. Typosquatting works because developers move quickly.
+- Look at the package's repository, release history, issue activity, maintainer identity, and download pattern before adopting it.
+- Read the diff when a major dependency changes.
+- Keep lockfiles committed.
+- Use `npm ci`, `pnpm install --frozen-lockfile`, or the equivalent in CI so builds use the reviewed dependency graph.
+- Avoid running random `npx` commands from blog posts unless you understand what package will execute.
+- Be suspicious of packages that need broad postinstall behavior, shell access, or network access for a simple task.
+
+For JavaScript projects, the lockfile is a security artifact. Treat unexpected lockfile churn like an unexpected source-code change. Review it before committing.
+
+## Slow down package updates at the right moment
+
+Fast updates are good for security patches. Blind updates are bad for supply-chain risk.
+
+A balanced routine:
+
+- Update direct dependencies regularly, not randomly.
+- Separate security updates from routine dependency refreshes.
+- Run tests after dependency updates.
+- Review release notes for packages that affect authentication, routing, build tooling, serialization, crypto, database access, deployments, and CI.
+- Delay non-urgent updates briefly if there is active ecosystem incident chatter around a package family.
+- Pin versions for production applications when a package is critical to build or runtime behavior.
+
+This is especially important when an AI assistant suggests "just update everything." Ask it to explain why each update is needed. If the answer is vague, split the update into smaller pieces.
+
+## Keep secrets out of code, prompts, and screenshots
+
+AI tools create a new leakage path: you might paste secrets into a prompt, upload logs containing tokens, or ask for help with an `.env` file that contains real credentials.
+
+Adopt these defaults:
+
+- Never commit `.env` files.
+- Use `.env.example` with fake values.
+- Use separate development, staging, and production credentials.
+- Prefer short-lived tokens where available.
+- Scope tokens narrowly. A deploy token should not also manage billing, users, and package publishing.
+- Rotate a token immediately if it appears in a prompt, screenshot, issue, chat, terminal recording, or commit.
+- Use GitHub secret scanning and push protection where available.
+- Run a secret scanner locally before publishing or sharing a repository.
+
+When asking AI for help, replace sensitive values before pasting:
+
+```txt
+DATABASE_URL=postgres://user:password@host:5432/app
+GITHUB_TOKEN=ghp_REDACTED
+CLERK_SECRET_KEY=sk_test_REDACTED
+```
+
+Do not rely on "the model probably ignores it." Treat any pasted secret as disclosed.
+
+## Lock down GitHub and package publishing
+
+Your GitHub account is often the control plane for everything else. If it falls, the attacker may be able to change code, steal CI secrets, publish packages, alter Pages deployments, or add malicious workflows.
+
+Baseline account controls:
+
+- Use a password manager.
+- Use a unique password for GitHub, npm, cloud providers, and email.
+- Enable phishing-resistant multi-factor authentication where possible.
+- Prefer passkeys or security keys over SMS.
+- Review active sessions, SSH keys, fine-grained tokens, OAuth apps, and GitHub Apps monthly.
+- Delete tokens you no longer use.
+- Set token expiration dates.
+- Avoid classic personal access tokens unless a tool truly requires them.
+
+Repository controls:
+
+- Protect the default branch.
+- Require pull requests for important projects, even if you are reviewing your own work.
+- Require status checks before merge.
+- Limit GitHub Actions permissions to the minimum needed.
+- Avoid `pull_request_target` unless you deeply understand its trust model.
+- Do not expose publishing credentials to workflows triggered by untrusted forks.
+- Keep release and publish workflows small enough to review.
+
+If you publish packages, treat publishing access like production access. Use npm provenance, trusted publishing, and two-factor settings where appropriate, but remember that trusted publishing does not make every workflow safe. The workflow itself becomes part of the security boundary.
+
+## Build an AI-assisted code review habit
+
+AI can help you review code, but it should not be the only reviewer. Use it as a second set of eyes with specific prompts.
+
+Good review prompts:
+
+- "Review this diff for credential leaks, unsafe logging, and accidental exposure of environment variables."
+- "Look for dependency or install-script risk in this package change."
+- "Review this GitHub Actions workflow for unsafe permissions, untrusted input, and secrets exposure."
+- "Find places where user input reaches a shell command, SQL query, file path, URL fetch, or HTML output."
+- "Explain the security impact of this change in plain language."
+
+Weak review prompts:
+
+- "Is this secure?"
+- "Make this production ready."
+- "Fix security."
+
+Specific prompts get better answers because security is contextual. The AI needs to know what kind of risk to look for.
+
+## Make local development less fragile
+
+Your laptop is part of the production path if it can push code, publish packages, or access production data.
+
+Use these defaults:
+
+- Keep your operating system, browser, terminal, editor, and package managers updated.
+- Use a password manager and device lock.
+- Keep work projects in separate folders from experiments.
+- Avoid installing global packages unless you need them repeatedly.
+- Prefer project-local dev tools in `devDependencies`.
+- Do not run unknown install scripts with administrator privileges.
+- Use separate browser profiles for personal, school, and production admin work.
+- Back up important work.
+
+If a package compromise may have affected your machine, assume local secrets could be exposed. Rotate relevant credentials, clear suspicious tokens, inspect account activity, and reinstall dependencies from a known-good lockfile after the incident is understood.
+
+## Have a small incident response plan
+
+You do not need a corporate incident binder. You need a first-hour checklist.
+
+When you suspect compromise:
+
+1. Stop making changes until you understand the blast radius.
+2. Disconnect or pause affected automation if it may still be leaking data.
+3. Identify what changed: commits, packages, workflows, tokens, deployments, and account logins.
+4. Revoke and rotate exposed credentials.
+5. Check GitHub, npm, cloud, and deployment audit logs.
+6. Remove malicious versions, packages, workflow changes, or deployments.
+7. Rebuild from a clean state.
+8. Document what happened, what was exposed, what was rotated, and what you changed to prevent a repeat.
+
+Prepare the links before you need them: GitHub token settings, npm token settings, cloud IAM pages, deployment provider secrets, database credential rotation, and domain/DNS admin.
+
+## Tips for new and junior developers
+
+Security can feel like an advanced topic, but many of the best habits are basic professional habits practiced consistently.
+
+Start with these:
+
+- Do not copy terminal commands you do not understand. Ask what each flag does first.
+- Do not paste real secrets into AI tools, Discord, Slack, GitHub issues, screenshots, or forum posts.
+- Learn the difference between dependencies and dev dependencies.
+- Read `package.json` scripts before running them in an unfamiliar project.
+- Treat `curl ... | sh`, random `npx` commands, and installer scripts as code execution.
+- Commit lockfiles.
+- Keep `.env` out of Git.
+- Use a password manager now, not later.
+- Turn on MFA for GitHub and npm before you publish anything.
+- Prefer small pull requests so review is possible.
+- Ask "what could this expose?" when adding logging.
+- Ask "who can trigger this?" when editing GitHub Actions.
+- Ask "what permissions does this token have?" before creating one.
+
+Do not measure your growth by whether you can remember every attack name. Measure it by whether your defaults are improving: fewer broad tokens, fewer mystery packages, fewer copied commands, better reviews, cleaner recovery steps.
+
+## A solo developer's monthly security routine
+
+Once a month, spend 30 to 60 minutes on maintenance:
+
+- Review GitHub account sessions, SSH keys, passkeys, OAuth apps, and personal access tokens.
+- Review npm tokens and publisher settings if you publish packages.
+- Run dependency audit tools and read the high-impact items.
+- Update important dependencies deliberately.
+- Remove unused dependencies.
+- Check that CI uses least-privilege permissions.
+- Confirm production secrets are not stored locally in old files.
+- Confirm backups still exist.
+- Review one workflow or deployment script for unnecessary permissions.
+
+This routine is small enough to repeat. That is the point. Security posture improves through boring repetition more than heroic cleanup.
+
+## What AI should change about your posture
+
+AI should make you more careful about boundaries:
+
+- More generated code means more review of generated code.
+- More generated configuration means more review of permissions.
+- Faster package adoption means more dependency skepticism.
+- Easier debugging means more risk of pasting secrets into prompts.
+- Easier automation means more ways to accidentally give a workflow too much power.
+
+Use AI to accelerate the careful parts: summarize changelogs, explain diffs, identify risky permissions, draft incident checklists, and create tests. Do not use it to skip understanding.
+
+## Practical baseline
+
+If you only do ten things, do these:
+
+1. Use a password manager.
+2. Enable strong MFA on GitHub, npm, email, and cloud accounts.
+3. Keep secrets out of Git and AI prompts.
+4. Commit and review lockfiles.
+5. Read package scripts before running unfamiliar projects.
+6. Use least-privilege tokens with expiration dates.
+7. Protect your default branch.
+8. Restrict GitHub Actions permissions.
+9. Review dependency updates before merging.
+10. Keep a short credential-rotation checklist.
+
+None of this makes you paranoid. It makes you professional. A solo developer does not have a security department behind them, so the posture has to live in the way you work.

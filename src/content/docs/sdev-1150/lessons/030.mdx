@@ -1,0 +1,439 @@
+---
+title: Primitive Types vs. Simple Objects
+description: Instructor guide for primitive values, object literals, and built-in objects
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 1" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="90-115">
+> ⚠️ Be mindful of delivery time; this walkthrough can easily run long if discussion expands.
+
+- This lesson is longer and more concept-heavy than lesson 02.
+- Students type through primitive values, object literals, dynamic object changes, and several built-in object examples.
+- The walkthrough needs time for commentary around identity, grouping related data, property access, and the difference between primitives and objects.
+- The estimate allows extra time for slower typing, student questions, and pauses to compare related examples.
+</Instructor>
+
+
+----
+
+## Demo Walkthrough
+
+We're going to explore the difference between primitive values and simple objects in JavaScript. Along the way, we'll use a small workshop registration scenario to see how related information can be grouped together.
+
+<Aside type="tip" title="Frequent, small commits">
+We'll also practice version control by **making a commit after each group of steps**. Commits in git are a two-step process: First, we stage what changes we want to commit. Then we do the actual commit.
+
+```ps title="Commit Example"
+git add .
+git commit -m "Add primitive values"
+```
+</Aside>
+
+
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="3" folder="~/inclass/03/" file="demo.js" lang="js" />
+
+### Primitive Values
+
+JavaScript has several <a href="https://developer.mozilla.org/docs/Web/JavaScript/Guide/Data_structures#primitive_values" target="_blank">primitive value</a> types. In today's demo, we'll focus on values that we've already seen: strings, numbers, and booleans.
+
+<Steps>
+1. Open the `~/inclass/03/demo.js` file in VS Code and then run it in Node's "watch" mode. You should see the following output.
+
+    ```ps title="Output"
+    Lesson 03 demo.js has loaded
+    =============================
+
+    ```
+
+    Once again, our starter script confirms that Node can run the file and that our terminal is ready to show output.
+
+    ```js title="~/inclass/03/demo.js"
+    console.log('Lesson 03 demo.js has loaded');
+    console.log('=============================');
+    console.log();
+    ```
+
+1. Let's add a first section for primitive values. In this example, we'll describe a workshop using three separate variables.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      console.log('Lesson 03 demo.js has loaded');
+      console.log('=============================');
+      console.log();
+    +
+    + console.log('Primitive values');
+    + console.log('----------------');
+    +
+    + let workshopTitle = 'Intro to Digital Photography';
+    + let seatsAvailable = 16;
+    + let registrationOpen = true;
+    ```
+
+    Each of these variables holds a different kind of value. The workshop title is text, the number of seats is a numeric value, and whether registration is open is a true/false value.
+
+1. We can use the `typeof` operator to ask JavaScript what type of value each variable currently holds.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      let workshopTitle = 'Intro to Digital Photography';
+      let seatsAvailable = 16;
+      let registrationOpen = true;
+    +
+    + console.log(`The value "${workshopTitle}" is a ${typeof workshopTitle}.`);
+    + console.log(`The value ${seatsAvailable} is a ${typeof seatsAvailable}.`);
+    + console.log(`The value ${registrationOpen} is a ${typeof registrationOpen}.`);
+    + console.log();
+    ```
+
+    Notice that the data type comes from the value itself. JavaScript variables are not locked to a declared type the way they are in some other programming languages.
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Explore primitive values"
+> ```
+
+### Object Literals
+
+Separate variables are useful, but they can become awkward when the values clearly belong together. A JavaScript <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Operators/Object_initializer" target="_blank">object literal</a> lets us collect related values inside one larger structure.
+
+<Steps>
+1. (📍 `workshop`) Let's create a `workshop` object. The curly braces mark the start and end of the object, and each item inside is a property.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      console.log(`The value ${registrationOpen} is a ${typeof registrationOpen}.`);
+      console.log();
+    +
+    + console.log('Object literals');
+    + console.log('---------------');
+    +
+    + let workshop = {
+    +   title: 'Intro to Digital Photography',
+    +   room: 'Media Lab',
+    +   capacity: 16,
+    +   registered: 11,
+    +   isOnline: false
+    + };
+    ```
+
+    Each property has a name on the left and a value on the right. The value can still be a string, number, boolean, or something more complex.
+
+1. Now display the whole object and ask JavaScript for its type.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      let workshop = {
+        title: 'Intro to Digital Photography',
+        room: 'Media Lab',
+        capacity: 16,
+        registered: 11,
+        isOnline: false
+      };
+    +
+    + console.log(workshop);
+    + console.log(`The workshop variable is a ${typeof workshop}.`);
+    ```
+
+    The answer from `typeof` is simply `object`. That is a broad answer, but it tells us that we are no longer dealing with a single primitive value.
+
+1. We can access individual properties by using the dot operator.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      console.log(workshop);
+      console.log(`The workshop variable is a ${typeof workshop}.`);
+    + console.log(`${workshop.title} meets in the ${workshop.room}.`);
+    + console.log(`${workshop.capacity - workshop.registered} seats are still available.`);
+    + console.log();
+    ```
+
+    In the last line, we're using two number properties from the object to calculate how many seats are still open.
+
+    <Aside type="note" title="Primitive values and object properties">
+      Primitive values do not stop being primitive values just because they are stored inside an object. In our `workshop` object, the `title` property still holds a string, `capacity` still holds a number, and `isOnline` still holds a boolean.
+    </Aside>
+</Steps>
+
+### Grouping Related Information
+
+Objects are most useful when we have several values that describe the same thing. Instead of carrying five loose variables around, we can give those values one shared name.
+
+<Steps>
+1. (📍 `facilitator`) Let's create a second object for the workshop facilitator.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      console.log(`${workshop.capacity - workshop.registered} seats are still available.`);
+      console.log();
+    +
+    + console.log('Objects can keep related values together');
+    + console.log('----------------------------------------');
+    +
+    + let facilitator = {
+    +   firstName: 'Avery',
+    +   lastName: 'Chen',
+    +   email: 'avery.chen@example.test',
+    +   yearsExperience: 4,
+    +   active: true
+    + };
+    ```
+
+1. Display a few facilitator details by reading properties from the object.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      let facilitator = {
+        firstName: 'Avery',
+        lastName: 'Chen',
+        email: 'avery.chen@example.test',
+        yearsExperience: 4,
+        active: true
+      };
+    +
+    + console.log(`${facilitator.firstName} ${facilitator.lastName} is facilitating.`);
+    + console.log(`\tContact: ${facilitator.email}`);
+    + console.log(`\tActive facilitator: ${facilitator.active}`);
+    + console.log();
+    ```
+
+    We still have individual values, but the object name gives those values context. `facilitator.email` is easier to understand than a loose variable named `email` because of its association with all the other information around the `facilitator`.
+    
+    > *"Whose email is it?" "It's the email for `facilitator.firstName`."*
+    
+    These types of associations or relationships among the data become more important as your program grows in size or complexity.
+
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Create workshop objects"
+> ```
+
+### Objects Are Dynamic
+
+Objects are different from primitive values in an important way. A primitive value itself cannot be changed, but an object can have its properties added, removed, or updated.
+
+<Steps>
+1. (📍 `workshop`) Let's add a new section where the workshop object changes after it has already been created.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      console.log(`Active facilitator: ${facilitator.active}`);
+      console.log();
+    +
+    + console.log('Objects are dynamic');
+    + console.log('-------------------');
+    +
+    + workshop.facilitator = `${facilitator.firstName} ${facilitator.lastName}`;
+    + workshop.waitlist = 3;
+    + workshop.registered = workshop.registered + 2;
+    ```
+
+    The first two assignments create new properties on the existing object. The third assignment updates a property that was already there.
+
+1. Display the changed values and then display the full object again.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      workshop.facilitator = `${facilitator.firstName} ${facilitator.lastName}`;
+      workshop.waitlist = 3;
+      workshop.registered = workshop.registered + 2;
+    +
+    + console.log(`Facilitator added to workshop: ${workshop.facilitator}`);
+    + console.log(`Updated registrations: ${workshop.registered}`);
+    + console.log(`Waitlist count: ${workshop.waitlist}`);
+    + console.log(workshop);
+    + console.log();
+    ```
+
+    Take a moment to compare this output with the first time we logged the `workshop` object. It now has more information than it started with.
+
+    <Aside type="caution" title="Changing state">
+      When we change an object, we often say that we are changing its **state**. That can be very useful, but it also means we need to pay attention to when and where our code changes an object.
+    </Aside>
+</Steps>
+
+### Built-in Objects
+
+JavaScript also gives us built-in objects. We have already used `console` and `Math` in previous lessons. Today, we'll look at <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Date" target="_blank">Date</a> and <a href="https://developer.mozilla.org/docs/Web/API/URL" target="_blank">URL</a>.
+
+<Steps>
+1. Let's create two `Date` objects. One represents the current date and time, and the other represents the workshop start date.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      console.log(workshop);
+      console.log();
+    +
+    + console.log('Date objects');
+    + console.log('------------');
+    +
+    + let today = new Date();
+    + let workshopDate = new Date('October 22, 2026 18:30:00');
+    ```
+
+    The `new Date()` expression creates a new object. When we call it without an argument, it uses the current date and time from the computer running the script.
+
+    <Aside type="note" title="JavaScript Keywords">
+      It should be stated that so far we have only encountered *two* keywords in the JavaScript language!
+
+      - The `let` keyword is used to declare/identify *variable names*.
+      - The `new` keyword is used to create *objects* by calling the object's **constructor function**.
+    </Aside>
+
+    <Aside type="note" title="Constructor Functions">
+      One of the things you should notice is that the `Date()` function is rarely (if ever) used without the `new` keyword in front of it. That's because `Date()` is a special type of function called a ***constructor* function**.
+
+      We'll examine these constructor functions later on when we start creating our own. For now, since `Date()` is a built-in constructor function, we simply need to remember to precede it with the `new` keyword if we want an actual date **object**.
+    </Aside>
+
+1. Use a few `Date` methods to display parts of the workshop date.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      let today = new Date();
+      let workshopDate = new Date('October 22, 2026 18:30:00');
+    +
+    + console.log(`Today is ${today.toDateString()}.`);
+    + console.log(`The workshop starts on ${workshopDate.toDateString()}.`);
+    + console.log(`The workshop year is ${workshopDate.getFullYear()}.`);
+    + console.log(`The workshop month index is ${workshopDate.getMonth()}.`);
+    + console.log(`The workshop day of the month is ${workshopDate.getDate()}.`);
+    + console.log();
+    ```
+
+    Notice that `.getMonth()` returns a month index. January is `0`, February is `1`, and so on. That kind of detail is exactly why we test small examples when we meet a new object.
+
+1. Now we'll make a reminder date one week before the workshop. We start by copying the workshop date into a new `Date` object.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      console.log(`The workshop day of the month is ${workshopDate.getDate()}.`);
+      console.log();
+    +
+    + console.log('Changing object state with methods');
+    + console.log('----------------------------------');
+    +
+    + let reminderDate = new Date(workshopDate);
+    + reminderDate.setDate(reminderDate.getDate() - 7);
+    ```
+
+    The `.setDate()` method *changes* the `reminderDate` object. It does not create a brand new date value for us.
+
+    <Aside type="note" title="Mutable Functions">
+      Some objects have functions that *change* some internal value of the object. These are called **mutating functions**. Other functions of objects are *non-mutating*, such as the `.toUpperCase()` method/function on strings. `.toUpperCase()` never changes the string variable it was called on. It simply *returns* a *new* string that is in all upper-case characters.
+
+      Finally, some objects do *both*. For example, `.setDate()` changes the date object itself, but it also *returns* a value. It's just that the value returned from `.setDate()` is not a Date object, it's a *number*. You might want to research the meaning of that number...
+    </Aside>
+
+1. Store both date objects on the workshop and display them.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      let reminderDate = new Date(workshopDate);
+      reminderDate.setDate(reminderDate.getDate() - 7);
+    +
+    + workshop.startsOn = workshopDate;
+    + workshop.reminderOn = reminderDate;
+    +
+    + console.log(`Reminder date: ${workshop.reminderOn.toDateString()}`);
+    + console.log(`Workshop date: ${workshop.startsOn.toDateString()}`);
+    + console.log();
+    ```
+
+    At this point, our simple object is now holding primitive values and other objects.
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Use built-in date objects"
+> ```
+
+### Another Built-in Object
+
+A `URL` object lets JavaScript understand a web address as several related parts instead of one long string.
+
+<Steps>
+1. (📍 `signupUrl`) Create a `URL` object for the workshop signup link.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      console.log(`Workshop date: ${workshop.startsOn.toDateString()}`);
+      console.log();
+    +
+    + console.log('Another built-in object');
+    + console.log('-----------------------');
+    +
+    + let signupUrl = new URL('https://library.example.test/workshops/photo-basics?level=beginner');
+    ```
+
+1. Display a few of the URL's properties and one value from its query string.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      let signupUrl = new URL('https://library.example.test/workshops/photo-basics?level=beginner');
+    +
+    + console.log(`Signup link: ${signupUrl.toString()}`);
+    + console.log(`Protocol: ${signupUrl.protocol}`);
+    + console.log(`Host: ${signupUrl.host}`);
+    + console.log(`Path: ${signupUrl.pathname}`);
+    + console.log(`Level: ${signupUrl.searchParams.get('level')}`);
+    + console.log();
+    ```
+
+    The `URL` object has properties such as `.protocol`, `.host`, and `.pathname`. It also has a `.searchParams` object that can help us read values after the question mark in the URL.
+</Steps>
+
+### Final Review
+
+We've now seen loose primitive values, object literals, objects changing over time, and objects that JavaScript gives us through built-in constructors.
+
+<Steps>
+1. To finish the demo, log the final `workshop` object.
+
+    ```diff lang="js" title="~/inclass/03/demo.js"
+      console.log(`Level: ${signupUrl.searchParams.get('level')}`);
+      console.log();
+    +
+    + console.log('Final workshop object');
+    + console.log('---------------------');
+    + console.log(workshop);
+    ```
+
+1. Take some time to talk through the final object with the class.
+
+    Ask students to identify which properties hold primitive values and which properties hold objects. This is also a good place to point out that objects can grow as a program runs, while primitive values remain individual values.
+</Steps>
+
+### Demo Verification
+
+To verify that your demo has the correct items, add the following to the end of your script file. These will be checked in your bucket assignment's automated tests.
+
+```js title="~/inclass/03/demo.js"
+export { workshop, facilitator, signupUrl }
+```
+
+> ```ps
+> git add .
+> git commit -m "Finish intro to arrays"
+> ```
+
+----
+
+## Conclusion
+
+> **Assigned homework:** Complete [Homework: Practice Primitive Values and Objects](./homework/040-homework.mdx). It reinforces today's primitive/object distinction and gives fallback practice for object state, `Date`, `URL`, and built-in object methods.
+
+Primitive values and objects are both central to JavaScript. Primitive values are the simple pieces of information we use all the time. Objects let us collect related values, give those values names, and work with more structured information.
+
+<Steps>
+1. Encourage the students to **add comments** to their code as a way of understanding what they are doing.
+1. Have the students put the following `export` statement at the end of their file.
+
+    ```js title="~/inclass/03/demo.js"
+    export { START, END, workshop, facilitator }
+    ```
+</Steps>
+
+<Aside type="tip" title="Understanding JavaScript 👀">
+  It is normal for JavaScript to blur the line between simple values and objects. Strings, numbers, and booleans are primitive values, but JavaScript still lets us use useful properties and methods with them in many situations.
+
+  For today's lesson, keep the main distinction simple: primitive values are individual values, while objects can hold named properties and can change state over time.
+</Aside>

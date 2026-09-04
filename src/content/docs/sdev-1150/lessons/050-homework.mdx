@@ -1,0 +1,86 @@
+---
+title: Homework - Practice Arrays and Object Boundaries
+description: Fallback practice for matching indexes, bracket notation, and objects inside arrays.
+sidebar:
+  label: 05 Homework
+draft: true
+---
+
+This homework should take about **45-75 minutes**.
+
+In class, you likely practiced creating arrays, reading indexes, and updating entries. This tutorial keeps the later array/object boundary material from being lost if class ran short.
+
+## Start the Task Planner
+
+Open `homework.js` and run:
+
+```ps
+node homework.js
+```
+
+The starter arrays describe a small study task plan.
+
+## Match Related Indexes
+
+Read from the same index in both arrays:
+
+```js
+let index = 1;
+console.log(`${taskNames[index]} takes ${taskMinutes[index]} minutes.`);
+```
+
+Then add a comment explaining why `taskNames[1]` and `taskMinutes[1]` must keep meaning the same task.
+
+## Compare Arrays with an Object
+
+Create one complete task object:
+
+```js
+let task = {
+  title: 'Practice code',
+  minutes: 45,
+  done: false
+};
+
+console.log(task.title);
+```
+
+Expected behavior: all details for one task stay together in the object.
+
+## Use Bracket Notation
+
+Create an object with a property that cannot be read cleanly with dot notation:
+
+```js
+let assignment = {
+  title: 'Array homework',
+  'due date': 'Friday'
+};
+
+console.log(assignment['due date']);
+```
+
+## Put Objects Inside an Array
+
+Create an array of task objects:
+
+```js
+let tasks = [
+  { title: 'Read notes', minutes: 20, done: true },
+  { title: 'Practice code', minutes: 45, done: false },
+  { title: 'Submit reflection', minutes: 10, done: false }
+];
+
+console.log(tasks[0].title);
+console.log(tasks[1].minutes);
+tasks[2].done = true;
+console.log(tasks[2]);
+```
+
+## Final Verification
+
+- `node homework.js` runs without syntax errors.
+- You combined values from matching indexes.
+- You wrote one comment about why matching indexes can be fragile.
+- You used bracket notation.
+- You created and updated objects inside an array.

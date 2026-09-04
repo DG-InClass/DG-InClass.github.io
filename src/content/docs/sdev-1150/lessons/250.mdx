@@ -1,0 +1,563 @@
+---
+title: Testing Custom Elements
+description: Test Web Components with Vitest, JSDOM, Browser Mode preview provider, Shadow DOM assertions, events, stubs, MSW, and deterministic API data.
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 4" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="60-85">
+- This lesson builds on the previous testing lesson by applying testing principles to browser components.
+- The source component is already feature-complete so class time can focus on testing concerns.
+- Students work through JSDOM component tests, a Browser Mode smoke test, and deterministic API mocks.
+- Leave time to discuss where component tests should stop and where request mocking begins.
+</Instructor>
+
+----
+
+## Lesson Focus
+
+This lesson tests the neutral `<user-card>` custom element from the custom-element lessons. Unlike the previous unit-testing lesson, the goal is not to practice test-driven development. The component and service code are already present. The goal is to learn how to test browser-oriented behavior and how to keep tests deterministic when the app uses live random profile data from `https://randomuser.me`.
+
+Use this demo to show:
+
+- why DOM components need a browser-like test environment
+- what JSDOM can test well and where it differs from a real browser
+- how Vitest Browser Mode with the preview provider gives a small real-browser smoke test
+- how to render a custom element in a test
+- how to query Shadow DOM safely
+- how to test properties, observed attributes, public methods, and events
+- why `bubbles: true` and `composed: true` matter for events dispatched from a custom element
+- how a Random User API response is mapped into the data shape expected by `<user-card>`
+- why random/live API data should be stabilized in automated tests
+- how `vi.stubGlobal('fetch', ...)` can replace a network call directly
+- how MSW can mock the external HTTP request at the request boundary
+
+## Demo Walkthrough
+
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="25" folder="~/inclass/25/demo/" file="src/main.js" lang="js" />
+
+The demo app loads random users from the Random User API, maps each record into the flat data shape expected by `<user-card>`, and renders the cards. The tests should prove the component contract without depending on whichever random people the API returns today.
+
+<Aside type="tip" title="Source code is not the exercise">
+In this lesson, the files under `src/` are the system under test. We are not using the tests to drive missing application code. We are using the tests to learn how to observe browser component behavior accurately.
+</Aside>
+
+### Preview Working Code
+
+<Steps>
+1. Open the `demo` folder in the terminal and run the app.
+
+    ```ps title="~/inclass/25/demo/"
+    pnpm dev
+    ```
+
+1. View the app in the browser. Note that everyone is getting different users because the app fetches data from <a href="https://randomuser.me" target="_blank">RandomUser.me</a>.
+1. Refresh the browser to show that new data is obtained on each page reload.
+1. Inspect the feature-complete source files before writing or changing tests:
+   - `src/user-card.js` owns the custom element contract.
+   - `src/profile-service.js` owns the Random User API URL and mapping boundary.
+   - `src/main.js` loads profiles asynchronously and renders cards.
+</Steps>
+
+<Aside title="Testing target">
+The testing target is not "does RandomUser.me work today?" The testing target is "does our code behave correctly when given controlled user data or controlled API responses?"
+</Aside>
+
+### Review Test Configuration Files
+
+<Steps>
+1. Review the `package.json` scripts and dev dependencies.
+
+    ```json title="package.json"
+    {
+      "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:browser": "vitest --config vitest.browser.config.js --run"
+      },
+      "devDependencies": {
+        "@vitest/browser-preview": "4.1.6",
+        "jsdom": "29.1.1",
+        "msw": "2.14.6",
+        "vite": "8.0.13",
+        "vitest": "4.1.6"
+      }
+    }
+    ```
+
+1. Review the regular Vitest config. This test run uses JSDOM and excludes Browser Mode files.
+
+    ```js title="vite.config.js"
+    import { defineConfig } from 'vitest/config';
+
+    export default defineConfig({
+      test: {
+        environment: 'jsdom',
+        exclude: ['**/node_modules/**', '**/dist/**', '**/*.browser.test.js'],
+        setupFiles: ['./tests/setup-msw.js'],
+      },
+    });
+    ```
+
+1. Review the Browser Mode config. This test run includes only `*.browser.test.js` files.
+
+    ```js title="vitest.browser.config.js"
+    import { preview } from '@vitest/browser-preview';
+    import { defineConfig } from 'vitest/config';
+
+    export default defineConfig({
+      test: {
+        include: ['tests/**/*.browser.test.js'],
+        browser: {
+          enabled: true,
+          provider: preview(),
+          instances: [{ browser: 'chromium' }],
+        },
+      },
+    });
+    ```
+
+1. Run the existing starter tests.
+
+    ```ps title="~/inclass/25/demo/"
+    pnpm test
+    ```
+
+    You should see a small number of passing tests and several todo tests. The todos are the tests we will fill in during class.
+</Steps>
+
+<Aside type="tip" title="Use .only briefly">
+When the test output gets noisy, use `it.only(...)` temporarily. It helps students focus on the one test under discussion. Remove `.only` before moving on so the full suite starts running again.
+</Aside>
+
+### Testing Custom Elements (Web Components)
+
+The component test file already has imports, deterministic test data, a `renderCard()` helper, and cleanup.
+
+```js title="tests/user-card.test.js"
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import '../src/user-card.js';
+import { testUsers } from './mocks/random-user-fixtures.js';
+
+const testUser = testUsers[0];
+
+function renderCard(user = testUser) {
+  const card = document.createElement('user-card');
+  card.user = user;
+  document.body.append(card);
+  return card;
+}
+
+afterEach(() => {
+  document.body.innerHTML = '';
+  vi.unstubAllGlobals();
+});
+```
+
+<Steps>
+1. Start with the seed test. This proves that importing `../src/user-card.js` registered the element.
+
+    ```js title="tests/user-card.test.js"
+    describe('user-card', () => {
+      it('registers the custom element', () => {
+        // Arrange and Act
+        const definition = customElements.get('user-card');
+
+        // Assert
+        expect(definition).toBeTypeOf('function');
+      });
+    });
+    ```
+
+1. Focus the first rendering test with `it.only`. Replace the matching `it.todo(...)` with this first naive attempt.
+
+    ```js title="tests/user-card.test.js"
+    it.only('renders Shadow DOM content from the user property', () => {
+      // Arrange and Act
+      const card = renderCard();
+
+      // Assert
+      expect(document.querySelector('h2').textContent).toBe('Clarence James');
+    });
+    ```
+
+    This fails because the `<h2>` is inside the component's Shadow DOM, not in the regular document tree.
+
+1. Fix the rendering test by querying `card.shadowRoot`.
+
+    ```js title="tests/user-card.test.js"
+    it.only('renders Shadow DOM content from the user property', () => {
+      // Arrange and Act
+      const card = renderCard();
+
+      // Assert
+      expect(card.shadowRoot.querySelector('h2').textContent).toBe('Clarence James');
+      expect(card.shadowRoot.querySelector('.location').textContent).toBe('Sunshine Coast, Australia');
+      expect(card.shadowRoot.querySelector('.about').textContent).toContain('AU contact');
+    });
+    ```
+
+1. Remove `.only` before continuing.
+
+    ```diff lang="js" title="tests/user-card.test.js"
+    - it.only('renders Shadow DOM content from the user property', () => {
+    + it('renders Shadow DOM content from the user property', () => {
+    ```
+
+    <Aside title="Shadow DOM habit">
+    If the component owns a Shadow DOM, start from the element under test. Querying from `document` can accidentally test the page instead of the component.
+    </Aside>
+
+1. Add the profile image test. Use `getAttribute('src')` so the assertion checks the attribute value that the component set, not a browser-normalized image URL.
+
+    ```js title="tests/user-card.test.js"
+    it('renders a profile image with useful alt text', () => {
+      // Arrange and Act
+      const card = renderCard();
+      const image = card.shadowRoot.querySelector('img');
+
+      // Assert
+      expect(image.getAttribute('src')).toBe('https://randomuser.me/api/portraits/men/75.jpg');
+      expect(image.getAttribute('alt')).toBe('Profile photo for Clarence James');
+    });
+    ```
+
+1. Add the property update test. The component is already built; the test proves the public `user` property updates the DOM and reflected `user-id` attribute.
+
+    ```js title="tests/user-card.test.js"
+    it('updates the card when the user property changes', () => {
+      // Arrange
+      const card = renderCard();
+
+      // Act
+      card.user = testUsers[1];
+
+      // Assert
+      expect(card.getAttribute('user-id')).toBe('aa3aca4b-d139-4ae7-bd65-1d601cdaf3f2');
+      expect(card.shadowRoot.querySelector('h2').textContent).toBe('Brayden Silva');
+      expect(card.shadowRoot.querySelector('.location').textContent).toBe('Saint Paul, United States');
+    });
+    ```
+
+1. Focus the public method test with `it.only`.
+
+    ```js title="tests/user-card.test.js"
+    it.only('updates followed state with follow() and unfollow()', () => {
+      // Arrange
+      const card = renderCard();
+      const button = card.shadowRoot.querySelector('button');
+
+      // Act
+      card.follow();
+
+      // Assert
+      expect(card.followed).toBe(true);
+      expect(card.hasAttribute('followed')).toBe(true);
+      expect(button.textContent).toBe('Following');
+
+      // Act
+      card.unfollow();
+
+      // Assert
+      expect(card.followed).toBe(false);
+      expect(card.hasAttribute('followed')).toBe(false);
+      expect(button.textContent).toBe('Follow');
+    });
+    ```
+
+1. Remove `.only` after the method test passes.
+
+    ```diff lang="js" title="tests/user-card.test.js"
+    - it.only('updates followed state with follow() and unfollow()', () => {
+    + it('updates followed state with follow() and unfollow()', () => {
+    ```
+
+1. Add the observed attributes test. This checks the component from the HTML attribute side instead of the JavaScript property/method side.
+
+    ```js title="tests/user-card.test.js"
+    it('syncs observed attributes into component state', () => {
+      // Arrange
+      const card = renderCard();
+      const image = card.shadowRoot.querySelector('img');
+
+      // Act
+      card.setAttribute('avatar', 'https://randomuser.me/api/portraits/men/32.jpg');
+      card.setAttribute('followed', '');
+
+      // Assert
+      expect(image.getAttribute('src')).toBe('https://randomuser.me/api/portraits/men/32.jpg');
+      expect(card.followed).toBe(true);
+      expect(card.shadowRoot.querySelector('button').textContent).toBe('Following');
+    });
+    ```
+
+1. Add the custom event test. Listen on `document.body` so the test proves the event bubbles out of the component.
+
+    ```js title="tests/user-card.test.js"
+    it('dispatches a bubbling and composed follow-change event', () => {
+      // Arrange
+      const card = renderCard();
+      const listener = vi.fn();
+      document.body.addEventListener('follow-change', listener);
+
+      // Act
+      card.shadowRoot.querySelector('button').click();
+
+      // Assert
+      expect(listener).toHaveBeenCalledTimes(1);
+      const event = listener.mock.calls[0][0];
+      expect(event.detail).toEqual({
+        id: '2788dcba-54f4-4bc6-9233-a5da11845daa',
+        followed: true,
+      });
+      expect(event.bubbles).toBe(true);
+      expect(event.composed).toBe(true);
+    });
+    ```
+</Steps>
+
+<Aside type="tip" title="Component contract">
+These tests are not checking every private line inside `UserCard`. They check the contract another developer can observe: DOM output, public properties and methods, reflected attributes, and events.
+</Aside>
+
+### Testing Service Calls with Mock Service Workers (MSW)
+
+The service tests use deterministic fixtures. The fixture keeps the Random User API shape and the mapped `user-card` shape beside each other.
+
+```js title="tests/mocks/random-user-fixtures.js"
+export const randomUserApiUrl = 'https://randomuser.me/api/1.4/';
+
+export const randomUserResponse = {
+  results: [
+    {
+      name: { first: 'Clarence', last: 'James' },
+      location: { city: 'Sunshine Coast', country: 'Australia' },
+      email: 'clarence.james@example.com',
+      login: { uuid: '2788dcba-54f4-4bc6-9233-a5da11845daa' },
+      picture: { large: 'https://randomuser.me/api/portraits/men/75.jpg' },
+      nat: 'AU',
+    },
+  ],
+};
+```
+
+<Steps>
+1. Start with the seed mapping test.
+
+    ```js title="tests/profile-service.test.js"
+    describe('profile service', () => {
+      it('maps Random User API data into the user-card data shape', () => {
+        // Arrange
+        const randomUser = randomUserResponse.results[0];
+
+        // Act
+        const user = mapRandomUser(randomUser);
+
+        // Assert
+        expect(user).toEqual(testUsers[0]);
+      });
+    });
+    ```
+
+1. Focus the direct fetch-stub test with `it.only`.
+
+    ```js title="tests/profile-service.test.js"
+    it.only('can replace fetch with a stub during a test', async () => {
+      // Arrange
+      vi.stubGlobal('fetch', vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ results: [randomUserResponse.results[0]] }),
+      })));
+
+      // Act
+      const profiles = await fetchUserProfiles(1);
+
+      // Assert
+      expect(profiles).toEqual([testUsers[0]]);
+      const requestUrl = fetch.mock.calls[0][0];
+      expect(requestUrl.origin + requestUrl.pathname).toBe(randomUserApiUrl);
+      expect(requestUrl.searchParams.get('results')).toBe('1');
+      expect(requestUrl.searchParams.get('inc')).toBe('name,location,email,login,picture,nat');
+    });
+    ```
+
+1. Remove `.only` after the fetch-stub test passes.
+
+    ```diff lang="js" title="tests/profile-service.test.js"
+    - it.only('can replace fetch with a stub during a test', async () => {
+    + it('can replace fetch with a stub during a test', async () => {
+    ```
+
+    <Aside title="Stub vs. request mock">
+    `vi.stubGlobal()` is small and direct. It proves our function can work with a replaced `fetch`, but it does not feel much like an HTTP boundary. That is why we also use MSW.
+    </Aside>
+
+1. Review the MSW handler.
+
+    ```js title="tests/mocks/handlers.js"
+    import { http, HttpResponse } from 'msw';
+    import { randomUserApiUrl, randomUserResponse } from './random-user-fixtures.js';
+
+    export const handlers = [
+      http.get(randomUserApiUrl, () => HttpResponse.json(randomUserResponse)),
+    ];
+    ```
+
+1. Review the server setup. This runs before the tests and resets handlers after each test.
+
+    ```js title="tests/setup-msw.js"
+    import { afterAll, afterEach, beforeAll } from 'vitest';
+    import { server } from './mocks/server.js';
+
+    beforeAll(() => {
+      server.listen({ onUnhandledRequest: 'error' });
+    });
+
+    afterEach(() => {
+      server.resetHandlers();
+    });
+
+    afterAll(() => {
+      server.close();
+    });
+    ```
+
+1. Focus the MSW success-path test with `it.only`.
+
+    ```js title="tests/profile-service.test.js"
+    it.only('returns mapped profile data from a mocked Random User API response', async () => {
+      // Arrange is handled by the MSW server in tests/setup-msw.js.
+
+      // Act
+      const profiles = await fetchUserProfiles();
+
+      // Assert
+      expect(profiles).toEqual(testUsers);
+    });
+    ```
+
+1. Remove `.only` after the MSW success-path test passes.
+
+    ```diff lang="js" title="tests/profile-service.test.js"
+    - it.only('returns mapped profile data from a mocked Random User API response', async () => {
+    + it('returns mapped profile data from a mocked Random User API response', async () => {
+    ```
+
+1. Add the MSW error-path test. This overrides the default handler only for this test.
+
+    ```js title="tests/profile-service.test.js"
+    it('throws when the mocked Random User API response is not ok', async () => {
+      // Arrange
+      server.use(
+        http.get(randomUserApiUrl, () => new HttpResponse(null, { status: 503 })),
+      );
+
+      // Act
+      const action = fetchUserProfiles();
+
+      // Assert
+      await expect(action).rejects.toThrow('Could not load random users.');
+    });
+    ```
+</Steps>
+
+<Aside type="tip" title="Deterministic data">
+Random data is useful for demos because it looks realistic. Random data is risky for tests because the expected answer keeps moving. Our tests use fixtures and mocks so the expected answer stays fixed.
+</Aside>
+
+### Testing with Real Browsers
+
+JSDOM is fast and useful, but it is not a real browser engine. We will keep the browser test small so it does not duplicate the full component suite.
+
+<Steps>
+1. Replace the Browser Mode todo with a focused smoke test.
+
+    ```js title="tests/user-card.browser.test.js"
+    import { describe, expect, it } from 'vitest';
+    import '../src/user-card.js';
+
+    describe('user-card in Vitest Browser Mode', () => {
+      it.only('renders in a real browser preview provider session', () => {
+        const card = document.createElement('user-card');
+        card.user = {
+          id: 'browser-user',
+          name: 'Browser User',
+          avatar: 'https://randomuser.me/api/portraits/men/75.jpg',
+          location: 'Browser City',
+          about: 'Checks the component in Browser Mode.',
+        };
+
+        document.body.append(card);
+
+        expect(card.shadowRoot.querySelector('h2').textContent).toBe('Browser User');
+        expect(card.shadowRoot.querySelector('button').textContent).toBe('Follow');
+      });
+    });
+    ```
+
+1. Run the Browser Mode test.
+
+    ```ps title="~/inclass/25/demo/"
+    pnpm run test:browser
+    ```
+
+1. Remove `.only` from the browser test.
+
+    ```diff lang="js" title="tests/user-card.browser.test.js"
+    - it.only('renders in a real browser preview provider session', () => {
+    + it('renders in a real browser preview provider session', () => {
+    ```
+</Steps>
+
+<Aside title="Browser Mode scope">
+This is a smoke test. We are not moving every component assertion into Browser Mode. The JSDOM tests give quick feedback; Browser Mode gives a small check that the component runs in a real browser context.
+</Aside>
+
+### Demo Verification
+
+Run both test commands:
+
+```ps title="~/inclass/25/demo/"
+pnpm test
+pnpm run test:browser
+```
+
+Then run the app manually:
+
+```ps title="~/inclass/25/demo/"
+pnpm run dev
+```
+
+Manual testing should use the real Random User API. Automated tests should not depend on the live API.
+
+Before wrapping up, search for accidental focused tests:
+
+```ps title="~/inclass/25/demo/"
+Select-String -Path .\tests\*.js -Pattern "it.only|describe.only"
+```
+
+That search should not return anything once the lesson is complete.
+
+## Teaching Notes
+
+JSDOM gives Vitest enough browser-like APIs to create elements, append them to the document, inspect Shadow DOM, dispatch events, and test many component behaviors quickly. It is not a complete browser engine. Layout, rendering, CSS visual behavior, and browser-specific interaction details may need Browser Mode or manual inspection.
+
+Vitest Browser Mode runs tests in a browser context. For this course demo, use the preview provider because it avoids adding Playwright or WebDriverIO dependencies. Keep the Browser Mode test small: it is there to prove that the component can run in a real browser, not to duplicate every JSDOM assertion.
+
+The Random User API is useful for a demo because it returns realistic profile data and photos. It is risky for automated tests because the data is random, the network can fail, and the third-party service can be slow or unavailable. That tension is the reason for deterministic fixtures, direct fetch stubs, and MSW request handlers.
+
+`vi.stubGlobal('fetch', ...)` is the smallest way to replace one global dependency during a test. It is direct and easy to read, but it does not preserve the shape of a real request boundary very well.
+
+MSW intercepts HTTP requests and returns controlled responses. In this lesson, MSW lets the profile service call the absolute Random User URL while the test receives a stable response. That keeps the test close to the way the app communicates without relying on the live service.

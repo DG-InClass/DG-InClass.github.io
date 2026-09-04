@@ -1,0 +1,104 @@
+---
+title: Homework - Practice More If-Else Decisions
+description: Fallback practice for equality, logical operators, else-if chains, and truthy/falsy values.
+sidebar:
+  label: 09 Homework
+draft: true
+---
+
+This homework should take about **45-75 minutes**.
+
+Class likely covered the shape of `if`, `else if`, and `else`. This tutorial keeps the decision details that may not fit: strict equality, logical operators, predicate functions inside decisions, and truthy/falsy values.
+
+## Start the Access Checker
+
+Open `homework.js` and run:
+
+```ps
+node homework.js
+```
+
+You will build a workshop access checker.
+
+## Compare Strictly
+
+Add a few comparisons:
+
+```js
+let seatsText = '12';
+let seatsNumber = 12;
+
+console.log(seatsText == seatsNumber);
+console.log(seatsText === seatsNumber);
+```
+
+Expected output:
+
+```txt
+true
+false
+```
+
+Use `===` in your decisions unless you have a specific reason not to.
+
+## Combine Conditions
+
+Create variables:
+
+```js
+let registered = 10;
+let capacity = 12;
+let hasPrerequisite = true;
+let accountActive = true;
+```
+
+Use `&&`, `||`, and `!`:
+
+```js
+if (registered < capacity && hasPrerequisite && accountActive) {
+  console.log('Student can register.');
+}
+```
+
+## Write an Else-If Chain
+
+Create a status message:
+
+```js
+if (registered >= capacity) {
+  console.log('Full');
+} else if (!hasPrerequisite) {
+  console.log('Prerequisite missing');
+} else if (!accountActive) {
+  console.log('Account inactive');
+} else {
+  console.log('Open');
+}
+```
+
+## Use Predicate Functions
+
+Add a helper function:
+
+```js
+function hasOpenSeat(registeredCount, maxSeats) {
+  return registeredCount < maxSeats;
+}
+
+if (hasOpenSeat(registered, capacity)) {
+  console.log('At least one seat remains.');
+}
+```
+
+## Check Truthy and Falsy Values
+
+Test values such as `''`, `'Avery'`, `0`, `1`, `null`, and `[]` inside `if` statements. Log which ones behave as truthy or falsy.
+
+## Final Verification
+
+- `node homework.js` runs without syntax errors.
+- You showed the difference between `==` and `===`.
+- You used `&&`, `||`, and `!`.
+- You wrote an `else if` chain.
+- You called a predicate function inside a decision.
+- You tested at least four truthy/falsy values.

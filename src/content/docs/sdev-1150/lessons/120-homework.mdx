@@ -1,0 +1,84 @@
+---
+title: Homework - Practice DOM Selection and Updates
+description: Fallback practice for subtree selection and DOM content, attribute, and style updates.
+sidebar:
+  label: 12 Homework
+draft: true
+---
+
+This homework should take about **45-75 minutes**.
+
+Class likely covered selecting one element and changing simple text. This tutorial keeps the DOM update material that may not fit: selecting inside a subtree and changing content, attributes, classes, and styles.
+
+## Start the Featured Resource Page
+
+Open `sk/12/homework/` and run:
+
+```ps
+npm install
+npm run dev
+```
+
+Open the local URL and the browser console. You should see:
+
+```txt
+Lesson 12 homework loaded
+```
+
+## Select Page Elements
+
+In `src/main.js`, select the starter elements:
+
+```js
+let pageTitle = document.querySelector('#page-title');
+let status = document.querySelector('#status');
+let featuredCard = document.querySelector('.featured-card');
+```
+
+Log each one. Expected behavior: the console should show HTML elements, not `null`.
+
+## Update Content
+
+Change text with `textContent`:
+
+```js
+pageTitle.textContent = 'Featured Learning Resource';
+status.textContent = 'Updated from JavaScript';
+```
+
+Expected browser behavior: the title and status text change after the page loads.
+
+## Select Inside a Subtree
+
+Select elements from inside `featuredCard`:
+
+```js
+let cardTitle = featuredCard.querySelector('h2');
+let actionButton = featuredCard.querySelector('button');
+```
+
+Update their text so the card reads like one focused resource recommendation.
+
+## Change Attributes, Classes, and Styles
+
+Update an image attribute and a class:
+
+```js
+let image = featuredCard.querySelector('img');
+image.alt = 'Notebook and laptop on a desk';
+featuredCard.classList.add('highlighted');
+```
+
+Change one style property:
+
+```js
+actionButton.style.borderColor = 'currentColor';
+```
+
+## Final Verification
+
+- `npm run dev` starts the project.
+- The console shows the selected elements.
+- The browser shows updated title, status, and card text.
+- You selected at least one element from inside `.featured-card`.
+- You modified content, an attribute, a class, and a style from JavaScript.

@@ -1,0 +1,303 @@
+---
+title: JavaScript basics + Version Control
+description: SUMMARY
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 1" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="50-70">
+</Instructor>
+
+
+----
+
+## Demo Walkthrough
+
+We're going to explore variables, values and basic math and string operations around the theme of *Community Event Planning*.
+
+We'll also practice version control by **making a commit after each step**. Commits in git are a two-step process: First, we stage what changes we want to commit. Then we do the actual commit.
+
+```ps title="Commit Example"
+git add .
+git commit -m "Add subheading"
+```
+
+<Aside type="tip" title="Node's Watch Mode">
+  The code samples for the next few classes will involve **stand-alone** JavaScript files &ndash; no HTML/CSS/etc.
+
+  To run the JavaScript files, we'll need to use Node. We'll be using the "watch" mode so that every time we make a change to the file, Node will re-run our script.
+
+  ```ps
+  node --watch demo.js
+  ```
+</Aside>
+
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="2" folder="~/inclass/02/" file="demo.js" lang="js" />
+
+### Variables and Values
+
+<Steps>
+1. Open the `~/inclass/02/demo.js` file in VS Code and then run it in Node's "watch" mode. You should see the following output.
+
+    ```ps title="Output"
+    Lesson 02 demo.js has loaded
+    =============================
+
+    ```
+
+    Notice that in JavaScript, we can display output to the console environment through the use of `console.log()`. It can be called without any arguments to produce a blank line, or we can send a value such as a string into the `.log()` function to display that text in the console.
+
+    ```js title="~/inclass/02/demo.js"
+    console.log('Lesson 02 demo.js has loaded');
+    console.log('=============================');
+    console.log();
+    ```
+
+1. Before we write any JavaScript code that does some task, you should know that virtually all programming languages also include the ability to write human-focused **comments**. Comments in JavaScript never "do" anything - they are there for the developers to read.
+
+    Let's add a multi-line comment block to the start of the file. *(Use your own name in the comment.)*
+
+    ```diff lang="js" title="~/inclass/02/demo.js"
+    + /* My First JavaScript Demo
+    +    File: demo.js
+    +    Author: Stewart Dent
+    + */
+      console.log('Lesson 02 demo.js has loaded');
+      console.log('=============================');
+      console.log();
+    ```
+
+    Next, let's add a single-line comment to the final `console.log();`
+
+    ```diff lang="js" title="~/inclass/02/demo.js"
+    - console.log();
+    + console.log(); // This prints a blank line in the console
+    ```
+
+
+1. We're going to use a string to build a report to display to the user. Let's add a subheading for our output. Append the following to your demo.
+
+    ```js title="~/inclass/02/demo.js"
+    let report = 'Community Event Planning Demo';
+    report += '\n-----------------------------';
+
+
+    console.log(report);
+    ```
+
+    There's a little **escape character** in our string - `\n` - which produces a *newline* (or "blank" line) in our output. The terminal output should look like the following.
+
+    ```ps title="Output"
+    Lesson 02 demo.js has loaded
+    =============================
+
+    Community Event Planning Demo
+
+    -----------------------------
+    ```
+
+    <Aside type="note" title="Variables">
+      In all the code we've types so far, only one item is a **keyword** that's built into JavaScript. That's the `let` keyword, and its sole purpose is to tell the computer that we are *declaring* or *identifying* a **variable** in our program. Think of a variable as simple some container that we use to hold some information. Another term for a variable is to call it an **Identifier**. It's just a name that we give to our container so that we can track some bit of information that's important to our program. In this case, the `report` variable/identifier is holding textual information that we display in the console window.
+    </Aside>
+
+1. We'll plan for a games night to be held in the Learning Commons. Add some more variables and use them to build more report details.
+
+    ```diff lang="js" title="~/inclass/02/demo.js"
+      console.log('Lesson 02 demo.js has loaded');
+      console.log('=============================');
+      console.log();
+      
+      let report = 'Community Event Planning Demo';
+      report += '\n-----------------------------';
+      
+    + let eventName = 'Neighbourhood Game Night';
+    + let roomName = 'Learning Commons';
+    + let guestCount = 18;
+    + 
+    + report += `\nEvent: ${eventName}`;
+    + report += `\nRoom: ${roomName}`;
+    + report += `\nExpected guests: ${guestCount}`;
+      
+      console.log(report);
+    ```
+
+    <Aside type="note" title="Assignment Operators">
+      You probably noticed the `=` and the `+=`. Both of these are called **Assignment Operators**, and their primary job is to *store* information from the right-hand side of the operator into the variable on the left-hand side of the operator. The difference with the `+=` assignment operator is that it *adds* the value from the right-hand side to the value inside the variable. In the case of our `report` variable, we're *appending** some text to the existing value inside that variable.
+    </Aside>
+
+    <Aside type="note" title="Template Literals">
+      When we add to the `report`, we're using **template literals** (also known as *template strings*). These literal strings start and end with a backtick character and can include **placeholders** for variables or expressions.
+    </Aside>
+
+1. Part of our planning will require us to determine how many tables we'll need. The games we'll be playing have up to six players.
+
+    ```diff lang="js" title="~/inclass/02/demo.js"
+      
+    + let tablesNeeded;
+    + let seatsPerTable = 6;
+    + 
+    + tablesNeeded = guestCount / seatsPerTable;
+    + 
+    + report += '\n';
+    + report += `\nTables needed: ${tablesNeeded}`;
+            
+      console.log(report);
+    ```
+
+1. (📍 `totalBudget`) What are games without food? Food costs money, so we'll need to do some math. We'll estimate some costs per attendee.
+
+    ```diff lang="js" title="~/inclass/02/demo.js"
+      // keep the code above, and add the following...
+    + let snackCost = 3.75;
+    + let drinkCost = 1.5;
+    + let suppliesFee = 12;
+    + let snackBudget = guestCount * snackCost;
+    + let drinkBudget = guestCount * drinkCost;
+    + let totalBudget = snackBudget + drinkBudget + suppliesFee;
+    + 
+    + report += '\n';
+    + report += `\nSnack budget: $${snackBudget.toFixed(2)}`;
+    + report += `\nDrink budget: $${drinkBudget.toFixed(2)}`;
+    + report += `\nSupplies fee: $${suppliesFee.toFixed(2)}`;
+    + report += `\nTotal budget: $${totalBudget.toFixed(2)}`;
+            
+      console.log(report);
+    ```
+
+    The portion of the report with the budget information should display the following.
+
+    ```ps
+    Snack budget: $
+    Drink budget: $
+    Supplies fee: $
+    Total budget: $
+    ```
+
+    Did you notice the output showed the numbers without all the correct decimal places for the money values? That's because the type of data in the `snackBudget`, `drinkBudget`, `suppliesFee`, and `totalBudget` is **numeric information**.
+
+1. We can have our money values display more consistently. Apply the following changes.
+
+    ```diff lang="js" title="~/inclass/02/demo.js"
+    - report += `\nSnack budget: $${snackBudget}`;
+    + report += `\nSnack budget: $${snackBudget.toFixed(2)}`;
+    - report += `\nDrink budget: $${drinkBudget}`;
+    + report += `\nDrink budget: $${drinkBudget.toFixed(2)}`;
+    - report += `\nSupplies fee: $${suppliesFee}`;
+    + report += `\nSupplies fee: $${suppliesFee.toFixed(2)}`;
+    - report += `\nTotal budget: $${totalBudget}`;
+    + report += `\nTotal budget: $${totalBudget.toFixed(2)}`;
+    ```
+
+    To you see that `.toFixed(2)` after each number variables? We use that to convert the number to a string with a fixed number of digits after the decimal point.
+
+1. We're getting into some significant distinctions between *data types* and the operations we're trying to perform. We use *numbers* for math operations, but *strings* for assembling text.
+
+    ```diff lang="js" title="~/inclass/02/demo.js"
+      // keep the code above, and add the following...
+      
+    + let signUpText = '18';
+    + let extraGuestText = '4';
+    + let signUpCount = parseInt(signUpText);
+    + let extraGuestCount = parseInt(extraGuestText);
+    + let finalGuestCount = signUpCount + extraGuestCount;
+    + 
+    + report += '\n';
+    + report += `\nThe value ${signUpText} is a ${typeof signUpText}.`;
+    + report += `\nAfter parseInt(), ${signUpCount} is a ${typeof signUpCount}.`;
+    + report += `\nFinal guest count: ${finalGuestCount}`;
+            
+      console.log(report);
+    ```
+
+    Notice the use of `parseInt()`. We use that built-in function to convert a string to a whole number. It only works if the string is comprised of *digits* (though there's a small caveate we'll address later on).
+
+    <Aside type="note" title="About Functions and Methods">
+      Something we haven't dwelt upon is the whole idea of **functions**, even though we've been using them from the start. Those places where we've used `log()`, `toFixed()` and `parseInt()`? Those are ***function calls*** where we "hand off" some value or information to get some "processing" done with that information.
+
+      The `log()` function is a **method** that belongs to the `console` object. The job of that function is to display text on the screen (which is also referred to as a *console* - a place where we only show text).
+
+      The `toFixed()` function is a *method* that belongs to all Number variables. That is, if the variable's data type is `'number'`, then it automatically will have a `.toFixed()` method.
+
+      When we look at `parseInt()`, it's a little different. This function is a **global function**, meaning it's not "part of" any particular object or variable.
+
+      Also notice that when we call the `.tofixed()` or `parseInt()`, we always get something from those function calls. That is, those functions *do something* with the information we give it and then *return* some value that we either display, drop into a template string's placeholder, or assign to a variable.
+
+      Functions are everywhere in JavaScript, and in the not-to-distant future, we're going to be creating our own functions as we learn more about how they work and how to make our own.
+    </Aside>
+
+1. (📍 `donationText`, `donationAmount`) Let's see if we can recover some of our estimated costs by having participants donate to the games night. Insert the following before the final `console.log(report);`:
+
+    ```diff lang="js" title="~/inclass/02/demo.js"
+      
+    + let donationText = '25.50';
+    + let donationAmount = parseFloat(donationText);
+    + 
+    + report += '\n';
+    + report += `\nA donation entered as '${donationText}' becomes ${donationAmount}.`;
+    + report += `\nDonation type after parseFloat(): ${typeof donationAmount}`;
+    + 
+    + let numberExample = 7;
+    + let stringExample = '7';
+    + 
+    + report += '\n';
+    + report += `\n7 + '7' produces ${numberExample + stringExample}.`;
+    + report += `\n7 * '7' produces ${numberExample * stringExample}.`;
+    + report += `\n7 + parseInt('7') produces ${numberExample + parseInt(stringExample)}.`;
+      
+      console.log(report);
+    ```
+
+    This time, we used the `parseFloat()` to convert a string of digits into a numeric data type with a fractional or decimal portion to the value.
+
+    <Aside type="tip" title="JavaScript is Dynamically Typed">
+      JavaScript is a **dynamically typed** programming language. That means the data type of our variables in JavaScript depends *entirely* upon the **value** stored in that variable.
+    </Aside>
+
+1. Which should you choose? `parseInt()` or `parseFloat()`. It all depends on whether or not you want/need a whole number from the string of digits.
+1. (📍 `tax`, `totalTax`, `gstRate`) Let's wrap up our report by calculating the final totals for our games night.
+
+    ```diff lang="js" title="~/inclass/02/demo.js"
+      // keep the code above, and add the following...
+      
+    + const gstRate = 0.05;
+    + let tax = totalBudget * gstRate;
+    + let totalWithTax = totalBudget + tax;
+    + 
+    + report += '\n';
+    + report += `\nGST rate: ${gstRate}`;
+    + report += `\nTax: $${tax.toFixed(2)}`;
+    + report += `\nTotal with tax: $${totalWithTax.toFixed(2)}`;
+      
+      console.log(report);
+    ```
+</Steps>
+
+
+### Demo Verification
+
+To verify that your demo has the correct items, add the following to the end of your script file. These will be checked in your bucket assignment's automated tests.
+
+```js title="~/inclass/02/demo.js"
+export { tax, totalWithTax, gstRate, totalBudget, donationText, donationAmount }
+```
+
+> ```ps
+> git add .
+> git commit -m "Finish intro to arrays"
+> ```
+
+----
+
+## Conclusion
+
+This is your first experience with JavaScript, the language. When we eventually get into **front-end development**, we'll be using JavaScript within a web application. But before we introduce all the HTML/CSS that surrounds web applications, we're going to to focus on the JavaScript language itself.

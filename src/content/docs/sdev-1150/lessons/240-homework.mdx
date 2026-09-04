@@ -1,0 +1,114 @@
+---
+title: Homework - Practice Custom Element Lifecycle and State
+description: Fallback practice for lifecycle callbacks, properties, attribute sync, and custom events.
+sidebar:
+  label: 24 Homework
+draft: true
+---
+
+This homework should take about **60-90 minutes**.
+
+Class likely covered rendering a custom element. This tutorial preserves the lifecycle and state material that may not fit: lifecycle callbacks, properties and internal state, attribute synchronization, and custom events.
+
+## Start the Follow Card Page
+
+Open `sk/24/homework/` and run:
+
+```ps
+npm install
+npm run dev
+```
+
+Confirm the console shows:
+
+```txt
+Lesson 24 homework loaded
+```
+
+## Render in `connectedCallback`
+
+In the starter `FollowCard`, render when the element connects:
+
+```js
+connectedCallback() {
+  this.render();
+}
+```
+
+Expected behavior: the card appears as soon as the element is on the page.
+
+## Sync Attribute Changes
+
+Complete the attribute callback:
+
+```js
+attributeChangedCallback(name, oldValue, newValue) {
+  if (oldValue === newValue) {
+    return;
+  }
+
+  this.render();
+}
+```
+
+Change the `username` attribute in HTML or JavaScript and confirm the rendered username updates.
+
+## Store Internal State with a Property
+
+Complete the setter:
+
+```js
+set isFollowing(value) {
+  this.following = Boolean(value);
+  this.render();
+}
+```
+
+Use the property instead of writing directly to the DOM from outside the component.
+
+## Render a Button
+
+In `render()`, use the current attribute and state:
+
+```js
+render() {
+  let username = this.getAttribute('username') ?? 'unknown';
+  let buttonText = this.following ? 'Unfollow' : 'Follow';
+
+  this.innerHTML = `
+    <article>
+      <h2>${username}</h2>
+      <button>${buttonText}</button>
+    </article>
+  `;
+
+  this.querySelector('button').addEventListener('click', () => {
+    this.isFollowing = !this.following;
+    this.dispatchEvent(new CustomEvent('follow-change', {
+      bubbles: true,
+      detail: { username, following: this.following }
+    }));
+  });
+}
+```
+
+## Listen for a Custom Event
+
+Outside the class:
+
+```js
+document.addEventListener('follow-change', function (event) {
+  status.textContent = `${event.detail.username}: ${event.detail.following}`;
+});
+```
+
+Expected browser behavior: clicking the card button changes the card and updates the page status.
+
+## Final Verification
+
+- `npm run dev` starts the project.
+- `connectedCallback()` renders the component.
+- `attributeChangedCallback()` reacts to username changes.
+- The `isFollowing` property updates internal state.
+- The component dispatches a custom event.
+- The page listens for the custom event and displays the result.

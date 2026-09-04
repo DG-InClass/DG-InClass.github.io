@@ -1,0 +1,28 @@
+---
+import { Aside, Code } from "@astrojs/starlight/components";
+
+// <Commit title="Initial commit" message="Begin lesson 06"></Commit
+// Aide:
+// { props.children }
+// title: string
+// Commit
+// message: string
+
+interface Props {
+    title: string;
+    message: string;
+}
+
+const { title, message: commitMessage } = Astro.props as Props;
+const code = `git add .
+git commit -m "${commitMessage}"`;
+---
+
+<Aside type="tip" title={title}>
+  <p>Have the student enter their name as a comment at the top of `demo.js` and then perform a commit.</p>
+
+  <Code code={code} lang="ps" title="Commit Example" />
+
+  <slot />
+</Aside>
+

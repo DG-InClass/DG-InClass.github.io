@@ -1,0 +1,598 @@
+---
+title: JavaScript Modules - Import, Export, and JSDocs
+description: Instructor guide for ES Modules, named imports and exports, module scope, and JSDoc comments
+sidebar:
+  label: Import, Export, and JSDocs
+draft: true
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import Instructor from './instructor.mdx';
+import Sheild from '../../../../components/astro/Shield.astro';
+
+<Sheild label="Assignment 1" message="In-Class Bucket" color="blue" logo="javascript" />
+<Instructor minutes="110-140">
+> ⚠️ Be mindful of delivery time; this walkthrough can easily run long if discussion expands.
+
+- This lesson is substantially longer and more integration-heavy than lesson 02.
+- Students type across multiple files while using named exports, named imports, module scope, JSDoc, constructor functions, and shape-logic completion.
+- The walkthrough needs time for file navigation, import/export debugging, and explanation of how modules change code organization.
+- The estimate allows extra time for slower typing, path mistakes, and pauses to connect modules with earlier functions and objects.
+</Instructor>
+
+----
+
+## Lecture
+
+We're going to split JavaScript code across multiple files and connect those files with ES Module syntax. Students have already written functions, objects, constructor functions, and arrays. Today, the new idea is that those pieces do not all need to live in the same file.
+
+The main habit to build is deciding what a file shares with the outside world. A value or function is private to its module until it is exported. Another file cannot use it until it imports it.
+
+We'll also add JSDoc comments to show how documentation can improve the editor experience. Students should notice that comments are not only for people reading the file later. Well-structured JSDoc comments can also help VS Code provide better hints while they are writing code.
+
+----
+
+## Demo Walkthrough
+
+### 💫 Setup
+
+import BucketSetup from '../../../../components/astro/BucketSetup.astro';
+
+<BucketSetup lessonNumber="9" folder="~/inclass/09/" file="demo.js" lang="js" />
+
+
+### Starter Files
+
+The starter kit already has three script files.
+
+<FileTree>
+- 10/
+  - demo.js
+  - utils.js
+  - shapes.js
+</FileTree>
+
+<Steps>
+1. Open the `~/inclass/09/demo.js`, `~/inclass/09/display.js`, `~/inclass/09/utils.js`, and `~/inclass/09/shapes.js` files in VS Code.
+
+    The starter `demo.js` already imports from `utils.js`.
+
+    ```js title="~/inclass/09/demo.js"
+    // Note: Because there is no "module resolver",
+    //       we have to specify the file extension.
+    //       We only need to do so in this lesson;
+    //       later node projects will not require
+    //       the .js extension.
+    import { displayHeading } from './display.js';
+    ```
+
+    <Aside type="note" title="File Extensions">
+      Pause on the `.js` file extension in the import path.
+
+      In this plain Node script setup, we are importing a specific local file. Since there is no project tool resolving paths for us yet, the import path identifies `./utils.js`, not just `./utils`.
+    </Aside>
+
+1. Run the demo script in Node's watch mode.
+
+    ```ps title="Terminal"
+    node --watch demo.js
+    ```
+
+    At present, the script does not display anything. Let's display our heading for this lesson.
+
+    ```diff lang="js" title="~/inclass/09/demo.js"
+      import { displayHeading } from './display.js';
+
+    + displayHeading('Lesson 10 demo.js has loaded', '=');
+    + console.log('\t🎵 Code is spread across multiple files');
+    + console.log();
+    ```
+
+1. Pause for a moment to intentionaly hover over the `.log()`, `console`, and `displayHeading()` items in the code. Do you notice the intellisense describing these items? We're going to create our own through JSDoc comments.
+</Steps>
+
+### Named Exports and Named Imports
+
+The `utils.js` file has two local values and then exports them at the bottom of the file.
+
+<Steps>
+1. Inspect the `utils.js` file.
+
+    ```js title="~/inclass/09/utils.js"
+    function add(a, b) {
+        return a + b;
+    }
+
+    let info = 'Utility Functions';
+
+    let about = {
+        name: info
+    }
+
+    export { add, about }
+    ```
+
+    The `export { add, about }` statement makes those two names available to other modules.
+
+    <Aside type="note" title="Named Exports">
+      This is a named export.
+
+      The exporting file chooses the names it shares. The importing file asks for those same names inside curly braces.
+    </Aside>
+
+1. Import these items into `demo.js`.
+
+    ```diff lang="js" title="~/inclass/09/demo.js"
+      import { displayHeading } from './display.js';
+    + import { add, about } from './utils.js';
+
+      displayHeading('Lesson 09 demo.js has loaded', '=');
+      console.log('\t🎵 Code is spread across multiple files');
+      console.log();
+    ```
+
+    This does not change the behaviour. It just keeps the import easier to read.
+
+1. Let's use the imported items.
+
+    ```diff lang="js" title="~/inclass/09/demo.js"
+      console.log();
+    +
+    + console.log(`Module name: ${about.name}`);
+    + console.log(`2 + 3 = ${add(2, 3)}`);
+    + console.log();
+    ```
+
+    The `demo.js` file can call `add()` and read `about.name` because both names were exported from `utils.js` and imported into `demo.js`.
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Import utility functions"
+> ```
+
+### Module Scope
+
+Modules have their own scope. A variable can exist inside a module without becoming available everywhere else.
+
+<Steps>
+1. Point students back to the `info` variable in `utils.js`.
+
+    ```js title="~/inclass/09/utils.js"
+    let info = 'Utility Functions';
+    ```
+
+    This value is used to build the `about` object, but `info` itself is not exported.
+
+1. Discuss what would happen if `demo.js` tried to import and use `info` directly.
+
+    ```diff lang="js" title="~/inclass/09/demo.js"
+      console.log();
+    + // You cannot import items that are not exported
+    + import { info } from './utils.js';
+    + console.log(info);
+    ```
+
+    We do not need to add this line permanently. The important idea is that `info` belongs to `utils.js`. Since `utils.js` did not export `info`, `demo.js` does not have access to that name.
+
+    <Aside type="caution" title="Export Only What Other Files Need">
+      Avoid exporting every variable just because it exists.
+
+      A module can keep helper values private and export only the functions, objects, or constants that other files should use.
+    </Aside>
+1. Because this crashes our program, either remove or comment out these two lines.
+
+    ```diff lang="js" title="~/inclass/09/demo.js"
+      console.log();
+    + // You cannot import items that are not exported
+    - import { info } from './utils.js';
+    - console.log(info);
+    + // import { info } from './utils.js';
+    + // console.log(info);
+    ```
+
+    <Aside type="tip" title="Where to put Imports?">
+      Give the general advice to always put imports at the top of a file. It's helpful information whenever you return to an older script you haven't seen in a while!
+    </Aside>
+</Steps>
+
+### JSDoc for Utility Functions
+
+JSDoc comments describe the shape of a value or function. VS Code can use those comments to show parameter names, expected types, and return information.
+
+<Steps>
+1. Add a JSDoc comment above the `add()` function.
+
+    ```diff lang="js" title="~/inclass/09/utils.js"
+    + /**
+    +  * Adds two numbers together.
+    +  * @param {number} a The first number.
+    +  * @param {number} b The second number.
+    +  * @returns {number} The sum of both numbers.
+    +  */
+      function add(a, b) {
+          return a + b;
+      }
+    ```
+
+    After adding this comment, hover over `add` in `demo.js`. VS Code should show a more useful description.
+
+1. Add a JSDoc comment for the exported `about` object.
+
+    ```diff lang="js" title="~/inclass/09/utils.js"
+      let info = 'Utility Functions';
+
+    + /**
+    +  * Information about this utility module.
+    +  * @type {{ name: string }}
+    +  */
+      let about = {
+          name: info
+      }
+    ```
+
+    <Aside type="note" title="JSDoc and Runtime Behaviour">
+      JSDoc comments help people and tools understand the code.
+
+      They do not change what JavaScript does when the program runs. The `add()` function still works the same way; the editor simply has more information about it.
+    </Aside>
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Document utility exports"
+> ```
+
+### Importing From Another Module
+
+The `shapes.js` file already exports a constant and a constructor function. Now we'll import both into `demo.js`.
+
+<Steps>
+1. Add a second import in `demo.js`.
+
+    ```diff lang="js" title="~/inclass/09/demo.js"
+      import { add, about } from './utils.js';
+    + import { Shape, supportedShapes } from './shapes.js';
+    ```
+
+    There can be more than one import statement in a module. Each one names the file it imports from.
+
+1. Display the supported shape types.
+
+    ```diff lang="js" title="~/inclass/09/demo.js"
+      console.log(`2 + 3 = ${add(2, 3)}`);
+      console.log();
+    +
+    + console.log('Shape module');
+    + console.log('------------');
+    +
+    + console.log(`Supported shapes: ${supportedShapes.join(', ')}`);
+    + console.log();
+    ```
+
+    `supportedShapes` is an array, so we can use `.join(', ')` to display it as readable text.
+</Steps>
+
+### JSDoc for Constructor Functions
+
+The `Shape` constructor gives us a useful place to combine modules with documentation. The constructor is exported, and its methods will be used from another file.
+
+<Steps>
+1. Add JSDoc comments to `supportedShapes` and `Shape`.
+
+    ```diff lang="js" title="~/inclass/09/shapes.js"
+    + /**
+    +  * The shape types supported by this module.
+    +  * @type {string[]}
+    +  */
+      export const supportedShapes = ['circle', 'square', 'triangle'];
+
+    + /**
+    +  * Creates a shape that can store dimensions and calculate area.
+    +  * @param {string} type The kind of shape to create.
+    +  */
+      export function Shape(type) {
+          this.type = type;
+    ```
+
+    The `Shape` function is still a regular constructor function. The comment helps describe how callers should use it.
+
+1. Add a JSDoc comment to the `area()` method.
+
+    ```diff lang="js" title="~/inclass/09/shapes.js"
+      export function Shape(type) {
+          this.type = type;
+    +     /**
+    +      * Calculates the area of the shape.
+    +      * @returns {number | undefined} The area, or undefined when dimensions are missing.
+    +      */
+          this.area = function() {
+              let result = undefined;
+              if(this.dimensions) {
+                  // TODO: Base the calculations on the dimensions
+              }
+              return result;
+          }
+    ```
+
+    <Aside type="note" title="Union Types">
+      The `number | undefined` notation means the method may return either a number or `undefined`.
+
+      This matches the starter code because `area()` starts with `let result = undefined`.
+    </Aside>
+
+1. (📍 `Shape`) Add a JSDoc comment to `assignDimensions()`.
+
+    ```diff lang="js" title="~/inclass/09/shapes.js"
+          this.dimensions = undefined;
+
+    +     /**
+    +      * Stores the dimensions needed for this shape.
+    +      * @param {object} dimensions The dimensions for the current shape.
+    +      */
+          this.assignDimensions = function(dimensions) {
+              // Note: We'll accept the following
+              // - `radius` for circles
+              // - `length` for squares
+              // - `base` and `height` for triangles 
+              // TODO: Process the inputs; invalid inputs will result in an undefined set of dimensions and an error message.
+          }
+      }
+    ```
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Document shape exports"
+> ```
+
+### Complete the Shape Logic
+
+Now that the module is imported and documented, we can finish the shape behaviour.
+
+<Steps>
+1. (📍 `Shape`) Replace the TODO inside `assignDimensions()` with an early check for a supported shape.
+
+    ```diff lang="js" title="~/inclass/09/shapes.js"
+          this.assignDimensions = function(dimensions) {
+              // Note: We'll accept the following
+              // - `radius` for circles
+              // - `length` for squares
+              // - `base` and `height` for triangles 
+    +         if (!supportedShapes.includes(this.type)) {
+    +             this.dimensions = undefined;
+    +             console.error(`${this.type} is not a supported shape.`);
+    +             return;
+    +         }
+    +
+              // TODO: Process the inputs; invalid inputs will result in an undefined set of dimensions and an error message.
+          }
+      }
+    ```
+
+    The `supportedShapes.includes(this.type)` expression checks whether the current shape type appears in the exported `supportedShapes` array.
+
+    <Aside type="note" title="Using Module Data Inside the Module">
+      `supportedShapes` is exported so other files can import it, but it is also still available inside `shapes.js`.
+
+      Exporting a value does not move it out of the file. It simply makes that value available to other modules too.
+    </Aside>
+
+1. (📍 `Shape`) Add validation for each supported shape.
+
+    ```diff lang="js" title="~/inclass/09/shapes.js"
+          this.assignDimensions = function(dimensions) {
+              // Note: We'll accept the following
+              // - `radius` for circles
+              // - `length` for squares
+              // - `base` and `height` for triangles 
+              if (!supportedShapes.includes(this.type)) {
+                  this.dimensions = undefined;
+                  console.error(`${this.type} is not a supported shape.`);
+                  return;
+              }
+    
+    -         // TODO: Process the inputs; invalid inputs will result in an undefined set of dimensions and an error message.
+    +         if (this.type === 'circle' && typeof dimensions.radius === 'number') {
+    +             this.dimensions = {
+    +                 radius: dimensions.radius
+    +             };
+    +         } else if (this.type === 'square' && typeof dimensions.length === 'number') {
+    +             this.dimensions = {
+    +                 length: dimensions.length
+    +             };
+    +         } else if (this.type === 'triangle' && typeof dimensions.base === 'number' && typeof dimensions.height === 'number') {
+    +             this.dimensions = {
+    +                 base: dimensions.base,
+    +                 height: dimensions.height
+    +             };
+    +         } else {
+    +             this.dimensions = undefined;
+    +             console.error(`Invalid dimensions for ${this.type}.`);
+    +         }
+          }
+      }
+    ```
+
+    <Aside type="caution" title="Keep the Validation Beginner-Sized">
+      This validation checks that the needed properties are numbers.
+
+      It does not try to solve every possible data-quality problem. That is intentional. The goal is to keep the focus on modules, exports, imports, and editor support from JSDoc.
+    </Aside>
+
+1. (📍 `Shape`) Replace the TODO inside `area()` with shape-specific calculations.
+
+    ```diff lang="js" title="~/inclass/09/shapes.js"
+          this.area = function() {
+              let result = undefined;
+              if(this.dimensions) {
+    -             // TODO: Base the calculations on the dimensions
+    +             if (this.type === 'circle') {
+    +                 result = Math.PI * this.dimensions.radius ** 2;
+    +             } else if (this.type === 'square') {
+    +                 result = this.dimensions.length ** 2;
+    +             } else if (this.type === 'triangle') {
+    +                 result = this.dimensions.base * this.dimensions.height / 2;
+    +             }
+              }
+              return result;
+          }
+    ```
+
+    This uses an `else if` chain because only one shape type should match.
+</Steps>
+
+### Use the Shape Module
+
+Now `demo.js` can create shape objects from code that lives in `shapes.js`.
+
+<Steps>
+1. Create a circle, assign its dimensions, and display its area.
+
+    ```diff lang="js" title="~/inclass/09/demo.js"
+      console.log(`Supported shapes: ${supportedShapes.join(', ')}`);
+      console.log();
+    +
+    + let circle = new Shape('circle');
+    + circle.assignDimensions({ radius: 5 });
+    +
+    + console.log(`Circle area: ${circle.area().toFixed(2)}`);
+    ```
+
+    Hover over `Shape`, `assignDimensions`, and `area` in VS Code. The JSDoc comments in `shapes.js` should help explain those values even though we are using them in `demo.js`.
+
+1. Create a square and a triangle.
+
+    ```diff lang="js" title="~/inclass/09/demo.js"
+      let circle = new Shape('circle');
+      circle.assignDimensions({ radius: 5 });
+
+      console.log(`Circle area: ${circle.area().toFixed(2)}`);
+    +
+    + let square = new Shape('square');
+    + square.assignDimensions({ length: 8 });
+    + console.log(`Square area: ${square.area().toFixed(2)}`);
+    +
+    + let triangle = new Shape('triangle');
+    + triangle.assignDimensions({ base: 10, height: 6 });
+    + console.log(`Triangle area: ${triangle.area().toFixed(2)}`);
+    + console.log();
+    ```
+
+    The constructor and methods are defined in `shapes.js`, but the objects are created and used in `demo.js`.
+
+1. Try a capitalized shape type.
+
+    ```diff lang="js" title="~/inclass/09/demo.js"
+      let triangle = new Shape('triangle');
+      triangle.assignDimensions({ base: 10, height: 6 });
+      console.log(`Triangle area: ${triangle.area().toFixed(2)}`);
+      console.log();
+    +
+    + let capitalTriangle = new Shape('Triangle');
+    + capitalTriangle.assignDimensions({ base: 12, height: 5 });
+    +
+    + console.log(`Capital triangle area: ${capitalTriangle.area()}`);
+    + console.log();
+    ```
+
+    This looks like it should work, but it does not. The supported shape is `'triangle'` with a lowercase `t`, and the constructor stored `'Triangle'` exactly as it was typed.
+
+    <Aside type="note" title="Case-Sensitive Strings">
+      JavaScript strings are case-sensitive.
+
+      `'Triangle'` and `'triangle'` are different strings, so `.includes()` does not treat them as a match.
+    </Aside>
+
+1. (📍 `Shape`) Fix the constructor so shape types are normalized to lowercase.
+
+    ```diff lang="js" title="~/inclass/09/shapes.js"
+      export function Shape(type) {
+    -     this.type = type;
+    +     this.type = type.toLowerCase();
+          /**
+           * Calculates the area of the shape.
+           * @returns {number | undefined} The area, or undefined when dimensions are missing.
+           */
+    ```
+
+    After this change, `new Shape('Triangle')` stores the type as `'triangle'`, so the supported-shape check and the area calculation can both work.
+
+    <Aside type="caution" title="Method Name">
+      In JavaScript, the string method is `.toLowerCase()`.
+
+      The idea is "make this lowercase," but the method name needs to be written exactly as `.toLowerCase()`.
+    </Aside>
+
+1. Add one invalid dimensions example.
+
+    ```diff lang="js" title="~/inclass/09/demo.js"
+      let capitalTriangle = new Shape('Triangle');
+      capitalTriangle.assignDimensions({ base: 12, height: 5 });
+ 
+      console.log(`Capital triangle area: ${capitalTriangle.area()}`);
+      console.log();
+    +
+    + let mystery = new Shape('circle');
+    + mystery.assignDimensions({ length: 12 });
+    +
+    + console.log(`Mystery area: ${mystery.area()}`);
+    ```
+
+    This gives students a concrete reason for the `number | undefined` return note in the JSDoc. If the dimensions are not valid for the shape, the area cannot be calculated.
+</Steps>
+
+> ```ps
+> git add .
+> git commit -m "Use shape module"
+> ```
+
+### Demo Verification
+
+One key item that students are modifying is **the `Shape` class**. To verify that your demo has the correct items, make sure you have applied the appropriate modifications to that class. The modifications will be checked in your bucket assignment's automated tests.
+
+All the correct exports already exist at the end of the provided script files.
+
+```js title="~/inclass/09/display.js"
+export { displayHeading }
+```
+
+```js title="~/inclass/09/utils.js"
+export { add, about }
+```
+
+```js title="~/inclass/09/shapes.js"
+export { Shape, supportedShapes }
+```
+
+
+> ```ps
+> git add .
+> git commit -m "Finish intro to arrays"
+> ```
+
+----
+
+## Conclusion
+
+> **Assigned homework:** Complete [Homework: Practice Modules and JSDoc](./homework/100-homework.mdx). It reinforces today's module work and gives fallback practice for module scope, JSDoc, cross-module imports, and shape-calculation logic.
+
+Today's lesson introduces JavaScript modules as a way to split code into focused files. A module can keep some names private, export the names other files need, and import names from other modules.
+
+JSDoc adds a second layer of communication. It does not change the runtime behaviour, but it helps describe functions, objects, parameters, and return values so the code is easier to use from another file.
+
+<Aside type="note" title="Exercise Suggestion">
+  Ask students to improve the `assignDimensions()` function so it does not have two exit points.
+
+  Multiple exit points in one function can be a code smell. The early `return` is convenient today, but as a code base changes, that kind of structure can make it easier to skip later logic by accident.
+
+  A useful refactor would keep one final exit point while still preventing unsupported shapes from receiving dimensions.
+</Aside>
+
+<Aside type="tip" title="Understanding JavaScript 👀">
+  The key habit in this lesson is to ask which file owns each piece of code.
+
+  If a value belongs inside one file, keep it private. If another file needs it, export it intentionally and import it by name.
+</Aside>
