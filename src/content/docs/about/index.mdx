@@ -3,11 +3,13 @@ title: About This Site
 description: Overview of Dan Gilleland's personal In-Class website.
 ---
 
-import Term from "../../../components/common/current-term.astro";
 import { Aside, Badge, Card, CardGrid, FileTree, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 import dg from '../../../assets/DanGillelandNait.png';
 import adventureMap from '../../../assets/undraw/undraw_adventure-map_8hg8.svg';
+import Prep from "../../../components/common/term-prep.astro";
+
+<Prep />
 
 {/* 
 My name is <span role="text" lang="en" aria-label="dan GIL-eh-land">Dan Gilleland</span>.
@@ -31,10 +33,6 @@ Why would I put supplementary student resources here instead of the <a href="htt
 
 <Aside type="tip" title="Contributions">
   If you have a suggestion or content request, please add them as comments on [this discussion](#).
-</Aside>
-
-<Aside type="note" title="Prepping for this term">
-  I ask my students and other visitors to be patient with me as a prep for yet another new term <Term />.
 </Aside>
 
 <Card title="Read the Roadmap" icon="storybook">
