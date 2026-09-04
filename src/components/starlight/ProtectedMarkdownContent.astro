@@ -3,7 +3,7 @@ import Default from '@astrojs/starlight/components/MarkdownContent.astro';
 import { Show, SignInButton } from '@clerk/astro/components';
 
 const protectedSlugs = new Set(['guides/clerk-github-pages']);
-const slug = Astro.locals.starlightRoute.entry.slug;
+const slug = Astro.locals.starlightRoute.id;
 const isProtectedPage = protectedSlugs.has(slug);
 ---
 
