@@ -4,6 +4,13 @@ Guidance for AI coding agents (Claude Code, Copilot, Cursor, etc.) working in th
 repository. This is a [Starlight](https://starlight.astro.build/) documentation site;
 content lives in `src/content/docs/` as `.md` / `.mdx` files.
 
+## Version control
+
+- **This project uses trunk-based development.** Commit and push directly to `main`.
+  Do not create a feature branch or open a pull request for routine work.
+- Only use a branch when the maintainer explicitly asks, or for genuinely risky
+  experiments that shouldn't touch `main` until proven.
+
 ## Links
 
 - **External links must open in a new tab.** Whenever you link to another website
