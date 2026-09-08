@@ -1,0 +1,123 @@
+---
+title: Turn Off AI in VS Code
+description: Step-by-step instructions for hiding and disabling the built-in AI features (Copilot chat and completions) in Visual Studio Code.
+sidebar:
+  label: Turn off AI in VS Code
+draft: false
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+Recent versions of Visual Studio Code ship with AI features turned on by default. This includes **Copilot chat**, **inline code suggestions** (the grey "ghost text" that appears as you type), and the **Copilot menu** near the top of the window.
+
+If your instructor asks you to work without AI assistance, this guide shows you how to switch all of it off.
+
+<Aside type="note" title="Why you might be asked to do this">
+Labs and assignments are how you build the skills you are paying to learn. When an activity is meant to be done on your own, AI suggestions get in the way of that practice. Check your course outline and each assignment's instructions, and follow what your instructor tells you. See also [Academic Integrity](/about/academic-integrity/).
+</Aside>
+
+## The one setting that does it all
+
+VS Code has a single setting that hides and disables every built-in AI feature at once: **`chat.disableAIFeatures`**. Turning it on:
+
+- hides the Chat view and the Copilot menu in the title bar;
+- stops inline "ghost text" code suggestions;
+- disables the GitHub Copilot and Copilot Chat extensions.
+
+Your choice is remembered, and it is kept when VS Code updates itself.
+
+### Option A: Use the Settings screen
+
+<Steps>
+1. Open the Settings screen.
+
+    - **Windows / Linux:** press `Ctrl` + `,` (control key and comma)
+    - **macOS:** press `Cmd` + `,`
+
+    You can also use the menu: **File → Preferences → Settings**.
+
+1. In the search box at the top, type:
+
+    ```txt
+    chat.disableAIFeatures
+    ```
+
+1. Turn **on** the checkbox labelled **"Chat: Disable AI Features"**.
+
+1. Close the Settings tab. The change takes effect right away. If VS Code asks you to reload the window, allow it.
+</Steps>
+
+### Option B: Use the Command Palette
+
+<Steps>
+1. Open the Command Palette.
+
+    - **Windows / Linux:** press `Ctrl` + `Shift` + `P`
+    - **macOS:** press `Cmd` + `Shift` + `P`
+
+1. Type `hide AI` and choose **"Chat: Hide AI Features"** from the list.
+
+1. Confirm when prompted. VS Code applies the change and may reload the window.
+</Steps>
+
+<Aside type="tip" title="Same result">
+Both options change the exact same `chat.disableAIFeatures` setting. Use whichever is easier for you.
+</Aside>
+
+## Turn it off everywhere, or just for one project
+
+VS Code settings can be saved in two places, and you get to choose:
+
+- **User settings** apply to *every* folder you open in VS Code on this computer. This is the usual choice.
+- **Workspace settings** apply only to the *one project folder* you have open right now. VS Code saves these in a `.vscode/settings.json` file inside that folder.
+
+When you use **Option A** above, the Settings screen has two tabs near the top: **User** and **Workspace**. Pick the tab you want *before* ticking the checkbox.
+
+<Aside type="caution" title="Committing a workspace setting">
+If you set this at the **Workspace** level inside a lab repository and then commit the `.vscode/settings.json` file, everyone who clones that repo gets the same setting. That is usually fine for a class, but make sure it is what you intend.
+</Aside>
+
+## Optional: sign out of your GitHub / Copilot account
+
+Disabling the AI features is enough to stop all suggestions. If you also want VS Code to forget which GitHub account it was using for Copilot:
+
+<Steps>
+1. Click the **Accounts** icon (the person-shaped icon) at the bottom of the narrow **Activity Bar** on the far left of the window.
+
+1. Find the entry that mentions **GitHub** (it may say "GitHub" or list your username with "Copilot").
+
+1. Click it and choose **Sign Out**.
+</Steps>
+
+## Optional: if you use Settings Sync
+
+If you have turned on **Settings Sync** (so your VS Code settings follow you between computers), the `chat.disableAIFeatures` setting will sync too. Disable AI on one machine and it will turn off on the others the next time they sync.
+
+## Check that it worked
+
+After applying the setting, confirm all of the following:
+
+- There is **no Copilot menu** in the title bar at the top of the window.
+- Opening a code file and typing does **not** produce grey "ghost text" suggestions.
+- The Chat view is gone. Pressing `Ctrl` + `Alt` + `I` (macOS: `Cmd` + `Alt` + `I`) does nothing, or the command is missing from the Command Palette.
+
+## Turning AI back on
+
+<Steps>
+1. Open Settings with `Ctrl` + `,` (macOS: `Cmd` + `,`).
+
+1. Search for `chat.disableAIFeatures`.
+
+1. Turn the **"Chat: Disable AI Features"** checkbox **off**. Make sure you are on the same tab (**User** or **Workspace**) where you turned it on.
+
+1. Reload the window if VS Code asks. The AI features come back.
+</Steps>
+
+<Aside type="note" title="Older VS Code versions">
+The single `chat.disableAIFeatures` switch was added in VS Code 1.102 (mid-2025). If your VS Code is older, the cleanest fix is to update it (**Help → Check for Updates**). As a fallback on an old version, you can disable the **GitHub Copilot** and **GitHub Copilot Chat** extensions from the Extensions view (`Ctrl` + `Shift` + `X`) and set `"editor.inlineSuggest.enabled": false` in your settings.
+</Aside>
+
+## Sources
+
+- <a href="https://code.visualstudio.com/docs/copilot/setup" target="_blank">Set up GitHub Copilot in VS Code</a>
+- <a href="https://code.visualstudio.com/docs/supporting/faq" target="_blank">Visual Studio Code FAQ</a>
