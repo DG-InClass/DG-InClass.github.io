@@ -2,16 +2,14 @@
 title: Web Components and Composition
 description: SUMMARY
 sidebar:
-  label: Lesson 2 ✅
-draft: true
+  label: 02 - Custom Elements
 ---
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 import When from '../../../../components/astro/When.astro';
 
-<When planned='Jan 14' actual='Jan 21' />
-
+<When planned='Sep 8' actual='' />
 
 
 ### Learning Outcome Guide
@@ -26,9 +24,9 @@ import When from '../../../../components/astro/When.astro';
 >
 > Highlight how **composition practices** will carry forward into framework-based development in Week 4.
 
-## Web Components
+## Web Components (from SDEV-1150)
 
-From the prior term, the following LOGs existed for Web Components:
+From the prior term, the following LOGs existed for Web Components. Ask yourself, *"Can I do these?"*
 
 - Define the core principles of web components and their benefits in front-end development.
 - Create a simple custom web component using the Web Components API.
@@ -61,22 +59,31 @@ From the prior term, the following LOGs existed for Web Components:
 
 Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
 
-```ps
-pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-2150-A03-Jan-2026/sk/day-02/example/lesson-02-starter ./src/lesson-02
-```
+<Tabs syncKey='section'>
+  <TabItem label='A01'>
+    ```ps
+    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-2150-A01-Sep-2026/sk/day-02/example/lesson-02-starter ./src/lesson-02
+    ```
+  </TabItem>
+  <TabItem label='A02'>
+    ```ps
+    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-2150-A02-Sep-2026/sk/day-02/example/lesson-02-starter ./src/lesson-02
+    ```
+  </TabItem>
+</Tabs>
 
 <Aside title="Small, Frequent Commits" type="tip">
-As soon as you grab the starter kit, perform a commit. Better yet, *do all your commits **in the terminal***.
+  As soon as you grab the starter kit, perform a commit. Better yet, *do all your commits **in the terminal***.
 
-```ps title="Commit your starting point"
-git add .
-git commit -m "Lesson 02 Starter Code"
-```
+  ```ps title="Commit your starting point"
+  git add .
+  git commit -m "Lesson 02 Starter Code"
+  ```
 
 
-The secret to becoming a good software developer is one of building **professional disciplines**, and making small frequent commits is one of the fundamental disciplines for modern developers.
+  The secret to becoming a good software developer is one of building **professional disciplines**, and making small frequent commits is one of the fundamental disciplines for modern developers.
 
-As we progress through the refactoring, make a commit.
+  As we progress through the refactoring, make a commit.
 </Aside>
 
 ### Install dependencies and run the dev server
@@ -90,7 +97,9 @@ As we progress through the refactoring, make a commit.
 1. You should see a simple **Campus Resource Directory** page built with plain HTML + Bootstrap.
 </Steps>
 
-### Lesson focus
+----
+
+## Lecture Notes
 
 In SDEV1150 you learned the Web Component fundamentals:
 
@@ -255,7 +264,227 @@ Once the UI is rebuilt using components, we'll discuss:
 
 ### Push to your GitHub workbook repo
 
+----
+
 ## In Class Code Sample
+
+A minimal pattern for creating a custom element would be the following. Simply replace the text for the `template.innerHTML` and rename the `ComponentName` and `component-name` to whatever you need it to be.
+
+```js title="src/js/components/resource-header.js" "<div>Replace me</div>" "ComponentName" "component-name"
+const template = document.createElement('template');
+template.innerHTML = `<div>Replace me</div>`
+
+class ComponentName extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  render() {
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  }
+}
+
+customElements.define('compoinent-name', ComponentName);
+```
+
+Copy the code above. You'll need it for the first couple of steps below.
+
+<Steps>
+1. Create the `resource-header.js`, `resource-filters.js`, `resource-results.js`, `resource-details.js` under `src/js/components/`
+1. Paste in the pattern described above for each file, making the appropriate changes.
+1. For your initial replacement of the template's inner HTML, add in this link to the Bootstrap styles. This is needed in each component in this demo.
+
+    ```diff lang="js"
+    - template.innerHTML = `<div>Replace me</div>`
+    + template.innerHTML = `
+    + <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    + `
+    ```
+
+    Note how I placed the HTML on its own line, with the opening and closing backticks ending and starting their own lines. This will make some of the other copy/paste steps below simple.
+
+1. Our first component will be edited in two steps: First, update the template for the `resource-header.js` by copying the relevant part from the HTML file.
+1. Next, update the HTML file to replace the copied code with our new custom element tag.
+
+    ```diff lang="html" title="src/index.html"
+    -     <header class="mb-4">
+    -       <div class="d-flex flex-wrap justify-content-between align-items-end gap-2">
+    -         <div>
+    -           <h1 class="h3 mb-1">NAIT Resource Directory</h1>
+    -           <p class="text-body-secondary mb-0">
+    -             Find student support services, labs, and campus resources.
+    -           </p>
+    -         </div>
+    -       </div>
+    -     </header>
+    +     <resource-header></resource-header>
+    ```
+
+1. Each of the next steps will be done as a cut & paste approach, to speed up our work.
+1. Update the template for the `resource-filters.js` by moving the relevant part from the HTML file to the JavaScript file. Then update the HTML file to replace the copied code with our new custom element tag.
+
+    <Aside title="Moving/Replacing Large Chunks of Code" type="tip">
+      In VS Code, when you have a large chunk of code you want to move, copy, or delete, hover your mouse between the line number of the opening part and the start of the block of code. What you're looking for is the upside-down caret symbol. Clicking it will collapse the block. Then it's easier to copy/cut that block.
+    </Aside>
+
+    <details>
+    <summary>Show the code</summary>
+    ```diff lang="html" title="src/index.html"
+            <!-- Filters / Search -->
+    -       <aside class="col-12 col-lg-4">
+    -         <div class="card">
+    -           <div class="card-header">
+    -             <strong>Filters</strong>
+    -           </div>
+    - 
+    -           <div class="card-body">
+    -             <form id="frm-filter">
+    -               <label for="q" class="form-label">Search</label>
+    -               <input id="q" class="form-control" type="text" placeholder="Try: tutoring, mental health, bursary" />
+    - 
+    -               <hr class="my-3" />
+    - 
+    -               <div class="mb-2"><strong>Category</strong></div>
+    -               <div class="d-flex flex-wrap gap-2" aria-label="Category filters">
+    -                 <button class="btn btn-sm btn-outline-primary" type="button">All</button>
+    -                 <button class="btn btn-sm btn-outline-primary" type="button">Academic</button>
+    -                 <button class="btn btn-sm btn-outline-primary" type="button">Wellness</button>
+    -                 <button class="btn btn-sm btn-outline-primary" type="button">Financial</button>
+    -                 <button class="btn btn-sm btn-outline-primary" type="button">Tech</button>
+    -               </div>
+    - 
+    -               <hr class="my-3" />
+    - 
+    -               <div class="form-check">
+    -                 <input class="form-check-input" type="checkbox" value="" id="openNow" />
+    -                 <label class="form-check-label" for="openNow">Open now</label>
+    -               </div>
+    - 
+    -               <div class="form-check">
+    -                 <input class="form-check-input" type="checkbox" value="" id="virtual" />
+    -                 <label class="form-check-label" for="virtual">Virtual options</label>
+    -               </div>
+    - 
+    -               <hr class="my-3" />
+    - 
+    -               <div class="d-flex gap-2">
+    -                 <button class="btn btn-outline-secondary" type="button">Reset</button>
+    -                 <button class="btn btn-primary" type="submit">Filter</button>
+    -               </div>
+    -             </form>
+    -           </div>
+    -         </div>
+    -       </aside>
+    +       <resource-filters class="col-12 col-lg-4"></resource-filters>
+    ```
+    </details>
+
+1. Update the template for the `resource-results.js` by moving the relevant part from the HTML file to the JavaScript file. Then update the HTML file to replace the copied code with our new custom element tag.
+
+    <details>
+    <summary>Show the code</summary>
+    ```diff lang="html" title="src/index.html"
+            <!-- Results list -->
+    -       <section class="col-12 col-lg-4">
+    -         <div class="card h-100">
+    -           <div class="card-header d-flex justify-content-between align-items-center">
+    -             <strong>Results</strong>
+    -             <span class="badge text-bg-secondary">4</span>
+    -           </div>
+    - 
+    -           <div class="list-group list-group-flush">
+    -             <button type="button" class="list-group-item list-group-item-action active" aria-current="true">
+    -               <div class="d-flex w-100 justify-content-between">
+    -                 <h2 class="h6 mb-1">Peer Tutoring Centre</h2>
+    -                 <small>Academic</small>
+    -               </div>
+    -               <p class="mb-1 small text-body-secondary">Drop-in tutoring and study support.</p>
+    -               <small class="text-body-secondary">Building W, Room W101</small>
+    -             </button>
+    - 
+    -             <button type="button" class="list-group-item list-group-item-action">
+    -               <div class="d-flex w-100 justify-content-between">
+    -                 <h2 class="h6 mb-1">Counselling Services</h2>
+    -                 <small>Wellness</small>
+    -               </div>
+    -               <p class="mb-1 small text-body-secondary">Confidential mental health supports.</p>
+    -               <small class="text-body-secondary">Virtual and in-person</small>
+    -             </button>
+    - 
+    -             <button type="button" class="list-group-item list-group-item-action">
+    -               <div class="d-flex w-100 justify-content-between">
+    -                 <h2 class="h6 mb-1">Student Awards and Bursaries</h2>
+    -                 <small>Financial</small>
+    -               </div>
+    -               <p class="mb-1 small text-body-secondary">Funding options and application help.</p>
+    -               <small class="text-body-secondary">Student Services, Main Floor CAT</small>
+    -             </button>
+    - 
+    -             <button type="button" class="list-group-item list-group-item-action">
+    -               <div class="d-flex w-100 justify-content-between">
+    -                 <h2 class="h6 mb-1">IT Service Desk</h2>
+    -                 <small>Tech</small>
+    -               </div>
+    -               <p class="mb-1 small text-body-secondary">Account access, Wi-Fi, BYOD support.</p>
+    -               <small class="text-body-secondary">Library</small>
+    -             </button>
+    -           </div>
+    -         </div>
+    -       </section>
+    +       <resource-results class="col-12 col-lg-4"></resource-results>
+    ```
+    </details>
+
+1. Update the template for the `resource-details.js` by moving the relevant part from the HTML file to the JavaScript file. Then update the HTML file to replace the copied code with our new custom element tag.
+
+    <details>
+    <summary>Show the code</summary>
+    ```diff lang="html" title="src/index.html"
+            <!-- Details panel -->
+    -       <section class="col-12 col-lg-4">
+    -         <div class="card h-100">
+    -           <div class="card-header">
+    -             <strong>Details</strong>
+    -           </div>
+    - 
+    -           <div class="card-body">
+    -             <h2 class="h5">Peer Tutoring Centre</h2>
+    -             <p class="text-body-secondary mb-2">Drop-in tutoring and study support.</p>
+    - 
+    -             <dl class="row mb-0">
+    -               <dt class="col-4">Category</dt>
+    -               <dd class="col-8">Academic</dd>
+    - 
+    -               <dt class="col-4">Location</dt>
+    -               <dd class="col-8">Building W, Room W101</dd>
+    - 
+    -               <dt class="col-4">Hours</dt>
+    -               <dd class="col-8">Mon-Thu 10:00-16:00</dd>
+    - 
+    -               <dt class="col-4">Contact</dt>
+    -               <dd class="col-8">tutoring@nait.ca</dd>
+    -             </dl>
+    -           </div>
+    - 
+    -           <div class="card-footer d-flex gap-2">
+    -             <button class="btn btn-outline-secondary" type="button">Copy email</button>
+    -             <button class="btn btn-outline-primary" type="button">Open map</button>
+    -           </div>
+    -         </div>
+    -       </section>
+    +       <resource-details class="col-12 col-lg-4"></resource-details>
+    ```
+    </details>
+
+1. 🚀 Notice how clean the HTML now looks. We have effectively modularized our HTML into **components** by creating custom elements.
+</Steps>
+
+Most initial refactoring doesn't have to be hard when it comes to breaking our HTML into components.
 
 <details>
 <summary>Expand to view the final result</summary>
@@ -429,6 +658,8 @@ Once the UI is rebuilt using components, we'll discuss:
 
 ### `resource-header.js`
 
+1. Update the template for the `resource-header.js` by copying the relevant part from the HTML file.
+1. Update the HTML file to replace the copied code with our new custom element tag.
 ```js title="src/js/components/resource-header.js"
 const template = document.createElement('template');
 template.innerHTML = `

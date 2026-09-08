@@ -2,17 +2,14 @@
 title: JavaScript Review
 description: SUMMARY
 sidebar:
-  label: Lesson 1 ✅
-draft: true
+  label: 01 - JavaScript DOM Review
 ---
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 import When from '../../../../components/astro/When.astro';
 
-<When planned='Jan 9' actual='Jan 16' />
-
-
+<When planned='Sep 8' actual='' />
 
 ### Learning Outcome Guide
 
@@ -22,227 +19,306 @@ import When from '../../../../components/astro/When.astro';
 - Reinforce problem-solving strategies using JavaScript.
 - Prepare for advanced JavaScript programming techniques.
 
+{/* 
 > Ensure students download and run the starter package before class ends.
 >
 > Encourage questions tied to their experiences in SDEV-1150.
+ */}
 
 ## Starter Kit Code
 
 You can grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
 
-```ps
-pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-2150-A03-Jan-2026/sk/day-01/example/lesson-01-starter ./src/lesson-01
-```
-
+<Tabs syncKey='section'>
+  <TabItem label='A01'>
+    ```ps
+    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-2150-A01-Sep-2026/sk/day-01/example/lesson-01-starter ./src/lesson-01
+    ```
+  </TabItem>
+  <TabItem label='A02'>
+    ```ps
+    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-2150-A02-Sep-2026/sk/day-01/example/lesson-01-starter ./src/lesson-01
+    ```
+  </TabItem>
+</Tabs>
 
 <Aside title="Small, Frequent Commits" type="tip">
-As soon as you grab the starter kit, perform a commit. Better yet, *do all your commits **in the terminal***.
+  As soon as you grab the starter kit, perform a commit. Better yet, *do all your commits **in the terminal***.
 
-```ps title="Commit your starting point"
-git add .
-git commit -m "Lesson 02 Starter Code"
-```
+  ```ps title="Commit your starting point"
+  git add .
+  git commit -m "Lesson 02 Starter Code"
+  ```
 
+  The secret to becoming a good software developer is one of building **professional disciplines**, and making small frequent commits is one of the fundamental disciplines for modern developers.
 
-The secret to becoming a good software developer is one of building **professional disciplines**, and making small frequent commits is one of the fundamental disciplines for modern developers.
-
-As we progress through the refactoring, make a commit.
+  As we progress through the refactoring, make a commit.
 </Aside>
 
+## Prep
 
-----
+Get a quick lay-of-the-land by checking out the files in the starter kit.
 
+<FileTree>
+- src
+  - css/
+  - js
+    - main.js 📍 This is where we'll be coding today
+  - index.html
+- eslint.config.mjs
+- package.json
+</FileTree>
 
+To prep the starter kit for coding, we're going to need to **install** the dependencies and **run** the program in developer mode.
+
+```ps
+# Install the dependencies
+pnpm install
+
+# NEW ⚡ Approving Build Scripts
+pnpm approve-builds
+
+# Run the program
+pnpm dev
+```
+
+View the page in the browser to see what we'll be working with today.
 
 ----
 
 ## In-Class Code Sample
 
-```diff lang="js" title="js/main.js"
-  // main.js
-  
-  // --------------------------------------------------
-  // STEP 1: Select DOM elements ONCE
-  // --------------------------------------------------
-  // Grab references to the main UI elements.
-  // These IDs should already exist in index.html.
-  
-  // TODO: Select the main todo list container
-+ const list = document.querySelector('#todo-list');
-  
-  // TODO: Select the output area for text and messages
-+ const output = document.querySelector('#output');
-  
-  // TODO: Select the Run Demo button
-+ const btnRun = document.querySelector('#btn-run');
-  
-  // TODO: Select the Clear button
-+ const btnClear = document.querySelector('#btn-clear');
-  
-  // --------------------------------------------------
-  // STEP 2: Variables and template strings
-  // --------------------------------------------------
-  // Create a constant and a variable, then display
-  // them using a template string.
-  
-  // TODO: Create a constant named course
-+ const course = 'SDEV2150';
-  // TODO: Create a variable named topic
-+ let topic = 'JavaScript review';
-  // TODO: Use a template string to display both values
-+ output.innerHTML = `<p>Course: ${course} | Topic: ${topic}</p>`;
-  
-  // --------------------------------------------------
-  // STEP 3: Functions and return values
-  // --------------------------------------------------
-  // Write a function that adds two numbers and
-  // another function that formats a label/value pair.
-  
-  // TODO: Create a function add(a, b)
-+ function add(a, b) {
-+ 	return a + b;
-+ }
-  
-  // TODO: Create an arrow function formatResult(label, value)
-+ const formatResult = (label, value) => {
-+ 	return `${label}: ${value}`;
-+ }
-  
-  // TODO: Call the functions and display the result
-+ output.innerHTML += `<p>${formatResult('2 + 3', add(2, 3))}</p>`;
-  
-  // --------------------------------------------------
-  // STEP 4: Arrays, objects, and iteration
-  // --------------------------------------------------
-  // Create an array of task objects and count
-  // how many are marked as done.
-  
-  // TODO: Create an array named tasks
-  // Each task should have: title (string), done (boolean)
-+ const tasks = [
-+ 	{ title: 'Install dependencies', done: true },
-+ 	{ title: 'Run dev server', done: true },
-+ 	{ title: 'Complete the demo', done: false },
-+ ];
-  
-  // TODO: Use a loop to count completed tasks
-+  let completedCount = 0;
-+  for (const task of tasks) {
-+  	if (task.done) completedCount++;
-+  }
-  
-  // TODO: Display: "Completed: X of Y"
-+ output.innerHTML += `<p>Completed: ${completedCount} of ${tasks.length}</p>`;
-  
-  // --------------------------------------------------
-  // STEP 5: Problem solving – build HTML from data
-  // --------------------------------------------------
-  // Build a function that converts the tasks array
-  // into an HTML list using a loop.
-  
-  // TODO: Create a function renderTaskList(items)
-  // - Start with '<ul>'
-  // - Loop over items
-  // - Add <li> elements with a class of 'done' or 'todo'
-  // - Close the list and return the string
-+ function renderTaskList(items) {
-+   let html = '<ul>';
-+   for (const item of items) {
-+     const status = item.done ? 'done' : 'todo';
-+     html += `<li class="${status}">${item.title}</li>`;
-+   }
-+   html += '</ul>';
-+   return html;
-+ }
-  
-  // TODO: Render the task list inside the list container
-+ list.innerHTML = renderTaskList(tasks);
-  
-  // --------------------------------------------------
-  // STEP 6: DOM manipulation with createElement
-  // --------------------------------------------------
-  // Create and append elements instead of using innerHTML.
-  
-  // TODO: Create a function addMessage(message)
-  // - Create a <p> element
-  // - Set its textContent
-  // - Append it to the output element
-+ function addMessage(message) {
-+   const p = document.createElement('p');
-+   p.textContent = message;
-+   output.appendChild(p);
-+ }
-  
-  // TODO: Test the addMessage function
-+ addMessage('This message was appended with createElement');
-  
-  // --------------------------------------------------
-  // STEP 7: Events – connect UI to behavior
-  // --------------------------------------------------
-  // Wire the buttons to functions that update the UI.
-  
-  // TODO: Create a function runDemo()
-  // - Clear output
-  // - Add a few messages
-  // - Render the task list
-+ function runDemo() {
-+   output.innerHTML = '';
-+   addMessage('Running demo...');
-+   addMessage(formatResult('5 + 8', add(5, 8)));
-+   list.innerHTML = renderTaskList(tasks);
-+ }
-  
-  // TODO: Create a function clearUI()
-  // - Clear both output and todo list containers
-+ function clearUI() {
-+   output.innerHTML = '';
-+   list.innerHTML = '';
-+ }
-  
-  // TODO: Add click listeners for btnRun and btnClear
-+ btnRun.addEventListener('click', runDemo);
-+ btnClear.addEventListener('click', clearUI);
-  
-  // --------------------------------------------------
-  // STEP 8: Mini extension – Adding tasks
-  // --------------------------------------------------
-+ const txtTask = document.getElementById('txt-task');
-+ const btnAdd = document.getElementById('btn-add');
-+ 
-+ btnAdd.addEventListener('click', () => {
-+   const title = txtTask.value.trim();
-+   if (!title) return;
-+ 
-+   tasks.push({ title, done: false });
-+   list.innerHTML = renderTaskList(tasks);
-+   txtTask.value = '';
-+ });
-  
-  // --------------------------------------------------
-  // STEP 9: Student Exercise Prompts
-  // --------------------------------------------------
-  // Complete these AFTER the demo:
-  
-  // 1. Create a function toggleDone(title)
-  //    - Find a task by title
-  //    - Flip its done value (true/false)
-  
-  // 2. Update renderTaskList() to show '(done)' or '(todo)'
-  
-  // 3. Add event delegation to the <ul>
-  //    - When a list item is clicked:
-  //      * Toggle the task
-  //      * Re-render the list
-  
-  // 4. Stretch goals:
-  //    - Display a chekcbox next to each task to represent done/todo 
-  //      (checking/unchecking it toggles the state)
-  //    - Update the UI so that pressing enter in the text input adds 
-  //      the task (notice we aren't using a form
-  //    - Display a summary line above the list
-  //      e.g. "Completed: 2 of 3"
-```
+This first sample of the term is a small set of semi-independent tasks we want to achieve. Basically, we're recalling how to interact with the DOM and with the end-user of the page.
 
+<Steps>
+1. Create variables to track/reference the DOM elements
+
+    ```diff lang="js" title="js/main.js"
+      // --------------------------------------------------
+      // STEP 1: Select DOM elements ONCE
+      // --------------------------------------------------
+      // Grab references to the main UI elements.
+      // These IDs should already exist in index.html.
+      
+      // TODO: Select the main todo list container
+    + const list = document.querySelector('#todo-list');
+      
+      // TODO: Select the output area for text and messages
+    + const output = document.querySelector('#output');
+      
+      // TODO: Select the Run Demo button
+    + const btnRun = document.querySelector('#btn-run');
+      
+      // TODO: Select the Clear button
+    + const btnClear = document.querySelector('#btn-clear');
+    ```
+
+
+1. Create some constants/variables and display in the DOM.
+
+    ```diff lang="js" title="js/main.js"
+      // --------------------------------------------------
+      // STEP 2: Variables and template strings
+      // --------------------------------------------------
+      // Create a constant and a variable, then display
+      // them using a template string.
+      
+      // TODO: Create a constant named course
+    + const course = 'SDEV2150';
+      // TODO: Create a variable named topic
+    + let topic = 'JavaScript review';
+      // TODO: Use a template string to display both values
+    + output.innerHTML = `<p>Course: ${course} | Topic: ${topic}</p>`;
+    ```
+
+
+1. Create some functions in various styles (*Function Declaration*, Function Expression*, *Arrow Functions*). Can you name the styles shown here?
+
+    ```diff lang="js" title="js/main.js"
+      // --------------------------------------------------
+      // STEP 3: Functions and return values
+      // --------------------------------------------------
+      // Write a function that adds two numbers and
+      // another function that formats a label/value pair.
+      
+      // TODO: Create a function add(a, b)
+    + function add(a, b) {
+    + 	return a + b;
+    + }
+      
+      // TODO: Create an arrow function formatResult(label, value)
+    + const formatResult = (label, value) => {
+    + 	return `${label}: ${value}`;
+    + }
+      
+      // TODO: Call the functions and display the result
+    + output.innerHTML += `<p>${formatResult('2 + 3', add(2, 3))}</p>`;
+    ```
+
+
+1. Practice a bit with arrays of objects and array processing.
+
+    ```diff lang="js" title="js/main.js"
+      // --------------------------------------------------
+      // STEP 4: Arrays, objects, and iteration
+      // --------------------------------------------------
+      // Create an array of task objects and count
+      // how many are marked as done.
+      
+      // TODO: Create an array named tasks
+      // Each task should have: title (string), done (boolean)
+    + const tasks = [
+    + 	{ title: 'Install dependencies', done: true },
+    + 	{ title: 'Run dev server', done: true },
+    + 	{ title: 'Complete the demo', done: false },
+    + ];
+      
+      // TODO: Use a loop to count completed tasks
+    +  let completedCount = 0;
+    +  for (const task of tasks) {
+    +  	if (task.done) completedCount++;
+    +  }
+      
+      // TODO: Display: "Completed: X of Y"
+    + output.innerHTML += `<p>Completed: ${completedCount} of ${tasks.length}</p>`;
+    ```
+
+
+1. Building HTML from JavaScript data (the old-fashioned way).
+
+    ```diff lang="js" title="js/main.js"
+      // --------------------------------------------------
+      // STEP 5: Problem solving - build HTML from data
+      // --------------------------------------------------
+      // Build a function that converts the tasks array
+      // into an HTML list using a loop.
+      
+      // TODO: Create a function renderTaskList(items)
+      // - Start with '<ul>'
+      // - Loop over items
+      // - Add <li> elements with a class of 'done' or 'todo'
+      // - Close the list and return the string
+    + function renderTaskList(items) {
+    +   let html = '<ul>';
+    +   for (const item of items) {
+    +     const status = item.done ? 'done' : 'todo';
+    +     html += `<li class="${status}">${item.title}</li>`;
+    +   }
+    +   html += '</ul>';
+    +   return html;
+    + }
+      
+      // TODO: Render the task list inside the list container
+    + list.innerHTML = renderTaskList(tasks);
+    ```
+
+
+1. Building HTML the safer way - as **document fragments**.
+
+    > *Do you know what a **document fragment** is and why it's referred to as a "fragment"?*
+
+    ```diff lang="js" title="js/main.js"
+      // --------------------------------------------------
+      // STEP 6: DOM manipulation with createElement
+      // --------------------------------------------------
+      // Create and append elements instead of using innerHTML.
+      
+      // TODO: Create a function addMessage(message)
+      // - Create a <p> element
+      // - Set its textContent
+      // - Append it to the output element
+    + function addMessage(message) {
+    +   const p = document.createElement('p');
+    +   p.textContent = message;
+    +   output.appendChild(p);
+    + }
+      
+      // TODO: Test the addMessage function
+    + addMessage('This message was appended with createElement');
+    ```
+
+
+1. Using **event handlers** (functions) to respond to user events.
+
+    ```diff lang="js" title="js/main.js"
+      // --------------------------------------------------
+      // STEP 7: Events - connect UI to behavior
+      // --------------------------------------------------
+      // Wire the buttons to functions that update the UI.
+      
+      // TODO: Create a function runDemo()
+      // - Clear output
+      // - Add a few messages
+      // - Render the task list
+    + function runDemo() {
+    +   output.innerHTML = '';
+    +   addMessage('Running demo...');
+    +   addMessage(formatResult('5 + 8', add(5, 8)));
+    +   list.innerHTML = renderTaskList(tasks);
+    + }
+      
+      // TODO: Create a function clearUI()
+      // - Clear both output and todo list containers
+    + function clearUI() {
+    +   output.innerHTML = '';
+    +   list.innerHTML = '';
+    + }
+      
+      // TODO: Add click listeners for btnRun and btnClear
+    + btnRun.addEventListener('click', runDemo);
+    + btnClear.addEventListener('click', clearUI);
+    ```
+
+
+1. Here, we're going to work on an ultra-simple To-Do List.
+
+    ```diff lang="js" title="js/main.js"
+      // --------------------------------------------------
+      // STEP 8: Mini extension - Adding tasks
+      // --------------------------------------------------
+    + const txtTask = document.getElementById('txt-task');
+    + const btnAdd = document.getElementById('btn-add');
+    + 
+    + btnAdd.addEventListener('click', () => {
+    +   const title = txtTask.value.trim();
+    +   if (!title) return;
+    + 
+    +   tasks.push({ title, done: false });
+    +   list.innerHTML = renderTaskList(tasks);
+    +   txtTask.value = '';
+    + });
+    ```
+
+
+1. The last part is **homework** to be completed before next class.
+
+    ```js title="js/main.js"
+    // --------------------------------------------------
+    // STEP 9: Student Exercise Prompts
+    // --------------------------------------------------
+    // Complete these AFTER the demo:
+    
+    // 1. Create a function toggleDone(title)
+    //    - Find a task by title
+    //    - Flip its done value (true/false)
+    
+    // 2. Update renderTaskList() to show '(done)' or '(todo)'
+    
+    // 3. Add event delegation to the <ul>
+    //    - When a list item is clicked:
+    //      * Toggle the task
+    //      * Re-render the list
+    
+    // 4. Stretch goals:
+    //    - Display a chekcbox next to each task to represent done/todo 
+    //      (checking/unchecking it toggles the state)
+    //    - Update the UI so that pressing enter in the text input adds 
+    //      the task (notice we aren't using a form
+    //    - Display a summary line above the list
+    //      e.g. "Completed: 2 of 3"
+    ```
+
+</Steps>
 
 ----
 
@@ -260,7 +336,9 @@ As we progress through the refactoring, make a commit.
   - Numeric
   - Conceptual
 
+{/* 
 ### TODO items
 
 - [ ] JavaScript fundamentals
-- [ ] Breakpoints and the Dev Tools Debugger
+- [ ] Breakpoints and the Dev Tools Debugger 
+*/}
