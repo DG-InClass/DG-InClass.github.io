@@ -1,0 +1,68 @@
+---
+title: Assignments via GitHub
+description: Instructions on accepting and accessing assignments distributed via GitHub.
+sidebar:
+  label: GitHub Assignments
+draft: false
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+import { Image } from "astro:assets";
+import PRTab from './code-hub/pull-request-tab.png';
+import PR from './code-hub/pull-request.png';
+import PRReady from './code-hub/ready-to-merge.png';
+import PRMerge from './code-hub/merge-pull-request.png';
+import PRMergeConfirm from './code-hub/confirm-merge.png';
+import PRMergeComplete from './code-hub/merged.png';
+
+Course **assignments** and **student workbooks** are often distributed as *git repositories* via <a href="https://github.com" target="_blank">GitHub</a>. You can accept invitations to any of these by going to <a href="https://github.com/settings/organizations" target="_blank">your **Organization Settings** on GitHub</a>.
+
+## Accepting Pull Requests
+
+When your instructor hands out an assignment (or posts a fix or some starter code), the changes usually arrive as a **pull request** on your repository. A pull request is just a request to add one set of changes into your `main` branch. Nothing is added to your project until *you* merge it.
+
+Here is how to merge a pull request on GitHub.
+
+<Steps>
+1. Open your assignment repository on GitHub.
+
+1. Click the **Pull requests** tab near the top of the repository. The number beside it tells you how many pull requests are waiting for you.
+
+    <Image src={PRTab} alt="The Pull requests tab in the GitHub repository menu, with a badge showing one open pull request" />
+
+1. In the list, click the title of the pull request you want to accept (for example, **Assignment 1**).
+
+    <Image src={PR} alt="The list of open pull requests, showing one titled Assignment 1" class="max-w-md" />
+
+1. Near the top of the pull request you should see a green **Ready to merge** message. This means GitHub can add the changes automatically.
+
+    <Image src={PRReady} alt="The Ready to merge status shown at the top of the pull request page" class="max-w-md" />
+
+    <Aside type="danger" title="Merge conflicts">
+    If you see a message about **conflicts** instead of *Ready to merge*, stop and contact your instructor. Do **not** try to resolve the conflict yourself.
+    </Aside>
+
+1. Scroll to the bottom of the **Conversation** tab. When you see **"No conflicts with base branch"**, click the green **Merge pull request** button.
+
+    <Image src={PRMerge} alt="The Merge pull request button below a No conflicts with base branch message" />
+
+1. GitHub shows a commit message. Leave it as it is and click **Confirm merge**.
+
+    <Image src={PRMergeConfirm} alt="The Confirm merge button below the pre-filled commit message and extended description" class="max-w-md" />
+
+1. The pull request now shows a purple **Merged** badge. The changes are now part of your `main` branch on GitHub.
+
+    <Image src={PRMergeComplete} alt="The pull request header showing a purple Merged badge" />
+
+1. Switch to the copy of the repository on your computer and run `git pull` so your local files match GitHub.
+
+    ```bash
+    git pull
+    ```
+</Steps>
+
+<Aside type="tip">
+After a merge, GitHub may offer a **Delete branch** button. It is safe to click, but you can also just leave it &mdash; it will not affect your work.
+</Aside>
+
