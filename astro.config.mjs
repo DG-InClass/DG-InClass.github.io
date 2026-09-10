@@ -65,6 +65,7 @@ export default defineConfig({
                                 label: "Start Here", 
                                 items: [
                                     'about',
+                                    'about/folders',
                                     'about/roadmap',
                                     'about/colophon',
                                 ]

@@ -1,0 +1,33 @@
+---
+title: Organizing Your Course Content
+description: These are my opinions on organizing your folders for GitHub repositories, particularly when you are taking courses at school.
+sidebar:
+  label: Organizing Course Content
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import todo from '../../../assets/undraw/undraw_under-construction_c2y1.svg';
+
+When it comes to organizing your course-related files, particularly when it comes to your git repositories, I recommend the following to my students. Assuming a Windows OS here is what it would look like for my favorite sample student, *Stewart Dent*
+
+<FileTree>
+- C:\
+  - GH
+    - SDEV-1000/ Logic and Problem Solving
+    - SDEV-1001/ Programming Fundamentals
+    - **SDEV-1150**/ 🚀 Front End Development Fundamentals
+      - 1150-workbook/ Your student workbook†
+      - assignment-2/
+    - SDEV-1201/ Database Fundamentals
+    - SDEV-1701/ UI/UX for Developers
+    - stewdent/ Stuart's GitHub Username
+      - stewdent.github.io/
+      - nait-notes/
+      - ...
+</FileTree>
+
+<Aside title="I'm biased...">
+  - 🚀 I teach [SDEV-1150](/sdev-1150/), so I know some of the content for that course.
+  - I believe every course should have a **Student Workbook** repository - I've been using that idea for a long time now...
+</Aside>
