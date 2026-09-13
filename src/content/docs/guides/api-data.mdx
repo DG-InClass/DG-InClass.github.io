@@ -3,10 +3,17 @@ title: API Data
 description: Reference for the static JSON files served under /api/countries/ for use in course projects.
 ---
 
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+
+Every programmer seeking to explore <a href="https://developer.mozilla.org/docs/Web/API/Fetch_API" target="_blank">the **`fetch()`** API</a> needs samples to code against. Here are some free samples worth exploring that *don't* need an API key to get started.
+
+## Plain JSON *(this site)*
+
 This site serves a couple of static JSON files under `/api/countries/` that you can fetch
 from a course project when you need sample country/state/city data but don't want to depend on a live third-party API.
 
-## Cities by country
+
+### Cities by country
 
 [`/api/countries/cities.json`](/api/countries/cities.json) lists every city known for each country.
 
@@ -38,7 +45,7 @@ Each object in `data` has:
 - **`country`** &mdash; the country's full name
 - **`cities`** &mdash; an array of city names (strings) for that country; some countries have an empty array
 
-## States by country
+### States by country
 
 [`/api/countries/states.json`](/api/countries/states.json) lists every state or province known for each country.
 
@@ -79,3 +86,23 @@ Each object in `data` has:
 
 Some countries (e.g. Aland Islands) have no subdivisions, so `states` is an empty array.
 
+----
+
+## Online APIs
+
+### Deck of Cards API
+
+The <a href="https://deckofcardsapi.com" target="_blank">Deck of Cards API</a> is a free API that you can use to generate decks of cards along with as many associated piles of cards that you might want for your game.
+
+<Aside title="Deck Of Cards API">
+    This API by **Chase Roberts** is ***great*** for card games! It's extremely versatile while still keeping a "lean" design. It will remember your deck and piles so that you can come back later and continue using it. It will only discard your deck after two weeks of non-use. Free to use. No API key required.
+
+    <LinkButton href="https://deckofcardsapi.com/" target="_blank" icon="star">Deck Of Cards API</LinkButton>
+
+    ✨ Give <a href="https://github.com/crobertsbmw/deckofcards" target="_blank">his repository on GitHub</a> a star!
+</Aside>
+
+
+{/* ### The Bible
+
+The Bible is a great example of  */}
