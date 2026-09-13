@@ -1,0 +1,81 @@
+---
+title: API Data
+description: Reference for the static JSON files served under /api/countries/ for use in course projects.
+---
+
+This site serves a couple of static JSON files under `/api/countries/` that you can fetch
+from a course project when you need sample country/state/city data but don't want to depend on a live third-party API.
+
+## Cities by country
+
+[`/api/countries/cities.json`](/api/countries/cities.json) lists every city known for each country.
+
+The file is a single JSON object with an `error` flag, a `msg` string, and a `data` array — one entry per country:
+
+```json
+{
+  "error": false,
+  "msg": "countries and cities retrieved",
+  "data": [
+    {
+      "iso2": "AF",
+      "iso3": "AFG",
+      "country": "Afghanistan",
+      "cities": [
+        "Herat",
+        "Kabul",
+        "Kandahar"
+      ]
+    }
+  ]
+}
+```
+
+Each object in `data` has:
+
+- **`iso2`** &mdash; the country's two-letter ISO code (e.g. `"AF"`)
+- **`iso3`** &mdash; the country's three-letter ISO code (e.g. `"AFG"`)
+- **`country`** &mdash; the country's full name
+- **`cities`** &mdash; an array of city names (strings) for that country; some countries have an empty array
+
+## States by country
+
+[`/api/countries/states.json`](/api/countries/states.json) lists every state or province known for each country.
+
+It follows the same `error` / `msg` / `data` envelope as `cities.json`, but each entry in `data` describes states instead of cities:
+
+```json
+{
+  "error": false,
+  "msg": "countries and states retrieved",
+  "data": [
+    {
+      "name": "Afghanistan",
+      "iso3": "AFG",
+      "iso2": "AF",
+      "states": [
+        {
+          "name": "Badakhshan",
+          "state_code": "BDS"
+        },
+        {
+          "name": "Kabul",
+          "state_code": "KAB"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Each object in `data` has:
+
+- **`name`** &mdash; the country's full name
+- **`iso2`** &mdash; the country's two-letter ISO code
+- **`iso3`** &mdash; the country's three-letter ISO code
+- **`states`** &mdash; an array of state/province objects, each with:
+  - **`name`** &mdash; the state or province's name
+  - **`state_code`** &mdash; a short code for the state or province
+
+Some countries (e.g. Aland Islands) have no subdivisions, so `states` is an empty array.
+
