@@ -2,8 +2,7 @@
 title: Advanced UI Communication with Custom Events
 description: SUMMARY
 sidebar:
-  label: 04 - Custom Events
-draft: true
+  label: 04 - Events Across Components
 ---
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
@@ -16,41 +15,11 @@ import When from '../../../../components/astro/When.astro';
 
 TBD
 
+----
+
 ## Activity
 
-TBD
-
-## Practice
-
-TBD
-
-----
-
-## OLD Content....
-
-import dragons from '@assets/other/here-be-dragons.png';
-
-<Image src={dragons} alt="Here be dragons" />
-
-
-## Advanced UI Communication with Custom Events
-
-### Learning Outcome Guide
-
-*At the end of this class, you should be able to...*
-
-- Explain the role of custom events in enabling advanced UI communication.
-- Demonstrate how to create, dispatch, and handle custom events in JavaScript.
-- Apply custom events to decouple component logic and improve maintainability.
-
-> Emphasize how custom events enable loosely coupled communication, reducing reliance on direct parent-child props or global state.
->
-> Highlight trade-offs: great for decoupling, but overuse can make event flow harder to trace.
-This lesson bridges vanilla event concepts with framework-based communication strategies introduced later.
-
-----
-
-## Starter Kit Code
+### Starter Kit Code
 
 Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
 
@@ -67,149 +36,6 @@ Grab the starter kit code for your Workbook by running the following in the VS C
   </TabItem>
 </Tabs>
 
-----
-
-## Lesson focus
-
-In this lesson we build an event-driven, reactive UI using Web Components.
-
-We'll implement two connected behaviours:
-
-- **Selection reactivity:** clicking a result updates the details panel (lesson 03)
-- **Filtering reactivity:** submitting the filters form updates the results list (current lesson)
-
-The core pattern is consistent:
-
-1. A user action happens
-2. A component emits a custom event describing what changed
-3. Another part of the app reacts by updating state and re-rendering
-
-We are still not using a framework. We're practicing the mental model that frameworks later formalize.
-
-<details>
-<summary>TBA</summary>
-## Instructor demo
-
-### Target behaviour
-
-- The filters form is submitted
-- Filter state is emitted as a custom event
-- The results list updates to reflect the new filter state
-- Selection behaviour continues to work
-
-We'll use submit-based filtering for clarity (live filtering is a stretch goal).
-
-## Concepts explored
-
-- Event-driven programming (user actions trigger code)
-- Custom events (`CustomEvent`)
-- Event bubbling and event composition (`bubbles`, `composed`)
-- One-way data flow between components
-- Reactive UI updates (state changes trigger re-render)
-- Shadow DOM communication (events crossing the boundary)
-
-## Event Contract
-
-We will be explicit about the event contract between components.
-
-An event contract defines:
-
-- Who emits the event
-- What the event is called
-- What data it carries
-- Who is allowed to listen and react
-
-### Event: `resource-filters-changed`
-
-**Emitted by:**
-- `<resource-filters>`
-
-**When it fires:**
-- The filters form is submitted
-
-**Purpose:**
-- Describe the current filter state to the rest of the application
-
-**Event configuration:**
-
-- `bubbles: true`
-- `composed: true`
-
-**Event detail payload:**
-
-```js
-{
-  query: string,
-  category: string | null,
-  openNow: boolean,
-  virtual: boolean
-}
-```
-
-**Who listens:**
-
-- `main.js`
-
-**What the listener does:**
-
-- Passes the filter state to `<resource-results>` via a method or propety such as `setFilters(filters)` or `set filters(filters)`.
-
-## Walkthrough
-
-### Step 1: Agree on the data shape
-
-We'll use the same data shape across components.
-
-Example:
-
-```js
-{
-  query: 'tutor',
-  category: 'academic',
-  openNow: true,
-  virtual: true,
-}
-```
-
-### Step 2: Dispatch `resource-filters-changed` on form submit
-
-In `<resource-filters>`:
-
-- Default to "All" category
-- Support individual category selection (assign class `active` to selected category)
-- Listen for the form `submit` event and `preventDefault()`
-- Read current form values
-- Dispatch `resource-filters-changed` with the full filter state
-
-### Step 3: Results react to filter state
-
-In `<resource-results>`:
-
-- Store the full dataset
-- Store current filters
-- Add a method or property, such as `setFilters(filters)` or `set filters(filters)`
-- Filter the dataset (without mutating the original)
-- Re-render the list based on the filtered results
-
-### Step 4: Wire filters to results in `main.js`
-
-In `main.js`:
-
-- Listen for `resource-filters-changed`
-- Call `results.setFilters(filters)`, or set `results.filters = filters`
-
-### Step 5: Verify reactive behaviour
-
-- Submitting the form changes which results are displayed
-- Selecting a result still updates the details panel
-- The UI reflects current state at all times
-
-</details>
-
-<details>
-<summary>Open for Code Changes</summary>
-
-## Lesson 04 Code Walkthrough
 
 In this lesson, the focus is on adding functionality to the Resource Filter. This involves
 
@@ -438,7 +264,7 @@ The `<resource-results>` component needs some properties to manage the effects o
 
 1. We'll also tweak our rendering to give proper context about the data we're showing.
 
-    ```diff lang="js" title="src/js/components/resource-results.js"
+    ```diff lang="js" title="src/js/components/resource-results.js" "#results" "#filteredResults"
         render() {
           const content = template.content.cloneNode(true);
       
@@ -522,36 +348,204 @@ This file needs a small change at the end of its render function. It will hide a
 ```
 
 
-</details>
 
-## Assessment
+----
 
-Minimum requirements:
+## Practice
+
+We've met some minimum requirements in this exploration of dispatching custom events and communicating between custom elements:
 
 - Submitting the filters form dispatches `resource-filters-changed`
 - Results update based on emitted filter state
 - The original resource dataset is not mutated
 
-## Student exercise
+### Take This Demo Farther
 
-Stretch goals:
+Go beyond what we've done here by working on the following:
 
 - Implement filter form reset
 - Implement live filtering by dispatching `resource-filters-changed` on input/change events
 - Update the example to support multiple category selections
 - Debounce the search input to reduce unnecessary re-renders (applies to live filtering)
 
-## Push to your GitHub workbook repo
+### Homework
 
-1. Stage all changes:
-```sh
-git add .
+In the starter kit, you will find a `homework.md` that corresponds to the content in this lesson.
+
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## OLD Content....
+
+import dragons from '@assets/other/here-be-dragons.png';
+
+<Image src={dragons} alt="Here be dragons" />
+
+
+## Advanced UI Communication with Custom Events
+
+### Learning Outcome Guide
+
+*At the end of this class, you should be able to...*
+
+- Explain the role of custom events in enabling advanced UI communication.
+- Demonstrate how to create, dispatch, and handle custom events in JavaScript.
+- Apply custom events to decouple component logic and improve maintainability.
+
+> Emphasize how custom events enable loosely coupled communication, reducing reliance on direct parent-child props or global state.
+>
+> Highlight trade-offs: great for decoupling, but overuse can make event flow harder to trace.
+This lesson bridges vanilla event concepts with framework-based communication strategies introduced later.
+
+
+## Lesson focus
+
+In this lesson we build an event-driven, reactive UI using Web Components.
+
+We'll implement two connected behaviours:
+
+- **Selection reactivity:** clicking a result updates the details panel (lesson 03)
+- **Filtering reactivity:** submitting the filters form updates the results list (current lesson)
+
+The core pattern is consistent:
+
+1. A user action happens
+2. A component emits a custom event describing what changed
+3. Another part of the app reacts by updating state and re-rendering
+
+We are still not using a framework. We're practicing the mental model that frameworks later formalize.
+
+<details>
+<summary>TBA</summary>
+
+### Target behaviour
+
+- The filters form is submitted
+- Filter state is emitted as a custom event
+- The results list updates to reflect the new filter state
+- Selection behaviour continues to work
+
+We'll use submit-based filtering for clarity (live filtering is a stretch goal).
+
+## Concepts explored
+
+- Event-driven programming (user actions trigger code)
+- Custom events (`CustomEvent`)
+- Event bubbling and event composition (`bubbles`, `composed`)
+- One-way data flow between components
+- Reactive UI updates (state changes trigger re-render)
+- Shadow DOM communication (events crossing the boundary)
+
+## Event Contract
+
+We will be explicit about the event contract between components.
+
+An event contract defines:
+
+- Who emits the event
+- What the event is called
+- What data it carries
+- Who is allowed to listen and react
+
+### Event: `resource-filters-changed`
+
+**Emitted by:**
+- `<resource-filters>`
+
+**When it fires:**
+- The filters form is submitted
+
+**Purpose:**
+- Describe the current filter state to the rest of the application
+
+**Event configuration:**
+
+- `bubbles: true`
+- `composed: true`
+
+**Event detail payload:**
+
+```js
+{
+  query: string,
+  category: string | null,
+  openNow: boolean,
+  virtual: boolean
+}
 ```
-2. Commit:
-```sh
-git commit -m 'Lesson 04 - Reactive filtering'
+
+**Who listens:**
+
+- `main.js`
+
+**What the listener does:**
+
+- Passes the filter state to `<resource-results>` via a method or propety such as `setFilters(filters)` or `set filters(filters)`.
+
+## Walkthrough
+
+### Step 1: Agree on the data shape
+
+We'll use the same data shape across components.
+
+Example:
+
+```js
+{
+  query: 'tutor',
+  category: 'academic',
+  openNow: true,
+  virtual: true,
+}
 ```
-3. Push:
-```sh
-git push origin main
-```
+
+### Step 2: Dispatch `resource-filters-changed` on form submit
+
+In `<resource-filters>`:
+
+- Default to "All" category
+- Support individual category selection (assign class `active` to selected category)
+- Listen for the form `submit` event and `preventDefault()`
+- Read current form values
+- Dispatch `resource-filters-changed` with the full filter state
+
+### Step 3: Results react to filter state
+
+In `<resource-results>`:
+
+- Store the full dataset
+- Store current filters
+- Add a method or property, such as `setFilters(filters)` or `set filters(filters)`
+- Filter the dataset (without mutating the original)
+- Re-render the list based on the filtered results
+
+### Step 4: Wire filters to results in `main.js`
+
+In `main.js`:
+
+- Listen for `resource-filters-changed`
+- Call `results.setFilters(filters)`, or set `results.filters = filters`
+
+### Step 5: Verify reactive behaviour
+
+- Submitting the form changes which results are displayed
+- Selecting a result still updates the details panel
+- The UI reflects current state at all times
+
+</details>
+
+
+
