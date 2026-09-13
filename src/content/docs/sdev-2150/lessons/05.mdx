@@ -2,38 +2,20 @@
 title: Asynchronous Programming Review
 description: SUMMARY
 sidebar:
-  label: Lesson 5 ✅
-draft: true
+  label: 05 - Asynchronous Programming
 ---
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 import When from '../../../../components/astro/When.astro';
 
-<When planned='Jan 23' />
+<When planned='Sep 17' />
 
 ## Lecture
 
-TBD
+> *A computer program is a **set of instructions** for manipulating **information**.*
 
-## Activity
-
-TBD
-
-## Practice
-
-TBD
-
-----
-
-## OLD Content....
-
-import dragons from '@assets/other/here-be-dragons.png';
-
-<Image src={dragons} alt="Here be dragons" />
-
-
-## Lesson focus
+Up to now, the information displayed in our components has come from hard-coded data in our `main.js`. A far more realistic scenario is one where data come from some back-end storage such as a database. In this demo, we'll examine fetching data for our components.
 
 In this lesson, we introduce **asynchronous JavaScript** and the **fetch API**.
 
@@ -44,7 +26,6 @@ We will extend the reactive, component-based application built in previous lesso
 - Components react to data arriving over time
 
 We are still not using a framework. The goal is to understand the mental model that frameworks later abstract.
-
 
 
 ### Learning Outcome Guide
@@ -61,7 +42,9 @@ We are still not using a framework. The goal is to understand the mental model t
 
 ----
 
-## Starter Kit Code
+## Activity
+
+### Starter Kit Code
 
 Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
 
@@ -78,14 +61,8 @@ Grab the starter kit code for your Workbook by running the following in the VS C
   </TabItem>
 </Tabs>
 
-----
 
-
-## Code Walkthrough
-
-Up to now, the information displayed in our components has come from hard-coded data in our `main.js`. A far more realistic scenario is one where data come from some back-end storage such as a database. In this demo, we'll examine fetching data for our components.
-
-### Setup
+### Running the Projects
 
 The project comes with two separate projects - one to represent our frontend and another to represent our backend.
 
@@ -243,3 +220,12 @@ With our backend in place serving JSON data, it's time to focus on editing our f
     ```
 
 </Steps>
+
+
+----
+
+## Practice
+
+In the starter kit, you will find a `homework.md` that corresponds to the content in this lesson.
+
+----
