@@ -1,0 +1,142 @@
+---
+title: Custom Elements and Constructable stylesheets
+description: SUMMARY
+sidebar:
+  label: Custom Elements and Stylesheets
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+In [Lesson 02](/sdev-2150/lessons/02/) we ran into a real limitation of Shadow DOM: a page-level `<link>` to Bootstrap doesn't style anything rendered inside a shadow root. Shadow DOM is deliberately style-isolated — that's the whole point of it — so the fix we reached for in class was to put a second `<link>` directly inside each component's own template.
+
+This note unpacks *why* that was necessary, what it costs, and what the alternatives look like.
+
+## Recap: what we did in Lesson 02
+
+Every component in the Lesson 02 demo — `resource-header`, `resource-filters`, `resource-results`, `resource-details` — starts its template the same way:
+
+```js
+template.innerHTML = `
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+  <header class="mb-4">
+    ...
+  </header>`
+```
+
+That `<link>` gets cloned into the shadow root along with the rest of the markup, so it's a stylesheet *inside* the shadow tree rather than one leaking in from the document. That's what makes `class="btn btn-primary"` etc. actually render styled.
+
+<Aside type="tip" title="Quick-n-dirty, on purpose">
+  This is a deliberate simplification for the lesson, not a mistake. It gets everyone to a working, styled component fast, without introducing async loading or a shared module before we've even covered composition. But it's worth naming the corners it cuts — see below.
+</Aside>
+
+## The corners this cuts
+
+**Every component instance re-parses the stylesheet.** The browser's HTTP cache means the *network* fetch only really happens once (jsDelivr serves versioned URLs with long-lived cache headers) — but each `<link>` still gets its own `CSSStyleSheet` parsed into its own shadow root. Four components means four separate parses of Bootstrap's CSS into four separate in-memory rule sets, even though they're byte-for-byte identical.
+
+**The URL (and version) is duplicated everywhere.** Copy the pattern into four files and you now have four places that need to agree on which Bootstrap version to use. This isn't hypothetical —
+
+<Aside type="caution" title="Spot the drift">
+  Compare `resource-filters.js` against the other three components in the [Lesson 02 final result](/sdev-2150/lessons/02/#in-class-code-sample). Three of the four components link `bootstrap@5.3.8`; `resource-filters.js` links `bootstrap@5.3.0`. That's not a deliberate teaching point — it's exactly the kind of copy-paste drift this pattern invites once you have more than one or two components. A great live example of the cost, even if unintentional!
+</Aside>
+
+**FOUC (flash of unstyled content).** A `<link>` loads asynchronously, so each shadow root renders its markup immediately, unstyled, and then snaps into its Bootstrap styling once that component's own stylesheet finishes loading. With four components on the page, each on its own `<link>`, that's up to four independent flashes rather than one coordinated style load.
+
+None of these are wrong for a lesson demo. They *are* worth knowing about before this pattern becomes muscle memory for a bigger project.
+
+## Alternative 1: Light DOM rendering
+
+The simplest fix is to not use Shadow DOM at all for these components — render into `this.innerHTML` instead of `this.shadowRoot`. Light DOM content lives in the same tree as the page, so the single page-level Bootstrap `<link>` just works, the same way it would for any other HTML on the page.
+
+```js title="resource-header.js (light DOM)"
+class ResourceHeader extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `<header class="mb-4">...</header>`;
+  }
+}
+```
+
+The trade-off is exactly what Shadow DOM was buying you: no style/DOM encapsulation. A global stylesheet — or a poorly-scoped selector from *anywhere* on the page — can now reach into your component's markup, and vice versa. For a small, single-purpose demo page that's often a perfectly reasonable trade.
+
+## Alternative 2: A shared constructable stylesheet
+
+If you want to keep Shadow DOM's encapsulation *and* avoid the four-times-duplicated `<link>`, the platform feature built for exactly this is a <a href="https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet" target="_blank">`CSSStyleSheet`</a> constructed once and shared across shadow roots via <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/adoptedStyleSheets" target="_blank">`adoptedStyleSheets`</a>. The stylesheet is fetched and parsed exactly once, no matter how many components (or component *instances*) use it.
+
+```js title="shared-styles.js"
+let bootstrapSheetPromise;
+
+export function getBootstrapSheet() {
+  if (!bootstrapSheetPromise) {
+    bootstrapSheetPromise = fetch('https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css')
+      .then(res => res.text())
+      .then(cssText => {
+        const sheet = new CSSStyleSheet();
+        return sheet.replace(cssText).then(() => sheet);
+      });
+  }
+  return bootstrapSheetPromise;
+}
+```
+
+```js title="resource-header.js (shared stylesheet)" {1,9}
+import { getBootstrapSheet } from './shared-styles.js';
+
+const template = document.createElement('template');
+template.innerHTML = `<header class="mb-4">...</header>`;
+
+class ResourceHeader extends HTMLElement {
+  async connectedCallback() {
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.adoptedStyleSheets = [await getBootstrapSheet()];
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+  }
+}
+
+customElements.define('resource-header', ResourceHeader);
+```
+
+Every component imports the same `getBootstrapSheet()` and gets back the *same object reference* — one parse, one place that knows the CDN URL and version, no matter how many components (or instances of a component) end up using it. The trade-off: styling now depends on a small piece of shared JS infrastructure instead of "just a stylesheet," and `connectedCallback` needs to `await` before it's fully styled — so FOUC doesn't disappear, it just moves to a single well-understood spot.
+
+## Alternative 3: Give consumers a styling API instead
+
+Sometimes the better question isn't "how do I get *all* of Bootstrap into the shadow root" but "how much styling does this component actually need to expose to the outside world?" Two platform features let you answer that declaratively, with plain CSS and no JS:
+
+- <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::part" target="_blank">**`::part()`**</a> — mark specific internal elements with `part="..."`, and anyone using the component can style just those parts from ordinary CSS: `resource-header::part(title) { color: navy; }`.
+- **CSS custom properties as a theming contract** — write the component's internal styles against `var(--resource-header-accent, #333)`, and let consumers set `--resource-header-accent` in their own stylesheet.
+
+Both are narrower than "all of Bootstrap works in here," but they keep the styling surface fully declarative — a real web designer could theme the component without touching JavaScript or knowing Shadow DOM exists.
+
+## Alternative 4: Bake the CSS in at build time
+
+Since this project runs through Vite, there's a build-time option that sidesteps the runtime `fetch` entirely: import the CSS as a string at build time and inline it into the template.
+
+```js title="resource-header.js (build-time inline)"
+import bootstrapCss from 'bootstrap/dist/css/bootstrap.min.css?inline';
+
+const template = document.createElement('template');
+template.innerHTML = `
+  <style>${bootstrapCss}</style>
+  <header class="mb-4">...</header>`;
+```
+
+No network request at runtime, no `async`/`await`, no FOUC — the CSS is just a string constant by the time the browser sees it. The "declarative" surface for anyone maintaining the component shrinks to a single `import` line. The cost: it requires Bootstrap as an npm dependency rather than a CDN link, and every component that imports it separately still bundles/duplicates that CSS text unless you factor it into a shared module (same idea as Alternative 2, just resolved at build time instead of runtime).
+
+## Which one would I actually use?
+
+<CardGrid>
+  <Card title="Learning Shadow DOM for the first time">
+    Lesson 02's per-component `<link>` is the right call — it's the least new machinery between you and a working, styled component.
+  </Card>
+  <Card title="A real multi-component project">
+    Reach for the shared `adoptedStyleSheets` module (Alternative 2). One parse, one source of truth for the CDN URL/version.
+  </Card>
+  <Card title="A component meant to be reused/themed by others">
+    Prefer `::part()` and custom properties (Alternative 3) — a declarative styling contract ages better than depending on Bootstrap specifically.
+  </Card>
+  <Card title="Encapsulation isn't actually buying you anything here">
+    Light DOM rendering (Alternative 1) is a legitimate choice, not a cop-out — don't pay for isolation you don't need.
+  </Card>
+</CardGrid>
+
+See also: [Assignment 1 FAQ](/sdev-2150/notes/assignment-1-sep-2026/) for how much of this actually matters for grading (short version: not much — this is about understanding the trade-off, not picking the "correct" option).
+

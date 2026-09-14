@@ -1,0 +1,25 @@
+---
+title: SDEV-2150 | Assignment 1 FAQ
+description: SUMMARY
+sidebar:
+  label: Assignment 1 FAQ
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+Here are some of my takes on **Assigment 1** and the common questions you might have.
+
+## Using Bootstrap in the Components
+
+Styling the assignment's components is a secondary consideration compared to the *functional* requirements of each component. As such, I'm quite satisfied with just putting a `<link ...>` in the top of your component templates' `.innerHTML`, like we did with [Lesson 2](/sdev-2150/lessons/02/).
+
+If you're interested in other approaches to styling your custom elements, particularly with 3rd-party stylesheets, see the note on [Custom Elements and Stylesheets](./sdev-2150/notes/custom-elements-and-stylesheets/).
+
+Bootstrap, as a CSS library, is very prescriptive and opinionated in terms of how it shapes the HTML to make its CSS "work". Other frameworks, like Tailwind, allow you to let your HTML remain "King" of the content (instead of just a "puppet-king").
+
+That being said - when you are exploring Bootstrap for examples, don't just *blind copy-paste*. Put a little bit of thought into what you need for this assignment and try to stay in-scope of the requirements. Venturing into "how to make this look good" can burn up a lot of time you might not have to complete the assignment.!
+
+## Can I use the Light DOM?
+
+No. The lab is explicitly asking for you to use the Shadow DOM. I can hear you say, "But ...." The answer is still no.
