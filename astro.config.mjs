@@ -12,7 +12,9 @@ import clerk from '@clerk/astro';
 // https://astro.build/config
 export default defineConfig({
     site: 'https://dg-inclass.github.io',
-
+    markdown: {
+        gfm: true
+    },
     integrations: [
         clerk(),
         mermaid(),
