@@ -1,0 +1,932 @@
+---
+title: Custom Element Mechanics
+description: An AI-Generated response to the question, "Can you generate instructions on the mechanics of building Custom Elements?"
+---
+
+> A 20-Step process for building Custom Elements in Vanilla JavaScript.
+
+import Byline from "@components/astro/Byline.astro";
+
+<Byline author="Dan Gilleland" ai={{provider:"OpenAI", contribution: "full"}}>
+    <Fragment slot="prompt">Can you generate instructions on the "mechanics" of building Custom Elements?</Fragment>
+</Byline>
+
+A Guide for beginners....
+
+----
+
+# Custom Elements: The Mechanics
+
+A **Custom Element** is a browser feature that lets you create your own HTML element.
+
+Instead of writing:
+
+```html
+<div class="product-card">
+  ...
+</div>
+```
+
+you can create and use:
+
+```html
+<product-card></product-card>
+```
+
+The browser does not know what `<product-card>` means until you define it with JavaScript.
+
+---
+
+## 1. Create a JavaScript Class
+
+A Custom Element is usually created by defining a class that extends `HTMLElement`.
+
+```js
+class ProductCard extends HTMLElement {
+}
+```
+
+`HTMLElement` is the browser's base class for ordinary HTML elements.
+
+By extending it, `ProductCard` becomes an HTML element with all the normal capabilities of elements such as:
+
+* attributes,
+* classes,
+* events,
+* styles,
+* child elements,
+* DOM methods.
+
+---
+
+## 2. Register the Custom Element
+
+Creating the class is not enough.
+
+You must tell the browser which HTML tag should use that class.
+
+```js
+customElements.define(
+  "product-card",
+  ProductCard
+);
+```
+
+You can now write:
+
+```html
+<product-card></product-card>
+```
+
+### Custom Element names must contain a hyphen
+
+This is valid:
+
+```html
+<product-card></product-card>
+```
+
+This is not:
+
+```html
+<product></product>
+```
+
+The hyphen prevents future built-in HTML elements from conflicting with your custom element names.
+
+---
+
+## 3. Use the Constructor for Initial Setup
+
+The constructor runs when the Custom Element is created.
+
+```js
+class ProductCard extends HTMLElement {
+  constructor() {
+    super();
+  }
+}
+```
+
+Always call:
+
+```js
+super();
+```
+
+before using `this`.
+
+The constructor is commonly used to:
+
+* attach a Shadow DOM,
+* create internal DOM structure,
+* perform one-time setup.
+
+Avoid relying heavily on attributes or surrounding page content inside the constructor because the element may not yet be fully connected to the document.
+
+---
+
+## 4. Attach a Shadow DOM
+
+A Shadow DOM gives the component its own internal DOM tree.
+
+```js
+class ProductCard extends HTMLElement {
+  constructor() {
+    super();
+
+    this.attachShadow({
+      mode: "open"
+    });
+  }
+}
+```
+
+The component now has:
+
+```js
+this.shadowRoot
+```
+
+which represents its private internal DOM.
+
+You can add content to it:
+
+```js
+this.shadowRoot.innerHTML = `
+  <h2>Product</h2>
+  <p>Product description</p>
+`;
+```
+
+The HTML outside the component cannot normally reach inside the Shadow DOM using ordinary CSS selectors.
+
+This provides **encapsulation**.
+
+---
+
+## 5. Add Internal Styles
+
+Styles can be placed directly inside the Shadow DOM.
+
+```js
+this.shadowRoot.innerHTML = `
+  <style>
+    article {
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 0.5rem;
+    }
+  </style>
+
+  <article>
+    <h2>Product</h2>
+  </article>
+`;
+```
+
+These styles apply inside the Shadow DOM.
+
+They do not affect unrelated elements elsewhere on the page.
+
+Likewise, ordinary page CSS generally does not reach inside the Shadow DOM.
+
+---
+
+## 6. Use `:host` to Style the Custom Element Itself
+
+Inside Shadow DOM CSS, the Custom Element itself is represented by:
+
+```css
+:host
+```
+
+For example:
+
+```css
+:host {
+  display: block;
+}
+```
+
+This styles:
+
+```html
+<product-card>
+```
+
+rather than an element inside it.
+
+You can also react to attributes:
+
+```css
+:host([featured]) {
+  border: 2px solid gold;
+}
+```
+
+Then:
+
+```html
+<product-card featured>
+</product-card>
+```
+
+receives the special styling.
+
+---
+
+## 7. Use Slots for Consumer-Supplied Content
+
+A slot creates a location where HTML from outside the Shadow DOM can appear.
+
+Inside the component:
+
+```js
+this.shadowRoot.innerHTML = `
+  <article>
+    <slot></slot>
+  </article>
+`;
+```
+
+The consumer can write:
+
+```html
+<product-card>
+  <h2>Creek Deck Nemo</h2>
+  <p>A programmable desktop controller.</p>
+</product-card>
+```
+
+The `<h2>` and `<p>` appear where the `<slot>` is located.
+
+This is called the **default slot**.
+
+---
+
+## 8. Use Named Slots
+
+Components can provide multiple slots.
+
+```js
+this.shadowRoot.innerHTML = `
+  <article>
+    <header>
+      <slot name="title"></slot>
+    </header>
+
+    <slot name="description"></slot>
+
+    <footer>
+      <slot name="footer"></slot>
+    </footer>
+  </article>
+`;
+```
+
+The consumer assigns content using the `slot` attribute:
+
+```html
+<product-card>
+  <h2 slot="title">
+    Creek Deck Nemo
+  </h2>
+
+  <p slot="description">
+    Ten programmable buttons.
+  </p>
+
+  <small slot="footer">
+    SKU: CDN-10-BLK
+  </small>
+</product-card>
+```
+
+The Custom Element controls the structure.
+
+The consumer supplies the content.
+
+---
+
+## 9. Read Attributes
+
+Custom Elements can use ordinary HTML attributes.
+
+```html
+<product-price
+  value="89.99"
+  currency="CAD"
+></product-price>
+```
+
+Inside the class:
+
+```js
+const value =
+  this.getAttribute("value");
+
+const currency =
+  this.getAttribute("currency");
+```
+
+You can check whether an attribute exists:
+
+```js
+this.hasAttribute("featured");
+```
+
+You can modify attributes too:
+
+```js
+this.setAttribute(
+  "featured",
+  ""
+);
+```
+
+and:
+
+```js
+this.removeAttribute(
+  "featured"
+);
+```
+
+---
+
+## 10. Respond to Attribute Changes
+
+A Custom Element can automatically react when selected attributes change.
+
+First declare them:
+
+```js
+class ProductPrice extends HTMLElement {
+  static observedAttributes = [
+    "value",
+    "currency"
+  ];
+}
+```
+
+Then implement:
+
+```js
+attributeChangedCallback(
+  name,
+  oldValue,
+  newValue
+) {
+  console.log(
+    name,
+    oldValue,
+    newValue
+  );
+}
+```
+
+For example:
+
+```js
+price.setAttribute(
+  "value",
+  "99.99"
+);
+```
+
+can cause the component to re-render automatically.
+
+---
+
+## 11. Use Properties for Rich JavaScript Data
+
+HTML attributes are strings.
+
+That makes them useful for simple values such as:
+
+```html
+<product-price
+  value="89.99"
+  currency="CAD"
+></product-price>
+```
+
+Complex JavaScript values are usually better passed using properties.
+
+For example:
+
+```js
+const specs =
+  document.querySelector(
+    "product-specs"
+  );
+
+specs.specs = {
+  buttons: 10,
+  connection: "USB-C",
+  operatingSystems: [
+    "Windows",
+    "macOS",
+    "Linux"
+  ]
+};
+```
+
+The Custom Element can define a setter:
+
+```js
+set specs(value) {
+  this._specs = value;
+  this.render();
+}
+```
+
+and a getter:
+
+```js
+get specs() {
+  return this._specs;
+}
+```
+
+A useful rule is:
+
+> Use **attributes** for simple declarative values and **properties** for richer JavaScript data.
+
+---
+
+## 12. Use Lifecycle Callbacks
+
+Custom Elements have lifecycle methods that the browser calls automatically.
+
+### `connectedCallback()`
+
+Runs when the element is added to the document.
+
+```js
+connectedCallback() {
+  this.render();
+}
+```
+
+Common uses include:
+
+* rendering,
+* adding event listeners,
+* starting observers,
+* loading data.
+
+---
+
+### `disconnectedCallback()`
+
+Runs when the element is removed from the document.
+
+```js
+disconnectedCallback() {
+  // cleanup
+}
+```
+
+Common uses include:
+
+* removing event listeners,
+* stopping timers,
+* disconnecting observers.
+
+---
+
+### `attributeChangedCallback()`
+
+Runs when an observed attribute changes.
+
+```js
+attributeChangedCallback(
+  name,
+  oldValue,
+  newValue
+) {
+  this.render();
+}
+```
+
+---
+
+## 13. Create a `render()` Method
+
+A common pattern is to place display logic in a method named `render()`.
+
+```js
+class ProductPrice extends HTMLElement {
+  connectedCallback() {
+    this.render();
+  }
+
+  render() {
+    this.shadowRoot.innerHTML = `
+      <strong>
+        $89.99
+      </strong>
+    `;
+  }
+}
+```
+
+This is only a convention.
+
+The browser does not provide a built-in `render()` method.
+
+You create it yourself.
+
+As components become more sophisticated, avoid replacing the entire Shadow DOM unnecessarily because doing so can destroy:
+
+* event listeners,
+* element state,
+* user input,
+* focus.
+
+Often it is better to create the DOM once and then update specific elements.
+
+---
+
+## 14. Add Event Listeners
+
+Internal elements can respond to events normally.
+
+```js
+const button =
+  this.shadowRoot.querySelector(
+    "button"
+  );
+
+button.addEventListener(
+  "click",
+  () => {
+    console.log("Clicked");
+  }
+);
+```
+
+A component can also send information outward.
+
+---
+
+## 15. Dispatch Custom Events
+
+Custom Events allow a component to communicate with its parent application.
+
+```js
+this.dispatchEvent(
+  new CustomEvent(
+    "product-selected",
+    {
+      detail: {
+        id: "creek-deck-nemo"
+      },
+      bubbles: true,
+      composed: true
+    }
+  )
+);
+```
+
+The page can listen for it:
+
+```js
+document.addEventListener(
+  "product-selected",
+  event => {
+    console.log(
+      event.detail.id
+    );
+  }
+);
+```
+
+Two options are especially useful with Shadow DOM:
+
+```js
+bubbles: true
+```
+
+allows the event to travel up through parent elements.
+
+```js
+composed: true
+```
+
+allows the event to cross a Shadow DOM boundary.
+
+---
+
+## 16. Allow Normal Classes on the Host Element
+
+A Custom Element is still an HTML element.
+
+You can give it a class:
+
+```html
+<product-card
+  class="featured-product"
+>
+</product-card>
+```
+
+Normal CSS can style the host:
+
+```css
+.featured-product {
+  max-width: 30rem;
+  margin-inline: auto;
+}
+```
+
+Utility frameworks can do the same:
+
+```html
+<product-card
+  class="max-w-md mx-auto"
+>
+</product-card>
+```
+
+However, these classes do not automatically style elements inside the Shadow DOM.
+
+---
+
+## 17. Expose Styling with CSS Custom Properties
+
+A component can provide styling hooks using CSS variables.
+
+Inside the Shadow DOM:
+
+```css
+article {
+  background:
+    var(
+      --product-background,
+      white
+    );
+
+  border-radius:
+    var(
+      --product-radius,
+      0.5rem
+    );
+}
+```
+
+The consumer can override them:
+
+```css
+product-card {
+  --product-background:
+    lightyellow;
+
+  --product-radius:
+    1rem;
+}
+```
+
+This lets consumers customize the component without exposing all of its internal CSS.
+
+---
+
+## 18. Expose Internal Elements with `part`
+
+A component can deliberately expose selected internal elements.
+
+Inside the Shadow DOM:
+
+```html
+<article part="card">
+  <h2 part="title">
+    ...
+  </h2>
+</article>
+```
+
+Outside the component:
+
+```css
+product-card::part(card) {
+  border:
+    2px solid navy;
+}
+
+product-card::part(title) {
+  color: navy;
+}
+```
+
+`part` creates an explicit styling API.
+
+---
+
+## 19. Style Slotted Content
+
+Content inserted through a slot remains part of the page's light DOM.
+
+Inside Shadow DOM CSS, you can target slotted elements with:
+
+```css
+::slotted(*)
+```
+
+or:
+
+```css
+::slotted(h2) {
+  margin: 0;
+}
+```
+
+There is an important limitation:
+
+```css
+::slotted(...)
+```
+
+only targets the element directly assigned to the slot.
+
+It cannot reach arbitrary descendants inside that element.
+
+---
+
+## 20. Put the Component in an ES Module
+
+Custom Elements work naturally with JavaScript modules.
+
+For example:
+
+```text
+components/
+  product-card.js
+  product-price.js
+  product-specs.js
+```
+
+A component file might end with:
+
+```js
+customElements.define(
+  "product-card",
+  ProductCard
+);
+```
+
+Then load it:
+
+```html
+<script
+  type="module"
+  src="/components/product-card.js"
+></script>
+```
+
+or import it from another module:
+
+```js
+import "./components/product-card.js";
+```
+
+Once the module executes, the browser knows how to upgrade matching Custom Elements.
+
+---
+
+# Minimal Complete Example
+
+```js
+class HelloCard extends HTMLElement {
+  static observedAttributes = [
+    "name"
+  ];
+
+  constructor() {
+    super();
+
+    this.attachShadow({
+      mode: "open"
+    });
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+        }
+
+        article {
+          padding: 1rem;
+          border: 1px solid #ccc;
+          border-radius: 0.5rem;
+        }
+      </style>
+
+      <article>
+        <h2></h2>
+
+        <slot></slot>
+      </article>
+    `;
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  attributeChangedCallback() {
+    this.render();
+  }
+
+  render() {
+    const heading =
+      this.shadowRoot.querySelector(
+        "h2"
+      );
+
+    const name =
+      this.getAttribute("name")
+      ?? "World";
+
+    heading.textContent =
+      `Hello, ${name}!`;
+  }
+}
+
+customElements.define(
+  "hello-card",
+  HelloCard
+);
+```
+
+Use it like normal HTML:
+
+```html
+<hello-card name="Dan">
+  <p>
+    This content is supplied
+    through the default slot.
+  </p>
+</hello-card>
+```
+
+# The Core Pattern
+
+Most vanilla Custom Elements follow roughly this pattern:
+
+```js
+class MyElement extends HTMLElement {
+  static observedAttributes = [];
+
+  constructor() {
+    super();
+
+    this.attachShadow({
+      mode: "open"
+    });
+
+    // Create internal DOM.
+  }
+
+  connectedCallback() {
+    // Element entered the page.
+  }
+
+  disconnectedCallback() {
+    // Element left the page.
+  }
+
+  attributeChangedCallback(
+    name,
+    oldValue,
+    newValue
+  ) {
+    // Respond to attributes.
+  }
+
+  render() {
+    // Update presentation.
+  }
+}
+
+customElements.define(
+  "my-element",
+  MyElement
+);
+```
+
+The main mechanical pieces are therefore:
+
+1. **Extend `HTMLElement`.**
+2. **Register the element with `customElements.define()`.**
+3. **Attach a Shadow DOM when encapsulation is useful.**
+4. **Use slots to accept HTML content.**
+5. **Use attributes for simple configuration.**
+6. **Use properties for complex JavaScript data.**
+7. **Use lifecycle callbacks to respond to DOM changes.**
+8. **Use events to communicate outward.**
+9. **Use CSS custom properties and `part` to expose controlled styling.**
+10. **Compose small Custom Elements into larger Custom Elements.**
+
+A Custom Element is ultimately just an HTML element with a JavaScript class attached to it. The goal is not to replace HTML, but to create new HTML vocabulary for concepts that matter to your application.

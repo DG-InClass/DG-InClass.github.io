@@ -1,0 +1,118 @@
+---
+import { Aside } from "@astrojs/starlight/components";
+
+/* Usage:
+
+<Byline author="Dan Gilleland" />
+<Byline author={["Dan Gilleland", "Jane Doe"]} date="2026-09-14" />
+<Byline author="Dan Gilleland" ai={{ provider: "Anthropic", model: "Claude", contribution: "asEditor", href: "https://claude.ai/share/..." }}>
+    <Fragment slot="prompt">Rewrite this section to be more concise.</Fragment>
+</Byline>
+
+*/
+interface AIAttribution {
+    provider?: "OpenAI" | "Anthropic" | "Google";
+    model?: string;
+    contribution: "full" | "asEditor" | "asAuthor" | "sharedAuthorship";
+    href?: string;
+}
+
+interface Props {
+    author: string | string[];
+    date?: Date | string;
+    ai?: AIAttribution;
+}
+
+const { author, date, ai } = Astro.props as Props;
+const authors = Array.isArray(author) ? author : [author];
+
+const formattedDate = date
+    ? new Date(date).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+      })
+    : undefined;
+
+const tool = ai
+    ? [ai.provider, ai.model].filter(Boolean).join(" ")
+    : undefined;
+const toolPhrase = tool ? ` (${tool})` : "";
+
+const disclosures: Record<AIAttribution["contribution"], string> = {
+    full: `This content was generated entirely by AI${toolPhrase}. It has not been substantially edited by a human author.`,
+    asEditor: `AI${toolPhrase} was used to edit, refine, or improve content originally written by a human author.`,
+    asAuthor: `This content was authored by AI${toolPhrase}, with review and oversight from a human editor.`,
+    sharedAuthorship: `This content reflects a collaborative effort between a human author and AI${toolPhrase}.`,
+};
+
+const prefix = ai?.contribution === "full" ? "Prompted by" : "By";
+const hasPrompt = Boolean(ai) && Astro.slots.has("prompt");
+---
+
+<p class="byline">
+    {prefix} {authors.join(", ")}{formattedDate && <> &middot; {formattedDate}</>}
+</p>
+
+{
+    ai && (
+        <Aside type="note" title="AI Authorship Disclosure">
+            {disclosures[ai.contribution]}
+            {ai.href && (
+                <>
+                    {" "}
+                    <a href={ai.href} target="_blank">
+                        Learn more
+                    </a>
+                </>
+            )}
+        </Aside>
+    )
+}
+
+{
+    hasPrompt && (
+        <div class="prompt-box">
+            <div class="prompt-box-label">Prompt</div>
+            <div class="prompt-box-input">
+                <slot name="prompt" />
+            </div>
+        </div>
+    )
+}
+
+<style>
+    .byline {
+        font-size: var(--sl-text-sm);
+        color: var(--sl-color-gray-3);
+        margin-top: 1rem;
+    }
+
+    .prompt-box {
+        margin-block: var(--sl-spacing-3);
+        border: 1px solid var(--sl-color-gray-5);
+        border-radius: 0.75rem;
+        background: var(--sl-color-bg-nav);
+        box-shadow: var(--sl-shadow-sm);
+        overflow: hidden;
+    }
+    .prompt-box-label {
+        font-size: var(--sl-text-xs);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--sl-color-gray-3);
+        padding: 0.4rem 0.9rem 0;
+    }
+    .prompt-box-input {
+        margin: 0.5rem;
+        padding: 0.6rem 0.9rem;
+        border: 1px solid var(--sl-color-gray-5);
+        border-radius: 0.5rem;
+        background: var(--sl-color-bg);
+        font-family: var(--__sl-font-mono, ui-monospace, monospace);
+        font-size: var(--sl-text-sm);
+        color: var(--sl-color-text);
+        white-space: pre-wrap;
+    }
+</style>
