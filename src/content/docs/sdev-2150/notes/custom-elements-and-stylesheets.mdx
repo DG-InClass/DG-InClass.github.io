@@ -8,6 +8,11 @@ sidebar:
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 
+import Byline from "@components/astro/Byline.astro";
+
+<Byline author="Dan Gilleland" ai={{provider:"OpenAI", contribution: "full"}}>
+</Byline>
+
 In [Lesson 02](/sdev-2150/lessons/02/) we ran into a real limitation of Shadow DOM: a page-level `<link>` to Bootstrap doesn't style anything rendered inside a shadow root. Shadow DOM is deliberately style-isolated — that's the whole point of it — so the fix we reached for in class was to put a second `<link>` directly inside each component's own template.
 
 This note unpacks *why* that was necessary, what it costs, and what the alternatives look like.
