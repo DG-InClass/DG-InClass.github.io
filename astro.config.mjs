@@ -87,8 +87,7 @@ export default defineConfig({
                         link: '/general/',
                         icon: 'laptop',
                         items: [
-                            'general',
-                            'general/quality',
+                            { label: 'Generally Expected', items: [{ autogenerate: { directory: 'general' }} ] },
                         ]
                     },
                     {
