@@ -91,12 +91,12 @@ export default defineConfig({
                         ]
                     },
                     {
-                        label: 'SDEV-1150',
+                        label: 'SDEV-1150 (JavaScript)',
                         id: 'sdev1150',
                         link: '/sdev-1150/',
                         icon: 'information',
                         items: [
-                            { label: "References", items: ['sdev-1150','sdev-1150/qna']},
+                            { label: "About SDEV-1150", items: ['sdev-1150','sdev-1150/qna']},
                             { 
                                 label: "Lessons",
                                 items: [{ autogenerate: { directory: 'sdev-1150/lessons' } }]
@@ -108,12 +108,12 @@ export default defineConfig({
                         ],
                     },
                     {
-                        label: 'SDEV-2150',
+                        label: 'SDEV-2150 (React)',
                         id: 'sdev2150',
                         link: '/sdev-2150/',
                         icon: 'information',
                         items: [
-                            { label: "References", items: ['sdev-2150','sdev-2150/qna']},
+                            { label: "About SDEV-2150", items: ['sdev-2150','sdev-2150/qna']},
                             {
                                 label: "Lessons",
                                 items: [{ autogenerate: { directory: 'sdev-2150/lessons' } }]
@@ -139,7 +139,7 @@ export default defineConfig({
                         ],
                     },
                     {
-                        label: 'Errata',
+                        label: 'Everything Else',
                         id: 'errata',
                         link: '/guides/',
                         icon: 'information',
