@@ -152,6 +152,10 @@ export default defineConfig({
                                 label: 'Reference',
                                 items: [{ autogenerate: { directory: 'reference' }} ] 
                             },
+                            {
+                                label: 'Left Field',
+                                items: [{ autogenerate: { directory: 'left-field' }} ]
+                            },
                         ],
                     },
                 ],

@@ -1,0 +1,130 @@
+---
+title: JavaScript for PHP Developers
+description: People come into JavaScript from all sorts of prior programming backgrounds. Here's some tips for those with experience in PHP.
+---
+
+import { Aside, CardGrid, Card } from '@astrojs/starlight/components';
+
+import Byline from "@components/astro/Byline.astro";
+
+<Byline author="Dan Gilleland" ai={{provider:"Anthropic", model:"Claude", contribution: "full"}}>
+  <Fragment slot="prompt">Can you do a write-up in `src\content\docs\left-field\javascript-vs-php.mdx` on this? (Following on from "Can you say what would be helpful tips/considerations for people learning JavaScript who are coming from a PHP background?")</Fragment>
+</Byline>
+
+If you already know PHP, you're not starting from zero with JavaScript — variables, functions, loops, and classes all exist in both. But a few of the *concepts* underneath those familiar keywords are genuinely different, not just renamed. This is a tour of the places where PHP intuition helps, and the places where it'll quietly mislead you.
+
+## The execution model is the real shift
+
+This is the one worth internalizing before anything else, because it changes how you think about every other feature.
+
+A PHP script runs on the server, produces a response, and then it's done — the process ends. JavaScript in the browser runs continuously in an **event loop** for as long as the page stays open, reacting to clicks, timers, and network responses whenever they happen. There's no "the script is over now."
+
+Practically, that also means:
+
+- There are no superglobals like `$_GET`, `$_POST`, or `$_SESSION`. Client-side JS reads form data from the DOM directly and talks to a server explicitly, with `fetch`.
+- Node.js (JavaScript running server-side) is closer to PHP's role, but it's still built on that same event-loop model rather than PHP's one-process-per-request approach.
+
+<Aside type="tip" title="Where this actually bites">
+  Most "JavaScript is confusing" complaints from PHP developers trace back to this, not syntax. If code isn't running when you expect, or a value isn't there yet, the event loop is almost always why.
+</Aside>
+
+## Asynchronous code
+
+PHP code is mostly synchronous, top to bottom — you call a function, you get a result. JavaScript leans on **asynchronous** operations constantly: `fetch`, timers, anything I/O-bound in Node. Under the hood this evolved through callbacks → Promises → `async`/`await`.
+
+Start with `async`/`await` — it reads closest to the PHP habit of "call it and get the result back":
+
+```js
+async function loadUser(id) {
+  const response = await fetch(`/api/users/${id}`);
+  const user = await response.json();
+  return user;
+}
+```
+
+The `await` keyword pauses *that function* until the Promise resolves, without blocking the rest of the page. That's the concept to hold onto — nothing else is running while a PHP script waits on a database, but plenty else can be running while JS `await`s a `fetch`.
+
+## Types and equality
+
+- No `$` sigil — variables are just `let total = 0;`.
+- `==` performs type coercion in **both** languages, but the coercion rules aren't the same — don't trust PHP instincts here. Default to `===` / `!==` in JavaScript almost always; it skips coercion entirely and behaves the way you'd expect.
+- JavaScript distinguishes `null` (explicitly empty) from `undefined` (declared but never assigned, or simply doesn't exist). PHP only has `null` for both cases.
+- Coercion quirks are sharper in JS — `"5" + 1` gives `"51"` (string concatenation wins), but `"5" - 1` gives `4` (numeric coercion wins). Worth deliberately learning a few of these rather than guessing under pressure.
+
+## Arrays and objects
+
+PHP's array is one flexible, ordered map used for everything — numeric lists, associative data, all of it. JavaScript splits this into two types:
+
+- **`Array`** — ordered lists, indexed by number.
+- **`Object`** (or `Map`) — key/value data.
+
+You have to pick one on purpose instead of getting both behaviors for free from a single type.
+
+Array helper functions exist in both languages, but the calling convention flips:
+
+```php
+// PHP: callback comes first, array second
+$doubled = array_map(fn($n) => $n * 2, $numbers);
+```
+
+```js
+// JavaScript: method lives on the array, callback comes first
+const doubled = numbers.map(n => n * 2);
+```
+
+## Strings
+
+Concatenation is `+`, not `.`:
+
+```js
+const greeting = "Hello, " + name + "!";
+```
+
+Template literals are the more common approach in modern JS, and read close to PHP's double-quoted string interpolation — just with different delimiters:
+
+```js
+const greeting = `Hello, ${name}!`;
+```
+
+## Functions, scope, and `this`
+
+- `var` is function-scoped and mostly legacy at this point. Use `let` (reassignable) and `const` (not reassigned) instead — they're block-scoped, which matches what a PHP developer would already expect from `{ }` blocks.
+- Functions are first-class values in both languages — PHP has closures and anonymous functions too — but JavaScript leans on this far more heavily day to day: callbacks, array methods, event handlers are all "just pass a function."
+- `this` is where PHP's `$this` stops being a reliable guide. In PHP, `$this` inside a method always refers to the object the method was called on — simple and consistent. In JavaScript, what `this` refers to depends on **how the function was called**, not where it was defined, and it can change unexpectedly when a function is passed around as a callback.
+
+```js
+class Counter {
+  count = 0;
+  increment() {
+    this.count++;
+  }
+}
+```
+
+That looks safe, but pass `counter.increment` as a callback (e.g. to `setTimeout` or an event listener) and `this` can stop pointing at `counter` altogether. Arrow functions sidestep the problem by not having their own `this` — they inherit it from the surrounding scope, which is why they show up everywhere in modern JS, especially for callbacks:
+
+```js
+button.addEventListener('click', () => this.increment());
+```
+
+## Classes
+
+ES6 `class` syntax looks a lot like a PHP class — constructors, methods, `extends` — but it's syntactic sugar over JavaScript's underlying **prototypal** inheritance, not a separate class system the way PHP's is. Day-to-day usage feels familiar; just don't expect identical machinery underneath if you go looking for it.
+
+## Tooling
+
+- `npm` and `package.json` play the role of Composer and `composer.json`.
+- `console.log()` is the debugging equivalent of `var_dump()` / `echo`, but the output goes to the browser's DevTools console (or the terminal, in Node), not the rendered page.
+
+## If you only take two things from this
+
+<CardGrid>
+  <Card title="The event loop">
+    JavaScript doesn't run top-to-bottom-and-done the way a PHP request does. Code reacts to events and can run long after the page first loads — this reframes almost everything else.
+  </Card>
+  <Card title="this is dynamic">
+    Unlike PHP's `$this`, JavaScript's `this` depends on how a function is *called*, not where it's defined. Prefer arrow functions for callbacks until this stops surprising you.
+  </Card>
+</CardGrid>
+
+Everything else on this page is closer to "different syntax for a familiar idea." Those two are actual shifts in mental model — worth the extra attention.
