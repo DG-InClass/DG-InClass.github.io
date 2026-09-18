@@ -23,3 +23,17 @@ That being said - when you are exploring Bootstrap for examples, don't just *bli
 ## Can I use the Light DOM?
 
 No. The lab is explicitly asking for you to use the Shadow DOM. I can hear you say, "But ...." The answer is still no.
+
+## Backend "Endpoint Not Found"
+
+When spinning up the backend, if you navigate to `http://localhost:3000` you will see "**Error: endpoint not found**". That's because the host URL is, itself, not a valid endpoint.
+
+import notFound from './assignment-1-sep-2026/endpoint-not-found.png';
+import found from './assignment-1-sep-2026/valid-endpoint.png';
+
+| Host URL only | URL with Endpoint |
+|---------------|-------------------|
+| `http://localhost:3000` | `http://localhost:3000/images/pet-1-mochi.jpg` |
+| <Image src={notFound} alt="Sample bad endpoint" /> | <Image src={found} alt="Valid endpoint" /> |
+
+Read through all the documentation for the `backend\README.md` to discover the valid endpoints for the assignment.
