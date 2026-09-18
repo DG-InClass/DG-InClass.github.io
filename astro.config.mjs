@@ -131,7 +131,12 @@ export default defineConfig({
                         icon: 'information',
                         items: ['dmit',
                             { 
-                                label: "DMIT-2008", items: ['dmit/dmit-2008']
+                                label: "DMIT-2008", items: [
+                                    'dmit/dmit-2008',
+                                    'dmit/dmit-2008-c3',
+                                    'dmit/dmit-2008-c4',
+                                    'dmit/dmit-2008-c5',
+                                ]
                             },
                             { 
                                 label: "CPSC-1520", items: ['dmit/cpsc-1520']
