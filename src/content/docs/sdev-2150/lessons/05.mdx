@@ -44,6 +44,10 @@ We are still not using a framework. The goal is to understand the mental model t
 
 ## Activity
 
+<Aside type="note" title="REST-ful Fetching">
+  It helps to recall how [HTTP and Server-Side Endpoints](/sdev-1150/lessons/180/) work along with [`fetch()` calls](/sdev-1150/lessons/190/).
+</Aside>
+
 ### Starter Kit Code
 
 Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
@@ -61,11 +65,39 @@ Grab the starter kit code for your Workbook by running the following in the VS C
   </TabItem>
 </Tabs>
 
+The first thing to note about this starter kit is that it's comprised of two projects:
+
+<FileTree>
+- backend/ Data provided via a separate project
+- frontend/ Web project consuming a backend API
+</FileTree>
+
+The `backend/` project is a simple server running on port 3000 that exposes the following endpoints:
+
+```http
+# List all resources
+GET /resources
+
+# Get one resource by id
+GET /resources/:id
+
+# Create a resource
+POST /resources
+Content-Type: application/json
+
+# Update a resource
+PUT /resources/:id
+Content-Type: application/json
+
+# Delete a resource
+DELETE /resources/:id
+```
+
+To understand the structure of the data being represented, examine the `backend/resources.json` and the `backend/README.md`.
 
 ### Running the Projects
 
-The project comes with two separate projects - one to represent our frontend and another to represent our backend.
-
+Given that we are working with two projects, both need to be started in the terminal.
 
 <Steps>
 1. Open two separate terminal windows in VS Code. Perform an install and run in both of them.
