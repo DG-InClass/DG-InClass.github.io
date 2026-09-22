@@ -37,3 +37,50 @@ import found from './assignment-1-sep-2026/valid-endpoint.png';
 | <Image src={notFound} alt="Sample bad endpoint" /> | <Image src={found} alt="Valid endpoint" /> |
 
 Read through all the documentation for the `backend\README.md` to discover the valid endpoints for the assignment.
+
+## JSDoc Is Your Friend
+
+I strongly encourage you to set up some JSDoc comments for your API endpoints file. You will get more useful intellisense out of VS Code if you do. It's a little bit more up-front work, but it can be worth it!
+
+----
+
+## Rubrics
+
+The Rubrics for the lab are posted on Brightspace. I've also compiled a markdown file if you want to create your own `RUBRICS.md` in your repo.
+
+```md title="RUBRICS.md"
+# Rubrics
+
+> Automated tests are **not counted** in evaluating your assignment. Assignments will be evaluated based on code review, commit history, and a manual execution of your submission. Alternate test data may be used in the manual evaluation.
+
+## Evaluation Criteria (20 Marks Total)
+
+**NOTE: You must demonstrate incremental development of your solution. This means that you must begin work on your solution as soon as possible and commit often to the assignment repository. Each commit must demonstrate functional improvements to the solution. Failure to show incremental work during the assignment period will result in loss of marks of up to 20%.**
+
+**Additionally, you are encouraged to use external resources to help you learn what is needed for the assignment. However, if you submit code that differs greatly from what was demonstrated in class it must be documented (e.g. comments, citations, etc.) and you may be asked to provide a verbal explanation of how the code works to your instructor. Failure to explain any code you submitted will be considered as potential evidence of academic misconduct and may trigger an investigation, potentially resulting in further consequences.**
+
+| Category | Marks | Description |
+| --- | --- | --- |
+| Functional Completeness <sup>†</sup> | 5 | Pet list, pet selection, tasks view, and task completion work end to end |
+| Web Components + Events | 5 | Custom elements + Shadow DOM + custom events are used correctly |
+| Async + Error Handling | 3 | Loading/error/empty states are clear and correct |
+| UI, Accessibility, Styling | 2 | Readable, accessible UI basics |
+| Code Quality <sup>†</sup> | 1 | Reasonable structure and separation of concerns |
+| Reflection | 4 | Clear, thoughtful answers in README |
+
+> **NOTE:** see attached rubric on Brightspace for more details on criterion scoring.
+>
+> **†** - Functional Completeness and Code Quality are combined in the Brightspace Rubric
+
+## Testing and Feedback
+
+Follow directions in TESTS.md.
+
+## Reflection Prompt (for README)
+
+Add a section to your README that answers:
+
+-   Which Web Component in your solution owns the most important piece of state? Identify the state value, where it changes, and one UI behaviour that would break if that state were stored somewhere else.
+-   Describe one bug or unexpected behaviour you encountered while connecting two components with custom events. What event was involved, what was the symptom, and what exact change fixed it?
+-   Choose one loading, empty, or error state from your app. What backend response or user action triggers it, and what specific text or markup does your component render in that case?
+```
