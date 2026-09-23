@@ -35,6 +35,10 @@ You are allowed to change the signature of the API functions by removing the `as
   };
 ```
 
+## Using the `.env` File
+
+Note that the `.env` file should be placed under the `app/src/` folder in order to be picked up by the running project. This is because the `package.json` has the `dev` script as `"dev": "vite serve src"`.
+
 ## Backend "Endpoint Not Found"
 
 When spinning up the backend, if you navigate to `http://localhost:3000` you will see "**Error: endpoint not found**". That's because the host URL is, itself, not a valid endpoint.
