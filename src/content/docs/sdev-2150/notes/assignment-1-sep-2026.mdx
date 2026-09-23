@@ -24,6 +24,17 @@ That being said - when you are exploring Bootstrap for examples, don't just *bli
 
 No. The lab is explicitly asking for you to use the Shadow DOM. I can hear you say, "But ...." The answer is still no.
 
+## API Calls
+
+You are allowed to change the signature of the API functions by removing the `async` keyword (see the following example). This is permissable/advisable if you are returning the promised `fetch` results directly instead of using `await`. Either way, **you must do the parsing of JSON responses *within* this layer**. 
+
+```diff lang="js" title="pet-care-api.js" "async"
+- export const createCareLogEntry = async () => {
++ export const createCareLogEntry = () => {
+    throw new Error('TODO: implement createCareLogEntry');
+  };
+```
+
 ## Backend "Endpoint Not Found"
 
 When spinning up the backend, if you navigate to `http://localhost:3000` you will see "**Error: endpoint not found**". That's because the host URL is, itself, not a valid endpoint.
