@@ -1,6 +1,6 @@
 ---
 title: API Data
-description: Reference for the static JSON files served under /api/countries/ for use in course projects.
+description: Reference for the static JSON files and images served under /api/ for use in course projects, plus other free APIs.
 ---
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
@@ -9,9 +9,108 @@ Every programmer seeking to explore <a href="https://developer.mozilla.org/docs/
 
 ## Plain JSON *(this site)*
 
-This site serves a couple of static JSON files under `/api/countries/` that you can fetch
-from a course project when you need sample country/state/city data but don't want to depend on a live third-party API.
+This site serves a few static JSON files (and some images) under `/api/` that you can fetch
+from a course project when you need sample data but don't want to depend on a live third-party API.
 
+### Fetching from your own project (CORS)
+
+Your project runs on a different **origin** than this site (e.g. `http://localhost:5173` versus `https://dg-inclass.github.io`), so every request you make to these endpoints is a *cross-origin* request. Browsers block cross-origin responses unless the server allows them through <a href="https://developer.mozilla.org/docs/Web/HTTP/Guides/CORS" target="_blank">Cross-Origin Resource Sharing (CORS)</a>.
+
+The good news: this site is hosted on GitHub Pages, which sends `Access-Control-Allow-Origin: *` with **every** file. That means any page, on any origin, can `fetch()` these endpoints without an API key, a proxy, or any special options. This applies to every endpoint listed on this page, including any added in the future.
+
+The one thing you *must* do is use the **full URL**, not the root-relative path shown in the headings below:
+
+```js
+const API_BASE = 'https://dg-inclass.github.io/api';
+
+async function getStates() {
+  const response = await fetch(`${API_BASE}/countries/states.json`);
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+  const json = await response.json();
+  return json.data; // the array of countries
+}
+```
+
+<Aside type="caution" title="Relative paths won't work">
+  If you write `fetch('/api/countries/states.json')` in *your* project, the browser asks *your* dev server for that file, and you'll get a `404`. Always include `https://dg-inclass.github.io` at the front.
+</Aside>
+
+A few more tips:
+
+- **Keep the request simple.** A plain `GET` with no custom headers is all you need. Adding headers such as `Content-Type` or `Authorization` to a `GET` makes the browser send an extra "preflight" request first, and that isn't needed here.
+- **Don't use `mode: 'no-cors'`.** It hides the response body from your code, so `response.json()` will fail. The default mode (`'cors'`) is correct.
+- **Responses are cached briefly.** GitHub Pages lets browsers cache these files for about 10 minutes, so an updated file may take a few minutes to show up.
+- **Images don't need `fetch()`.** To show an image, such as a flag, set it as the `src` of an `<img>`. Images load across origins without any CORS setup.
+
+### Countries and flags
+
+[`/api/countries/countries.json`](/api/countries/countries.json) lists every country along with links to an SVG image of its flag.
+
+It uses the same `error` / `msg` / `data` envelope as the other files. Each entry in `data` looks like this:
+
+```json
+{
+  "error": false,
+  "msg": "countries retrieved",
+  "data": [
+    {
+      "iso2": "CA",
+      "iso3": "CAN",
+      "name": "Canada",
+      "flag": {
+        "rect": "https://dg-inclass.github.io/api/countries/flags/4x3/ca.svg",
+        "square": "https://dg-inclass.github.io/api/countries/flags/1x1/ca.svg"
+      }
+    }
+  ]
+}
+```
+
+Each object in `data` has:
+
+- **`iso2`** &mdash; the country's two-letter ISO code (e.g. `"CA"`)
+- **`iso3`** &mdash; the country's three-letter ISO code (e.g. `"CAN"`)
+- **`name`** &mdash; the country's full name
+- **`flag`** &mdash; an object with full URLs to the country's flag, or `null` if there is no flag (currently only the former *Netherlands Antilles*):
+  - **`rect`** &mdash; the flag in a 4:3 rectangle
+  - **`square`** &mdash; the flag in a 1:1 square
+
+The `iso2` and `iso3` codes match the ones in `cities.json` and `states.json`, so you can use them to combine data from all three files.
+
+To display a flag, put its URL in an `<img>`:
+
+```js
+const API_BASE = 'https://dg-inclass.github.io/api';
+
+const response = await fetch(`${API_BASE}/countries/countries.json`);
+const { data: countries } = await response.json();
+
+const canada = countries.find(c => c.iso2 === 'CA');
+const img = document.createElement('img');
+img.src = canada.flag.rect;
+img.alt = `Flag of ${canada.name}`;
+img.width = 64;
+document.body.append(img);
+```
+
+#### Flag images
+
+The flags are standalone SVG files, so you can link to them directly without the JSON file. The URL pattern uses the **lowercase** two-letter code:
+
+```
+https://dg-inclass.github.io/api/countries/flags/4x3/{code}.svg
+https://dg-inclass.github.io/api/countries/flags/1x1/{code}.svg
+```
+
+For example, [`flags/4x3/ca.svg`](/api/countries/flags/4x3/ca.svg) is Canada's flag. If your code is uppercase, call `.toLowerCase()` on it before you build the URL.
+
+Besides the countries, there are also flags for a few regions and organizations that aren't in `countries.json`, such as `eu` (European Union), `un` (United Nations), `gb-eng` (England), `gb-sct` (Scotland), `gb-wls` (Wales), and `es-ct` (Catalonia).
+
+<Aside title="Credit">
+  The flag images come from <a href="https://github.com/lipis/flag-icons" target="_blank">flag-icons</a> (v7.5.0) by Panayiotis Lipiridis and are used under the [MIT License](/api/countries/flags/LICENSE.txt).
+</Aside>
 
 ### Cities by country
 
