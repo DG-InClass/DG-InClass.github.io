@@ -26,7 +26,7 @@ No. The lab is explicitly asking for you to use the Shadow DOM. I can hear you s
 
 ## API Calls
 
-You are allowed to change the signature of the API functions by removing the `async` keyword (see the following example). This is permissable/advisable if you are returning the promised `fetch` results directly instead of using `await`. Either way, **you must do the parsing of JSON responses *within* this layer**. 
+You are allowed to change the signature of the API functions by removing the `async` keyword (see the following example). This is permissable/advisable if you are returning the promised `fetch` results directly instead of using `await`. Either way, **you must do the parsing of JSON responses *within* this layer**. Additionally, if your API function requires additional information (quite likely for a few of the functions), you are permitted/expected to add appropriate parameters to the function signature.
 
 ```diff lang="js" title="pet-care-api.js" "async"
 - export const createCareLogEntry = async () => {
