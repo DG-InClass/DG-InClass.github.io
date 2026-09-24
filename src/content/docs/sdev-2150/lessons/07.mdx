@@ -3,7 +3,6 @@ title: Framework Foundations and Component Building
 description: SUMMARY
 sidebar:
   label: 07 - React Intro
-draft: true
 ---
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
@@ -18,13 +17,158 @@ TBD
 
 ## Activity
 
-TBD
+This introduction to React includes scaffolding a new React project from scratch based on Vite.
+
+### Starter Kit Code
+
+Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
+
+<Tabs syncKey='section'>
+  <TabItem label='A01'>
+    ```ps
+    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-2150-A01-Sep-2026/sk/day-07/example/lesson-07-starter ./src/lesson-07
+    ```
+  </TabItem>
+  <TabItem label='A02'>
+    ```ps
+    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-2150-A02-Sep-2026/sk/day-07/example/lesson-07-starter ./src/lesson-07
+    ```
+  </TabItem>
+</Tabs>
+
+The starter kit comes with the backend project ready-to-run. Since we'll be introducing React for the first time, we'll generate our frontend project from scratch.
+
+<FileTree>
+- backend/ Provided for you
+- frontend/ We will create this "from scratch"
+</FileTree>
+
+### Scaffolding the Frontend
+
+<Aside type="note" title="Create Vite as of Sep 2026">
+  The particular prompts following `create vite@latest` may change over time. The ones shown here are as of September 2026.
+</Aside>
+
+<Steps>
+1. Open the terminal and run the following code
+
+    ```ps title="Run from parent folder of the `/backend/` project"
+    pnpm create vite@latest frontend
+    ```
+
+    This will kick off a series of questions about the type of Vite project you want to scaffold.
+1. Choose `React` when prompted to "Select a framework".
+1. Choose `JavaScript` when prompted to "Select a variant".
+1. Choose `ESLint` when asked "Which linter to use?"
+
+    Note that the default option is to use `Oxlint`, which is probably the "better" choice for modern developers. We are using ESLint because it's become the more established JavaScript linter over the last decade or so.
+    
+    Learn more at <a href="https://oxc.rs/docs/guide/usage/linter.html" target="_blank">Oxlint</a> and take a moment to read <a href="https://betterstack.com/community/guides/scaling-nodejs/oxlint-vs-eslint/" target="_blank">Oxlint vs ESLint: Comparing JavaScript Linters</a>.
+1. Choose `Yes` when asked to "Install with pnpm and start now?"
+</Steps>
+
+### Touring the Scaffolded Code
+
+When touring any scaffolded project, it's good to focus on two aspects: The physical file/folder structure and contents, and the dependencies in the `package.json`.
+
+<FileTree>
+- backend/
+- frontend
+  - public/ Static resources such as images
+  - src
+    - assets/ Resources (images, etc.) that can be "processed"
+    - App.css
+    - **App.jsx**
+    - index.css
+    - **main.jsx**
+  - .gitignore
+  - eslint.config.js
+  - **index.html**
+  - package.json
+  - README.md
+  - vite.config.js
+</FileTree>
+
+The `package.json` has these notable depedencies.
+
+```json "\"react\"" "\"react-dom\"" "\"vite\""
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "vite": "^8.3.0"
+  }
+```
+
+<Steps>
+1. Open the `eslint.config.js` and take note of the code provided. Notice that the files being "linted" are `.js` and `.jsx`.
+1. Open the `index.html` and note that it's pretty "bare-bones". Its body only has a single `div` and a `script`.
+
+    ```html title="index.html"
+      <body>
+        <div id="root"></div>
+        <script type="module" src="/src/main.jsx"></script>
+      </body>
+    ```
+
+1. Since `main.jsx` is the entry point for the app, open that as well.
+
+    ```jsx title="main.jsx"
+    import { StrictMode } from 'react'
+    import { createRoot } from 'react-dom/client'
+    import './index.css'
+    import App from './App.jsx'
+
+    createRoot(document.getElementById('root')).render(
+      <StrictMode>
+        <App />
+      </StrictMode>,
+    )
+    ```
+
+    One of the big things to notice is the use of "tags" inside our JavaScript. This is **JSX**. All of these tags will be "pre-processed" as part of the build/compile step and converted into appropriate `document.createElement()` statements which assemble the markup for injecting into the DOM.
+
+1. The `<App />` tag refers to what is in the `App.jsx`. Open that file now and browse the contents.
+</Steps>
+
+----
+
 
 ## Practice
 
 TBD
 
 ----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## OLD Content....
 
@@ -53,24 +197,6 @@ import dragons from '@assets/other/here-be-dragons.png';
 
 ----
 
-## Starter Kit Code
-
-Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
-
-<Tabs syncKey='section'>
-  <TabItem label='A01'>
-    ```ps
-    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-2150-A01-Sep-2026/sk/day-07/example/lesson-07-starter ./src/lesson-07
-    ```
-  </TabItem>
-  <TabItem label='A02'>
-    ```ps
-    pnpm dlx tiged --disable-cache --force DG-InClass/SDEV-2150-A02-Sep-2026/sk/day-07/example/lesson-07-starter ./src/lesson-07
-    ```
-  </TabItem>
-</Tabs>
-
-----
 
 
 # Lesson 07 Starter
