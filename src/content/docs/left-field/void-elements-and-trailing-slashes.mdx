@@ -1,0 +1,71 @@
+---
+title: The Trailing Slash Debate
+---
+
+import { Aside, FileTree, Steps } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import Byline from "@components/astro/Byline.astro";
+
+I recently asked Claude about the "trailing slash" debate.
+
+<Aside title="Annotations" type="note">
+    *I plan on adding "editor" annotations to weigh in on what Claude gave me as a response. There's a lot of good in what's said, but I would certainly add some caveats.*
+</Aside>
+
+<Byline author="Dan Gilleland" date={new Date('Sep 23, 2026 8:30 PM')} ai={{contribution: "asAuthor", provider: "Anthropic", model: "Claude"}}>
+    <Fragment slot="prompt">
+    I recently got into a discussion on whether the HTML horizontal rule tag should have a trailing slash - the `<hr>` vs. `<hr/>` debate. I was directed to some writings which stated that teaching the use of the trailing slash is actually promoting a "wrong mental model" of how HTML works.
+
+    I've been around HTML long enough to remember its evolution and the rise (and gradual disappearance of) things like XHTML. I know that the browsers' HTML parsers have to deal with a lot of "messy HTML" in order to build a good DOM tree. And I also know that there are shallow and deeper understandings of how the DOM tree actually works, with the shallow being that it's like nested folders in File Explorer and the deep being a recognition that there are different types of nodes for things like text, comments, etc.
+
+    I would like to hear you weigh in on this.
+    </Fragment>
+</Byline>
+
+I think both sides have a point, but the "wrong mental model" argument is stronger than it first looks. The problem isn't the slash itself. It's the explanation that usually comes with it.
+
+## The technical facts
+
+- In HTML (not XHTML), the tokenizer records a "self-closing flag" when it sees `/>`. On void elements (`hr`, `br`, `img`, `input`, `meta`, `link`, etc.) that flag is accepted and does nothing. `<hr>` and `<hr/>` produce the same DOM.
+- On a non-void HTML element, the flag is a parse error, and it's still ignored. `<div/>` does **not** make an empty div. It opens a div that stays open until something else closes it.
+- The one place `/>` really means "self-closing" is foreign content: inline SVG and MathML.
+- An element is void because of its **name**, not because of how it's written. The parser has a fixed list of void elements, and your syntax can't add to it.
+
+So on void elements the slash is harmless. The trouble is what students conclude from it.
+
+## Where the wrong mental model shows up
+
+If students learn that `<hr/>` is "the self-closing form," they reasonably conclude that `/>` closes any element. That belief breaks in real ways:
+
+```html
+<div class="spacer"/>
+<p>This paragraph ends up *inside* the spacer div.</p>
+
+<script src="app.js"/>
+<!-- everything after this is treated as script text until a real </script> -->
+
+<img src=logo.png/>
+<!-- unquoted attribute: src is now "logo.png/" -->
+```
+
+This one probably matters most for your SDEV-2150 custom-elements material. `<my-widget/>` does not close. Custom elements can never be void, so every sibling after it becomes a child. Students who come from JSX (where `<MyWidget />` is normal) hit this bug constantly, and the slash habit makes it harder to see.
+
+## The deeper point, which fits your DOM-depth distinction
+
+The "nested folders" model of the DOM goes with a "syntax is structure" model of HTML: tags are brackets, and the brackets you write are the tree you get. The trailing slash fits that picture, because it looks like a bracket closing itself.
+
+The deeper model has three separate stages:
+
+1. **Source text** becomes **tokens** (start tag, end tag, text, comment, doctype).
+2. **Tree construction** turns those tokens into nodes. This stage is a state machine with its own rules. It inserts `<tbody>`, closes a `<p>` when a `<div>` starts, ignores stray end tags, moves misplaced table content outside the table, and decides void-ness from the element name.
+3. The **DOM** is the result: element nodes, text nodes (including whitespace), comment nodes, and so on.
+
+In that model, a tag isn't an element. It's a hint to a parser that has the final say. The `/>` on `<hr/>` is a hint the parser throws away. Teaching it as meaningful blurs exactly the distinction you want intermediate students to cross. XHTML really did mean "syntax is structure" (XML parsing, draconian error handling). That's why the slash made sense there, and why it's leftover syntax now.
+
+## Where I land
+
+- **For teaching, write `<hr>`.** It matches what the parser actually does and doesn't set students up for `<div/>` and `<my-widget/>` bugs.
+- **Don't make it a moral issue.** `<br />` in production code isn't wrong. Prettier outputs it by default, and teams that mix JSX, Vue or SVG often prefer one visual convention. Pick a formatter setting and stop arguing about it.
+- **Teach the slash as a named exception, not a form.** Something like: "You'll see `<br />` in the wild. It's allowed on void elements for XHTML/JSX compatibility, and the parser ignores it. It closes nothing." Then have students type `<div/>hello` into a page and inspect it in DevTools. That one demo does more than any style rule, and it leads straight into "the parser, not your markup, builds the tree."
+
+In short: the slash is harmless, but the belief that it closes things is wrong. If you teach `<hr>` as the canonical form and the slash as ignored legacy syntax, you avoid the misconception and still prepare students for codebases that use it.
