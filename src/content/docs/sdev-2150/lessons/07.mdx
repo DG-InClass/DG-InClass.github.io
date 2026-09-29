@@ -149,23 +149,53 @@ A `package.json` can include two types of dependencies on third-party packages.
 
 ### Launching the App
 
+The `package.json` is all set with the standard scripts. To run our app, type `pnpm dev` in the terminal, and you'll see the following page.
+
 import appFirstRender from './07/vite-react-javascript-scaffolded-app.png';
 
 <Image src={appFirstRender} alt="React in Vite with Vanilla JavaScript" />
 
-- Run the app to see what you get.
-  - SCREENSHOT
-- Trace the execution/build from index.html to main.jsx to App.jsx.
-- View the JavaScript source in the browser. What do you see?
-- "Kick the tires" - what happens when you click the button?
-- What does React give us?
-    <Aside type="tip" title="JSX Magic Sauce">
-      <a href="https://react.github.io/jsx/" target="_blank">**JSX**</a> (***J**avaScript **X**ML* or sometimes ***J**avaScript **S**yntax e**X**tension*) isn't restricted to just React. You will see JSX in other frameworks, such as Vue, SolidJS, Preact, etc. It's even possible to use JSX with Vanilla JavaScript, provided you use some precomipler (see [this example](/sdev-2150/notes/vanilla-jsx/)).
+Play with the app by watching what happens when you click on the button in the middle of the page. The code that increments the counter is in your `App.jsx`. Here are the relevant parts.
 
-      For JSX to work, however, you do need tooling to **transpile** it to ordinary JavaScript. In our case, Vite is the tool that manages the transpilation (at least at a high level).
-    </Aside>
-- What we'll be building (static components)
-  - SCREENSHOT
+```js title="src/App.jsx lines 7-8"
+function App() {
+  const [count, setCount] = useState(0)
+```
+
+The key to reading that part of the code is to recognize the **array destructuring** that's going on in declaring the `count` and `setCount` variables. The `useState(0)` is just a function (a React *hook*) that returns an array of two elements. The first is like a "getter" and the second is like a "setter" for our component. The value `0` is the *initial state* for the background property.
+
+Essentially, we're asking React to track a piece "state" or information for our component. If that information changes (as it does in the next code snippet), that component will be re-rendered by React.
+
+```jsx title="src/App.jsx lines 24-30"
+        <button
+          type="button"
+          className="counter"
+          onClick={() => setCount((count) => count + 1)}
+        >
+          Count is {count}
+        </button>
+```
+
+
+Now take a look at the source code in the browser. The key takeaway when you examine the JavaScript is that **React added a lot of "plumbing"** to deal with our component rendering concerns. In the elements panel, you can see that what is generated looks like ordinary HTML; React doesn't use Custom Elements, largely because React predates the arrival of Custom Elements in JavaScript.
+
+So, what does React give us? Essentially, it is a framework to give us "component design" capabilities. And it was created long before we could create our own tags using custom elements. Conceptually, however, the idea is the same: Build "parts" of our page as independent components which manage their own data, behaviour and presentation.
+
+React today is very different from when it first came out. Along the way, the creators of React came up with **JSX** - a means of incorporating XML inside our JavaScript code. Part of the beauty of this approach is not having to rely on `document.createElement()` or "magic strings" to construct our HTML.
+
+<Aside type="tip" title="JSX Magic Sauce">
+  <a href="https://react.github.io/jsx/" target="_blank">**JSX**</a> (***J**avaScript **X**ML* or sometimes ***J**avaScript **S**yntax e**X**tension*) isn't restricted to just React. You will see JSX in other frameworks, such as Vue, SolidJS, Preact, etc. It's even possible to use JSX with Vanilla JavaScript, provided you use some precomipler (see [this example](/sdev-2150/notes/vanilla-jsx/)).
+
+  For JSX to work, however, you do need tooling to **transpile** it to ordinary JavaScript. In our case, Vite is the tool that manages the transpilation (at least at a high level).
+</Aside>
+
+Essentially, React was built to provide behind-the-scenes plumbing for developers so that we can focus on the *business value* of our components. In other words, React introduced *abstractions* that we can build upon. Those abstractions make our jobs easier and more productive.
+
+Here's what we'll be building as we begin our exploration of React. Our components at the first stages will be "static" with no real functionality. As we move through this series of lessons, we'll be adding more and more capability to the app.
+
+import lesson07App from './07/nait-resources-app.png';
+
+<Image src={lesson07App} alt="NAIT Resources app" />
 
 ### Installing Tailwind
 

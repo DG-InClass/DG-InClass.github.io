@@ -8,6 +8,7 @@ import { Image } from 'astro:assets';
 
 import before from './vanilla-jsx/vite-javascript-scaffolded-app.png';
 import after from './vanilla-jsx/jsx-banner.png';
+import after2 from './vanilla-jsx/jsx-banner-fragments.png';
 
 With just a small bit of configuration, you can incorporate JSX markup in your "vanilla" JavaScript project. This is thanks, in large part, to <a href="https://vite.dev/guide/features#jsx" target="_blank">Vite's use</a> of <a href="https://oxc.rs/docs/guide/usage/transformer.html" target="_blank">Oxc</a>.
 
@@ -193,32 +194,45 @@ With just a small bit of configuration, you can incorporate JSX markup in your "
       };
     ```
 
+1. Here's how that banner is now rendered on the page.
+
+    ```html title="Rendered index.html"
+    <body>
+      <div class="banner" __self="undefined" __source="[object Object]">We have evolved!</div>
+      <div class="banner" __self="undefined" __source="[object Object]">TADA! Fragments!</div>
+      <div id="app">
+    ```
+
+
+    <Image src={after2} alt="Rendering fragments" />
+
 1. If we want, we can tighten up our `h.js` code a little more.
 
     ```js title="src/h.js"
-      export const Fragment = Symbol('Fragment');
+    export const Fragment = Symbol('Fragment');
 
-      export function h(tag, props, ...children) {
-        const node =
-          tag === Fragment
-            ? document.createDocumentFragment()
-            : document.createElement(tag);
+    export function h(tag, props, ...children) {
+      const node =
+        tag === Fragment
+          ? document.createDocumentFragment()
+          : document.createElement(tag);
 
-        if (tag !== Fragment) {
-          for (const [name, value] of Object.entries(props ?? {})) {
-            if (name.startsWith('on') && typeof value === 'function') {
-              node.addEventListener(name.slice(2).toLowerCase(), value);
-            } else {
-              node.setAttribute(name, value);
-            }
+      if (tag !== Fragment) {
+        for (const [name, value] of Object.entries(props ?? {})) {
+          if (name.startsWith('on') && typeof value === 'function') {
+            node.addEventListener(name.slice(2).toLowerCase(), value);
+          } else {
+            node.setAttribute(name, value);
           }
         }
-
-        node.append(...children.flat());
-
-        return node;
       }
+
+      node.append(...children.flat());
+
+      return node;
+    }
     ```
+
 </Steps>
 
 At this point, we've got three clean JSX concepts working nicely in our "vanilla" JavaScript app.
