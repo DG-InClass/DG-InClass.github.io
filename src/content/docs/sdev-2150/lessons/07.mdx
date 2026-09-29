@@ -89,7 +89,7 @@ When touring any scaffolded project, it's good to focus on two aspects: The phys
   - vite.config.js
 </FileTree>
 
-The `package.json` has these notable depedencies.
+The `package.json` has these notable dependencies.
 
 ```json "\"react\"" "\"react-dom\"" "\"vite\""
   "dependencies": {
@@ -108,6 +108,13 @@ The `package.json` has these notable depedencies.
     "vite": "^8.3.0"
   }
 ```
+
+<Aside type="note" title="Can you tell the difference?">
+A `package.json` can include two types of dependencies on third-party packages.
+
+- `dependencies` are those packages which are used within the project that you intend to deploy/build.
+- `devDependencies` are those package that are used as *supporting tools* in the development process. These packages are **not** deployed with the final web application.
+</Aside>
 
 <Steps>
 1. Open the `eslint.config.js` and take note of the code provided. Notice that the files being "linted" are `.js` and `.jsx`.
@@ -140,12 +147,50 @@ The `package.json` has these notable depedencies.
 1. The `<App />` tag refers to what is in the `App.jsx`. Open that file now and browse the contents.
 </Steps>
 
+### Launching the App
+
+import appFirstRender from './07/vite-react-javascript-scaffolded-app.png';
+
+<Image src={appFirstRender} alt="React in Vite with Vanilla JavaScript" />
+
+- Run the app to see what you get.
+  - SCREENSHOT
+- Trace the execution/build from index.html to main.jsx to App.jsx.
+- View the JavaScript source in the browser. What do you see?
+- "Kick the tires" - what happens when you click the button?
+- What does React give us?
+    <Aside type="tip" title="JSX Magic Sauce">
+      <a href="https://react.github.io/jsx/" target="_blank">**JSX**</a> (***J**avaScript **X**ML* or sometimes ***J**avaScript **S**yntax e**X**tension*) isn't restricted to just React. You will see JSX in other frameworks, such as Vue, SolidJS, Preact, etc. It's even possible to use JSX with Vanilla JavaScript, provided you use some precomipler (see [this example](/sdev-2150/notes/vanilla-jsx/)).
+
+      For JSX to work, however, you do need tooling to **transpile** it to ordinary JavaScript. In our case, Vite is the tool that manages the transpilation (at least at a high level).
+    </Aside>
+- What we'll be building (static components)
+  - SCREENSHOT
+
+### Installing Tailwind
+
+- What is Tailwind?
+- Why do we need it? (aka: What styling was already provided in the scaffolded code?)
+  - index.css
+  - App.css
+  - To get module scoping, rename to `[Component].module.css`
+- How to install
+  - Stop the app
+- How to use Tailwind
+
+
+
+
+
 ----
 
 
 ## Practice
 
-TBD
+- Exploring the rest of the demo code
+  - ESLint
+  - Build the `Details.jsx` component
+  - Explore Tailwind and refine the page layout using Tailwind's grid or flex utilities.
 
 ----
 

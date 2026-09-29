@@ -1,0 +1,310 @@
+---
+title: JSX with Vanilla JavaScript
+description: SUMMARY
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import before from './vanilla-jsx/vite-javascript-scaffolded-app.png';
+import after from './vanilla-jsx/jsx-banner.png';
+
+With just a small bit of configuration, you can incorporate JSX markup in your "vanilla" JavaScript project. This is thanks, in large part, to <a href="https://vite.dev/guide/features#jsx" target="_blank">Vite's use</a> of <a href="https://oxc.rs/docs/guide/usage/transformer.html" target="_blank">Oxc</a>.
+
+## Part 1: Minimal JSX Implementation
+
+<Steps>
+1. Create a bare-bones project using Vite.
+
+    ```ps title=""
+    pnpm create vite@latest vanilla-jsx -- --template vanilla
+    cd vanilla-jsx
+    pnpm install
+    ```
+
+1. The stock template produces a page with a snazzy image at the top.
+
+    <Image src={before} alt="The out-of-the-box web page" />
+
+1. Create the Vite configuration file with the following contents. Since Vite uses Oxc as the JSX transpiler, we can inform Oxc that we want to use the "classic" runtime (instead of *React*) via a function we'll call `h`.
+
+    ```js title="vite.config.js"
+    import { defineConfig } from 'vite';
+
+    export default defineConfig({
+      oxc: {
+        jsx: {
+          runtime: 'classic',
+          pragma: 'h',
+        },
+      },
+    });
+    ```
+    
+    We can call our function anything; the choice of `h` is just a traditional name based on the old <a href="https://npmx.dev/package/hyperscript" target="_blank">hyperscript</a> package.
+
+1. Create a small JavaScript function - `h` - that we told Oxc to use during transpilation.
+
+    ```js title="src/h.js"
+    export function h(tag, props, ...children) {
+      const element = document.createElement(tag);
+
+      for (const [name, value] of Object.entries(props ?? {})) {
+        if (name.startsWith('on') && typeof value === 'function') {
+          element.addEventListener(
+            name.slice(2).toLowerCase(),
+            value
+          );
+        } else {
+          element.setAttribute(name, value);
+        }
+      }
+
+      element.append(...children.flat());
+
+      return element;
+    }
+    ```
+
+1. In any JavaScript file where you want to write JSX, import `h` and write your markup. For example, here's a banner for announcements.
+
+    ```jsx title="src/announcement.jsx"
+    import { h } from './h';
+
+    export function announcement(message) {
+        return <div class="banner">{message}</div>;
+    };
+    ```
+
+    <Aside type="tip" title="The .jsx Extension">
+      Pay attention to the `*.jsx` file extension. Vite will only recognize a file as needing JSX transpiling if it has that file extension. We could add extra configuration for it to recognize `*.js` files as well, but that's beyond the scope of this article.
+    </Aside>
+
+1. Use the function in your `main.js`.
+
+    ```diff lang="js" title="main.js"
+      import './style.css'
+      import heroImg from './assets/hero.png'
+      import javascriptLogo from './assets/javascript.svg'
+      import viteLogo from './assets/vite.svg'
+      import { setupCounter } from './counter.js'
+    + import { announcement } from './announcement.jsx';
+    + document.body.prepend(announcement('We have evolved!'));
+    ```
+
+1. Add a little styling to your CSS, and you're good to go.
+
+    ```diff lang="css" title="style.css"
+      #app {
+        width: 1126px;
+        max-width: 100%;
+        margin: 0 auto;
+        text-align: center;
+        border-inline: 1px solid var(--border);
+        min-height: 100svh;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+      }
+
+    + .banner {
+    +   width: 1126px;
+    +   max-width: 100%;
+    +   margin: 0 auto;
+    +   text-align: center;
+    +   border-inline: 1px solid var(--border);
+    +   display: flex;
+    +   flex-direction: column;
+    +   box-sizing: border-box;
+    +   background-color: gold;
+    +   font-weight: 500;
+    + }
+    ```
+
+1. Here's your final result.
+
+    <Image src={after} alt="Our simple JSX implementation" />
+</Steps>
+
+
+## Part 2: Adding Fragment Support
+
+<Steps>
+1. Edit the Vite configuration to tell Oxc to support fragments (`<></>`).
+
+    ```diff lang="js" title="vite.config.js"
+      import { defineConfig } from 'vite';
+
+      export default defineConfig({
+        oxc: {
+          jsx: {
+            runtime: 'classic',
+            pragma: 'h',
+    +       pragmaFrag: 'Fragment',
+          },
+        },
+      });
+    ```
+
+1. Provide our fragment handling.
+
+    ```diff lang="js" title="src/h.js"
+    + export const Fragment = Symbol('Fragment');
+
+      export function h(tag, props, ...children) {
+    +   if (tag === Fragment) {
+    +     const fragment = document.createDocumentFragment();
+    +     fragment.append(...children.flat());
+    +
+    +     return fragment;
+    +   }
+
+        const element = document.createElement(tag);
+
+        for (const [name, value] of Object.entries(props ?? {})) {
+          if (name.startsWith('on') && typeof value === 'function') {
+            element.addEventListener(
+              name.slice(2).toLowerCase(),
+              value
+            );
+          } else {
+            element.setAttribute(name, value);
+          }
+        }
+
+        element.append(...children.flat());
+
+        return element;
+      }
+    ```
+
+1. Remember to import `Fragment` alongside `h`, and you can start writing empty fragment tags as your "wrapper".
+
+    ```diff lang="jsx" title="src/announcement.jsx" "<>" "</>"
+    - import { h } from './h';
+    + import { h, Fragment } from './h';
+
+      export function announcement(message) {
+    -     return <div class="banner">{message}</div>
+    +     return <>
+    +         <div class="banner">{message}</div>
+    +         <div class="banner">TADA! Fragments!</div>
+    +       </>
+      };
+    ```
+
+1. If we want, we can tighten up our `h.js` code a little more.
+
+    ```js title="src/h.js"
+      export const Fragment = Symbol('Fragment');
+
+      export function h(tag, props, ...children) {
+        const node =
+          tag === Fragment
+            ? document.createDocumentFragment()
+            : document.createElement(tag);
+
+        if (tag !== Fragment) {
+          for (const [name, value] of Object.entries(props ?? {})) {
+            if (name.startsWith('on') && typeof value === 'function') {
+              node.addEventListener(name.slice(2).toLowerCase(), value);
+            } else {
+              node.setAttribute(name, value);
+            }
+          }
+        }
+
+        node.append(...children.flat());
+
+        return node;
+      }
+    ```
+</Steps>
+
+At this point, we've got three clean JSX concepts working nicely in our "vanilla" JavaScript app.
+
+```jsx
+// HTML elements
+<h1>Hello</h1>
+
+// nesting
+<section>
+  <h1>Hello</h1>
+  <p>World</p>
+</section>
+
+// fragments
+<>
+  <h1>Hello</h1>
+  <p>World</p>
+</>
+```
+
+## Part 3: Supporting Function Components
+
+While our `announcement()` function uses JSX internally, our `main.js` is still taking responsibility to call it as a function. React goes farther than what we've done so far by making **Function Components** possible. We'll make a few more adaptations so that we can write `<Announcement message='We have evolved!'></Announcement>`.
+
+<Steps>
+1. Update your `h.js` to detect if the `tag` parameter is a function.
+
+    ```diff lang="js" title="src/h.js"
+      export const Fragment = Symbol('Fragment');
+
+      export function h(tag, props, ...children) {
+    +   if (typeof tag === 'function') {
+    +     return tag(props ?? {}, children);
+    +   }
+
+        // the rest of the code stays the same...
+    ```
+
+1. Modify your `announcement.jsx` to the following.
+
+    ```diff lang="jsx" title="src/announcement.jsx" "props"
+      import { h, Fragment } from './h';
+
+    - export function announcement(message) {
+    + export function Announcement(props) {
+          return <>
+    -         <div class="banner">{message}</div>
+    +         <div class="banner">{props.message}</div>
+              <div class="banner">TADA! Fragments!</div>
+            </>
+      };
+    ```
+
+    Notice how we've also changed our function name to be `Announcement`. This naming convention is important because our JSX compiler needs to recognize that `<Announcement>` is not just a string. It also follows how React names its components.
+1. Let's rename our `main.js` to `main.jsx`. Then,  import the `h` and `Fragment`. Now our component looks very React-like!
+
+    ```diff lang="jsx" title="main.jsx"
+      import './style.css'
+      import heroImg from './assets/hero.png'
+      import javascriptLogo from './assets/javascript.svg'
+      import viteLogo from './assets/vite.svg'
+      import { setupCounter } from './counter.js'
+    + import {h, Fragment} from './h.js';
+    - import { announcement } from './announcement.jsx';
+    + import { Announcement } from './announcement.jsx';
+    - document.body.prepend(announcement('We have evolved!'));
+    + document.body.prepend(<Announcement message='We have evolved!'></Announcement>);
+    ```
+
+    Notice that the file rename will break our project unless we also update our HTML.
+
+    ```diff lang="html" title="index.html"
+        <body>
+          <div id="app"></div>
+    -     <script type="module" src="/src/main.js"></script>
+    +     <script type="module" src="/src/main.jsx"></script>
+        </body>
+    ```
+
+</Steps>
+
+<Aside type="note" title="These are NOT Custom Elements">
+  It can be easy to think that we've implemented Custom Elements with our JSX processing, but that's not really the case. A true custom element would be something we could declaratively include inside our HTML, because we registered it as such. Additionally, our function component support does not use the kebab-case naming, which is something that is required with custom elements.
+</Aside>
+
+## Conclusion
+
+Don't be fooled. While this might look like a very attractive alternative to using React, we haven't come anywhere near to all the capabilities React provides. So don't expect this to be some sort of "drop-in" replacement. React is very powerful, and it's worth your time to explore!
