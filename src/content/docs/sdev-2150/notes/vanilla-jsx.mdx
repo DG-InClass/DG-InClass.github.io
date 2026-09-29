@@ -1,6 +1,6 @@
 ---
 title: JSX with Vanilla JavaScript
-description: SUMMARY
+description: A "peek behind the curtain" of JSX. We'll show how you can use JSX in vanilla JavaScript.
 ---
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
@@ -11,6 +11,8 @@ import after from './vanilla-jsx/jsx-banner.png';
 import after2 from './vanilla-jsx/jsx-banner-fragments.png';
 
 With just a small bit of configuration, you can incorporate JSX markup in your "vanilla" JavaScript project. This is thanks, in large part, to <a href="https://vite.dev/guide/features#jsx" target="_blank">Vite's use</a> of <a href="https://oxc.rs/docs/guide/usage/transformer.html" target="_blank">Oxc</a>.
+
+Consider this short tutorial a "peek behind the curtain" of what you'll be working with when you start with React.
 
 ## Part 1: Minimal JSX Implementation
 
@@ -27,7 +29,7 @@ With just a small bit of configuration, you can incorporate JSX markup in your "
 
     <Image src={before} alt="The out-of-the-box web page" />
 
-1. Create the Vite configuration file with the following contents. Since Vite uses Oxc as the JSX transpiler, we can inform Oxc that we want to use the "classic" runtime (instead of *React*) via a function we'll call `h`.
+1. Create the Vite configuration file with the following contents. Since Vite uses Oxc as the JSX transpiler, we can inform Oxc that we want to use the "classic" runtime so we can specify our own factory function, `h`. (We'll create that function in the next step.)
 
     ```js title="vite.config.js"
     import { defineConfig } from 'vite';
@@ -42,7 +44,7 @@ With just a small bit of configuration, you can incorporate JSX markup in your "
     });
     ```
     
-    We can call our function anything; the choice of `h` is just a traditional name based on the old <a href="https://npmx.dev/package/hyperscript" target="_blank">hyperscript</a> package.
+    We can call our function anything; the choice of `h` is just a shorthand name based on the old <a href="https://npmx.dev/package/hyperscript" target="_blank">hyperscript</a> package. It carried the idea of creating HTML structure as a function call.
 
 1. Create a small JavaScript function - `h` - that we told Oxc to use during transpilation.
 
@@ -76,6 +78,13 @@ With just a small bit of configuration, you can incorporate JSX markup in your "
         return <div class="banner">{message}</div>;
     };
     ```
+
+    What Oxc will do is use our factory function in its transpilation to turn it into regular JavaScript. In other words, we get a result sort of like this for `<div class="banner">{message}</div>`:
+
+    ```js title="Oxc uses our h() factory"
+    h('div', { class: 'banner' }, message)
+    ```
+   
 
     <Aside type="tip" title="The .jsx Extension">
       Pay attention to the `*.jsx` file extension. Vite will only recognize a file as needing JSX transpiling if it has that file extension. We could add extra configuration for it to recognize `*.js` files as well, but that's beyond the scope of this article.
