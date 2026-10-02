@@ -137,6 +137,7 @@ export default defineConfig({
                                     'dmit/dmit-2008-c4',
                                     'dmit/dmit-2008-c5',
                                     'dmit/dmit-2008-c6',
+                                    'dmit/dmit-2008-c7',
                                 ]
                             },
                             { 
