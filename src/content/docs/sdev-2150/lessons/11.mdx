@@ -1,72 +1,83 @@
 ---
 title: UI Framework Integration with DaisyUI
-description: SUMMARY
+description: Add DaisyUI to a Tailwind 4 React project, refactor shared styles, and explore themes while preserving the responsive layout.
 sidebar:
-  label: Lesson 11 ✅
-draft: true
+  label: 11 - DaisyUI
 ---
 
-import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
-import { Image } from 'astro:assets';
+import { Aside, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import When from '../../../../components/astro/When.astro';
 
 <When planned='Lesson 11' />
 
 ## Lecture
 
-TBD
+In Lesson 10, we used Tailwind utilities to decide how our resource finder should adapt to different screen sizes. We also kept the layout rules separate from the components displaying the content.
 
-## Activity
+Let's look inside those components now. Our buttons repeat classes for borders, padding, colours, and hover styles. What if we could give a button a shared appearance with a class such as `btn`, then describe its purpose with `btn-primary`?
 
-TBD
-
-## Practice
-
-TBD
-
-----
-
-## OLD Content....
-
-import dragons from '@assets/other/here-be-dragons.png';
-
-<Image src={dragons} alt="Here be dragons" />
-
-
-
+In this lesson, we'll add **DaisyUI 5** to our existing **Tailwind CSS 4** setup. We'll update the shared card and the buttons in Resource Details, then explore how themes affect their appearance.
 
 ### Learning Outcome Guide
 
 *At the end of this class, you should be able to...*
 
-- Install and configure DaisyUI in a React + Tailwind project.
-- Use DaisyUI prebuilt components to accelerate UI development.
-- Customize themes and integrate DaisyUI components into existing layouts.
+- Install and configure DaisyUI in a React project that uses Tailwind 4.
+- Apply DaisyUI component classes to existing JSX.
+- Enable built-in themes and apply one with `data-theme`.
+- Distinguish fixed colour utilities from theme-based colour roles.
+- Preserve responsive layout and semantic HTML while refactoring styles.
+- Explain one benefit and one trade-off of using a component library.
 
-Additional Notes:
-- Demonstrate DaisyUI installation
-- Encourage students to review DaisyUI's theme customization options (`daisyui.themes` in the config).
-- Tailwind 4 introduces CSS-based `@plugin` imports - when upgrading, DaisyUI setup may simplify further.
-- Remind students that DaisyUI is layered atop Tailwind - utility knowledge remains foundational.
+#### Target behaviour
 
+- The page keeps its stacked, medium, and large-screen arrangements.
+- All three cards share the updated appearance through our `Card` component.
+- The existing Details buttons use DaisyUI styles.
+- Changing the selected theme changes the page surfaces and the refactored components.
+
+We're working on appearance. The starter's buttons do not yet copy an email address, open a map, or filter the results. Adding CSS classes won't implement those actions.
+
+#### Two meanings of “component”
+
+We've been writing **React components**: functions such as `Card` that return JSX and accept props.
+
+DaisyUI provides **CSS component classes**, such as `card` and `btn`, that we apply to HTML elements. We can use those classes inside our React components. We don't need to import a DaisyUI React `Button` to style a `<button>`.
+
+```jsx
+<button type="button" className="btn btn-primary">
+  Open map
+</button>
+```
+
+Here, `btn` supplies the button styling and `btn-primary` selects its primary colour treatment. We still choose the HTML element, its text, its type, and any behaviour. See the [DaisyUI button reference](https://daisyui.com/components/button/).
+
+#### Layout, appearance, and themes
+
+We'll keep three responsibilities in view:
+
+| Responsibility | Where it belongs in our example |
+| --- | --- |
+| Grid and responsive spans | `PageLayout.jsx` and the wrappers in `App.jsx` |
+| Shared card appearance | `Card.jsx` |
+| Button appearance | The existing buttons in `Details.jsx` |
+| Theme selection | The outer element in `PageLayout.jsx` |
+
+A theme gives colour roles their values. For example, `bg-base-100` uses a theme's base surface colour, while `text-base-content` uses its corresponding content colour. A fixed utility such as `bg-white` continues to mean white even when we choose a dark theme.
+
+This is why installing a library won't automatically make every existing style respond to a theme. We'll need to decide which fixed colours to replace. DaisyUI's [colour reference](https://daisyui.com/docs/colors/) describes these roles.
+
+#### What the library does for us
+
+Shared classes can reduce repeated styling decisions and help components look consistent. They also give us a visual design to work within. If we need a very specific appearance, we may spend time adjusting that design.
+
+We still need to preserve labels, headings, button semantics, and visible keyboard focus. A styled control is only one part of a usable interface.
 
 ----
 
-## Lesson focus
+## Activity
 
-This lesson introduces [DaisyUI](https://daisyui.com/), a component library built on top of Tailwind CSS.
-
-Rather than writing all UI elements from scratch using utility classes, DaisyUI provides:
-
-- Prebuilt, accessible UI components
-- Consistent styling out of the box
-- Theme support for rapid visual changes
-
-The goal of this lesson is **not** to replace Tailwind, but to understand how a component library can accelerate UI development while still allowing customization.
-
-----
-
-## Starter Kit Code
+### Starter Kit Code
 
 Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
 
@@ -83,173 +94,202 @@ Grab the starter kit code for your Workbook by running the following in the VS C
   </TabItem>
 </Tabs>
 
+If you already have today's starter, continue with that copy. From your workbook root, run:
+
+```ps
+cd src/lesson-11/frontend
+pnpm install
+pnpm dev
+```
+
+Open the URL printed by Vite. The components use hard-coded resource data, so we don't need the backend for this activity.
+
+<Aside title="Start with the installed versions">
+The starter already uses Tailwind 4 and its Vite plugin. We'll add DaisyUI 5 using the CSS-based configuration below. Keep the existing Vite configuration; we don't need a `tailwind.config.js` file or the older `daisyui.themes` configuration.
+</Aside>
+
+### Code Walkthrough
+
+The file paths below start inside `src/lesson-11/frontend`. Use the active `children` implementation in `PageLayout.jsx`; the starter also contains commented-out alternatives that we won't use.
+
+<Steps>
+
+1. **Check the existing layout.**
+
+    Try viewport widths of 390px, 800px, and 1280px in DevTools. The starter should stack the cards on the narrow screen, put Filters above Results and Details at the medium width, and place all three beside each other at the large width.
+
+    Open `App.jsx` and find the `md:col-span-*` and `lg:col-span-*` classes. Keep those wrappers and classes throughout this activity.
+
+1. **Install DaisyUI in the frontend.**
+
+    Stop Vite with **Ctrl+C**, then run these commands from the `frontend` directory:
+
+    ```ps
+    pnpm add -D daisyui@5
+    pnpm dev
+    ```
+
+    Check `package.json`. DaisyUI should now appear in `devDependencies`. It supplies styles during the build, alongside our Tailwind tooling.
+
+1. **Register the plugin and enable our themes.**
+
+    In `src/index.css`, keep the Tailwind import and add the plugin block immediately after it:
+
+    ```css title="src/index.css"
+    @import "tailwindcss";
+    @plugin "daisyui" {
+      themes: light --default, dark, cupcake;
+    }
+    ```
+
+    Keep the existing `:root` font and rendering declarations below this block, but remove its `color-scheme: light;` declaration so we aren't forcing a light colour scheme while experimenting with themes.
+
+    We've enabled three themes and made `light` the default. The theme names we use later must be included here. Refer to the [DaisyUI Vite installation guide](https://daisyui.com/docs/install/vite/) and [theme configuration](https://daisyui.com/docs/themes/) when checking your setup.
+
+1. **Verify the styles with an existing button.**
+
+    In `Details.jsx`, replace the `className` on the **Open map** button:
+
+    ```diff lang="jsx" title="src/components/Details.jsx"
+      <button
+        type="button"
+    -   className="rounded border border-sky-600 px-3 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-50"
+    +   className="btn btn-primary btn-sm"
+      >
+        Open map
+      </button>
+    ```
+
+    The button should now have DaisyUI's primary button appearance. `btn-sm` chooses a smaller size.
+
+    If it still looks unstyled, check that you installed the dependency in `frontend`, saved `index.css`, and kept its import in `main.jsx`. Restart Vite if necessary before continuing.
+
+1. **Apply a theme to the page.**
+
+    Replace the active `PageLayout` function with the following. The grid classes and `children` remain in place.
+
+    ```jsx title="src/components/layout/PageLayout.jsx"
+    export default function PageLayout({ header, children }) {
+      const theme = 'light';
+
+      return (
+        <div data-theme={theme} className="min-h-screen bg-base-200 text-base-content">
+          <header className="border-b border-base-300 bg-base-100 px-6 py-4">
+            {header}
+          </header>
+
+          <main className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 py-6 md:grid-cols-3">
+            {children}
+          </main>
+        </div>
+      );
+    }
+    ```
+
+    We're placing `data-theme` on the React layout so it applies to that element and its descendants. It can also be placed on the document's `<html>` element when a whole-document theme is appropriate; the layout is a convenient choice for this exercise.
+
+    Temporarily change the constant to `'dark'`. The page background and header surface should change, but the cards are still white. Notice that the cards still have `bg-white` in their own markup. Restore `'light'` while we refactor them.
+
+1. **Update the shared card.**
+
+    Replace the contents of `Card.jsx` with this version:
+
+    ```jsx title="src/components/ui/Card.jsx"
+    export default function Card({ title, children }) {
+      return (
+        <section className="card h-full border border-base-300 bg-base-100 text-base-content shadow-sm">
+          <header className="border-b border-base-300 px-4 py-3">
+            <h2 className="card-title text-sm">{title}</h2>
+          </header>
+          <div>
+            {children}
+          </div>
+        </section>
+      );
+    }
+    ```
+
+    All three cards should update because they already use this shared component. Its `title` and `children` props haven't changed.
+
+    `card` supplies the component styling, and `card-title` styles its heading. We retain `h-full`, the border, and our spacing utilities for this layout. The children already provide their own padding, so we aren't adding another padded body around them. Compare this with the examples in the [DaisyUI card reference](https://daisyui.com/components/card/).
+
+1. **Finish the Details buttons and colours.**
+
+    In `Details.jsx`, replace the final button container with:
+
+    ```jsx title="src/components/Details.jsx"
+    <div className="flex flex-wrap gap-2 border-t border-base-300 px-4 py-3">
+      <button type="button" className="btn btn-outline btn-sm">
+        Copy email
+      </button>
+      <button type="button" className="btn btn-primary btn-sm">
+        Open map
+      </button>
+    </div>
+    ```
+
+    The buttons now share a size while retaining different visual treatments. `flex-wrap` lets them wrap when space is limited.
+
+    Next, replace the following colour classes in the same file. Keep the other classes and all the text.
+
+    | Existing class | Replacement |
+    | --- | --- |
+    | `text-gray-900` | `text-base-content` |
+    | `text-gray-500` | `text-base-content/80` |
+    | `text-gray-700` | `text-base-content` |
+    | `text-gray-600` | `text-base-content/80` |
+
+    The `/80` modifier makes the content colour partially transparent. Check that the resulting text remains readable on the selected surface.
+
+    In `Header.jsx`, also replace `text-sky-600` with `text-primary` and `text-gray-500` with `text-base-content/80`. This lets the directory heading and tagline follow the theme.
+
+1. **Compare the enabled themes.**
+
+    In `PageLayout.jsx`, change the `theme` constant to `'dark'`, then `'cupcake'`, saving after each change.
+
+    The page surfaces, card headings, Details text, and Details buttons should respond. We haven't changed their content or added React state.
+
+    Look at Filters and Results as well. Their card shells respond, but some content still uses fixed gray, sky, or emerald colours. A theme doesn't rewrite those classes. That remaining migration is a useful next exercise; don't assume the whole page is ready for dark mode yet.
+
+    Return the constant to `'light'` for the completed guided example.
+
+1. **Verify what we kept.**
+
+    Check the page at 390px, 767px, 768px, 1023px, 1024px, and 1280px. The layout should still transition at the same points as before.
+
+    Tab through the controls. Check visible focus, readable labels, and text wrapping. Keep `type="button"` on the Details buttons so they retain their intended button semantics.
+
+    Finally, run `pnpm build` from the frontend directory. This checks that the JSX and CSS configuration compile; it doesn't replace the browser checks.
+
+</Steps>
+
+### What we've accomplished
+
+We've introduced a component library through the existing CSS setup, changed all three card shells through one React component, and simplified the Details buttons. Tailwind still controls the page layout and spacing.
+
+Before moving on, compare the original Open map classes with `btn btn-primary btn-sm`. Which decisions did we hand to the library? Which decisions are still ours?
+
 ----
 
-## Connecting to prior lessons
+## Practice
 
-So far, you have:
+The starter's `homework.md` continues your Users and Posts project from Lesson 10. Integrate DaisyUI into that existing project while preserving its responsive layout and data rendering.
 
-- Built reusable React components
-- Styled layouts directly with Tailwind utilities
-- Implemented responsive layout behavior using breakpoints
+Your solution should:
 
-In this lesson, you will **layer DaisyUI on top of your existing Tailwind setup** and refactor parts of the UI to use prebuilt components.
+- Use DaisyUI 5 with the existing Tailwind 4 setup.
+- Enable the themes you want to compare in the existing CSS entry file.
+- Select a theme with `data-theme` in your React layout.
+- Refactor at least one existing presentation component using DaisyUI classes.
+- Remove styling utilities that the new component classes replace, while retaining useful layout and spacing utilities.
+- Preserve content, labels, semantic elements, keyboard focus, and all three responsive arrangements.
 
-## Strategy
+Keep the work focused on styling. Don't add new data sources, state, event handlers, or custom CSS files.
 
-We will:
+In your homework's `README.md`, identify the component you refactored, explain your theme choice, and describe one benefit and one drawback you observed. Check the result at the same viewport widths used in the walkthrough.
 
-1. Install and configure DaisyUI
-2. Explore DaisyUI components and themes
-3. Replace selected custom markup with DaisyUI components
-4. Evaluate trade-offs between custom styling and component libraries
+### Stretch your understanding
 
-All work will be done within your existing project.
+Return to today's resource finder and finish migrating Filters and Results to theme-based styles. Use the DaisyUI documentation to choose suitable input, checkbox, button, and badge classes. Preserve the existing label associations and button types.
 
-## Phase 1: Install and configure DaisyUI
-
-Install DaisyUI as a development dependency:
-
-```sh
-npm i -D daisyui@latest
-```
-
-Add daisyUI in  CSS file (and remove old styles)
-
-```css
-/* src/index.css */
-@import "tailwindcss";
-@plugin "daisyui";
-```
-
-Restart the dev server (if necessary) after making this change.
-
-We are now ready to start using DaisyUI class names.
-
-## Phase 2: Verify DaisyUI is working
-
-To confirm DaisyUI is installed correctly:
-
-1. Open one of your existing components (for example, `Header.jsx` or `Results.jsx`)
-2. Temporarily add a DaisyUI class such as:
-
-```html
-<button className="btn btn-primary">Test Button</button>
-```
-
-If the button renders with DaisyUI styling, the installation is successful. Remove the button before proceeding.
-
-## Phase 3: Introduce DaisyUI themes
-
-DaisyUI supports multiple themes out of the box.
-
-In our **Vite + React** setup, themes should be applied from **React**, not by editing `index.html` directly. The recommended place to do this is in a top-level layout component.
-
-### Apply a theme in `PageLayout.jsx`
-
-Open your layout component (for example, `PageLayout.jsx`) and add a `data-theme` attribute to the outer wrapper element:
-
-```jsx
-// src/components/layout/PageLayout.jsx
-export default function PageLayout({ header, children }) {
-  return (
-    <div data-theme="light" className="min-h-screen bg-base-200">
-      {/* existing layout markup */}
-      {children}
-    </div>
-  );
-}
-```
-
-Now try changing the theme value to one of DaisyUI’s built-in themes, such as:
-
-- `dark`
-- `cupcake`
-- `corporate`
-
-You should see the background color (and potentially a component or two) styles update immediately without changing any component markup.
-
-### Optional: prepare for a theme toggle later
-
-To prepare for a future lesson, you can store the theme in a constant (no state yet):
-
-```jsx
-// src/components/layout/PageLayout.jsx
-const theme = 'light';
-
-...
-<div data-theme={theme} className="min-h-screen bg-base-200">
-  {children}
-</div>
-```
-
-This keeps theming controlled at the layout level and mirrors how many real-world React applications integrate DaisyUI.
-
-## Phase 4: Refactor components using DaisyUI
-
-Select **one or two existing components** and refactor them to use DaisyUI components.
-
-Good candidates include:
-
-- Cards or Buttons
-- Button groups
-- Navigation or header sections
-
-For example, replace a custom card layout with a DaisyUI `card`:
-
-```jsx
-// src/components/ui/Card.jsx
-export default function Card({ title, children }) {
-  return (
-    <section className="card bg-base-100 shadow-md">
-      <header className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-        <h2 className="leading-relaxed font-bold text-sm text-gray-900">{title}</h2>
-      </header>
-      <div>
-        {children}
-      </div>
-    </section>
-  );
-}
-```
-
-Focus on **structure and consistency**, not pixel-perfect styling.
-
-## Phase 5: Compare custom styling vs DaisyUI
-
-After refactoring:
-
-- Identify which Tailwind utility classes were removed
-- Note which styles DaisyUI provides automatically
-- Decide where DaisyUI helps and where custom Tailwind is still preferable
-
-This comparison is a key learning outcome of the lesson.
-
-## Assessment
-
-- DaisyUI is correctly installed and configured
-- At least one existing component uses DaisyUI classes
-- A DaisyUI theme is applied and visible
-- Existing layout and responsiveness continue to work
-- No custom CSS files are added
-
-## Student exercise
-
-- Refactor an additional component using DaisyUI
-- Experiment with at least one alternative DaisyUI theme
-- Identify one advantage and one drawback of using a component library
-
-## Push to your GitHub workbook repo
-
-1. Stage all changes:
-```sh
-git add -A
-```
-2. Commit:
-```sh
-git commit -m 'Lesson 11 - integrate DaisyUI'
-```
-3. Push:
-```sh
-git push origin main
-```
+Compare `light` and `dark` again. Your goal is readable content, visible focus, and consistent surfaces throughout the page. Identify any fixed colours that you deliberately kept and explain why they should stay the same across themes.

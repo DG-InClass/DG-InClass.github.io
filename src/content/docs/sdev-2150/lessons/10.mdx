@@ -1,72 +1,104 @@
 ---
 title: Styling Components in React
-description: SUMMARY
+description: Use Tailwind CSS to adapt a composed React interface across small, medium, and large screens.
 sidebar:
-  label: Lesson 10 ✅
-draft: true
+  label: 10 - Styling Components
 ---
 
-import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
-import { Image } from 'astro:assets';
+import { Aside, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import When from '../../../../components/astro/When.astro';
 
 <When planned='Lesson 10' />
 
 ## Lecture
 
-TBD
+In Lesson 09, we used component composition to assemble our resource finder. `PageLayout` provides the page structure, while `App` supplies the header and the components we want to display.
 
-## Activity
+Let's take another look at that page. Three columns might work well on a wide screen, but what happens when we have less room? Stacking everything works on a phone. Somewhere between those two sizes, we could give Filters its own row and keep Results and Details together beneath it.
 
-TBD
-
-## Practice
-
-TBD
-
-----
-
-## OLD Content....
-
-import dragons from '@assets/other/here-be-dragons.png';
-
-<Image src={dragons} alt="Here be dragons" />
-
-
-
+In this lesson, we'll use **Tailwind CSS 4** to make those layout decisions explicit. We'll work with the components and data already in the starter kit.
 
 ### Learning Outcome Guide
 
 *At the end of this class, you should be able to...*
 
-- Apply Tailwind CSS utilities to style React components for consistent and scalable UI design.
-- Organize and manage component-level styling for clarity and maintainability.
-- Implement responsive design principles using Tailwind's breakpoints and variants.
+- Apply Tailwind utility classes through React's `className` attribute.
+- Explain how unprefixed utilities and responsive variants work together.
+- Use grid columns and column spans to create three responsive layouts.
+- Keep page layout decisions separate from a component's internal styling.
+- Check layout transitions and readability at different viewport widths.
 
-Additional Notes:
-- Encourage use of semantic HTML and accessible color contrasts when styling.
-- Remind students to use Tailwind's documentation as an active design reference.
-- Tailwind 4 introduces CSS-based configuration with `@theme`; continue using Tailwind 3 conventions in this course.
-- DaisyUI will be introduced later as an optional extension for component prototyping.
+#### Target behaviour
+
+| Viewport | Filters | Results and Details |
+| --- | --- | --- |
+| Below `md` | First in a vertical stack | Each occupies its own row |
+| `md` up to `lg` | Spans all three columns | Results spans two columns; Details spans one |
+| `lg` and above | Occupies one column | Each occupies one column beside Filters |
+
+The order stays the same: Filters, Results, Details. We're changing how much space each section occupies.
+
+#### What we will build
+
+We'll make changes in two places:
+
+- `PageLayout.jsx` defines the grid and the spacing around its children.
+- `App.jsx` composes the page and wraps each child to control its column span.
+
+The existing `Card` component continues to provide the shared border, background, and heading styles. `Filters`, `Results`, and `Details` keep their existing content.
+
+#### Reading the existing utilities
+
+Open `frontend/src/components/layout/PageLayout.jsx`. The active `<main>` element already has these classes:
+
+```jsx
+<main className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 py-6 md:grid-cols-3">
+  {children}
+</main>
+```
+
+Let's read the layout rules before changing them.
+
+| Utility | Responsibility |
+| --- | --- |
+| `grid` | Makes the element a grid container |
+| `grid-cols-1` | Starts with one column |
+| `md:grid-cols-3` | Uses three equal columns from the medium breakpoint upward |
+| `gap-4` | Adds space between grid items |
+| `px-6 py-6` | Adds horizontal and vertical padding inside the container |
+| `max-w-7xl mx-auto` | Limits the container's width and centres it horizontally |
+
+Notice that `className` contains ordinary strings. React renders those classes onto the element, and Tailwind supplies the CSS rules.
+
+#### Start small, then add space
+
+An unprefixed utility supplies the starting rule. A prefix such as `md:` applies a rule from that breakpoint upward. In the default Tailwind 4 theme, `md` starts at `48rem` (normally 768px) and `lg` starts at `64rem` (normally 1024px).
+
+That means `md:grid-cols-3` still applies at large widths. It doesn't stop when we reach `lg`. Also, `sm:` means “from the small breakpoint upward”; our narrowest layout uses unprefixed classes. See Tailwind's [responsive design reference](https://tailwindcss.com/docs/responsive-design).
+
+We'll use that same idea for column spans:
+
+```jsx
+<div className="md:col-span-3 lg:col-span-1">
+  <Filters />
+</div>
+```
+
+At medium widths, this grid item occupies three columns. At large widths, it occupies one. Below `md`, neither span rule applies, so it fits in the single-column grid. Tailwind's [grid-column reference](https://tailwindcss.com/docs/grid-column) lists the available span utilities.
+
+#### Why the wrappers belong in `App`
+
+`PageLayout` accepts `children`. It doesn't need to know which child is Filters or which child should take more room.
+
+The parent already knows what it is placing on the page. By adding wrappers in `App`, we can give those items different spans while keeping `PageLayout` reusable. The wrappers become the grid's direct child elements.
+
+We'll use plain `<div>` wrappers for this layout job. The existing cards already contain a `<section>` and a heading.
 
 ----
 
-## Lesson focus
+## Activity
 
-This lesson focuses on **responsive layout and component styling using Tailwind CSS**.
-
-Up to this point, most Tailwind utility classes have been provided for you. In this lesson, you will begin making **intentional styling decisions**, particularly around layout behaviour at different screen sizes.
-
-You will practice:
-
-- Using Tailwind's responsive breakpoints (`sm`, `md`, `lg`)
-- Modifying grid and column behaviour at different screen sizes
-- Designing layouts that adapt across mobile, tablet, and desktop
-- Reasoning about layout requirements instead of trial-and-error styling
-
-----
-
-## Starter Kit Code
+### Starter Kit Code
 
 Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
 
@@ -83,225 +115,189 @@ Grab the starter kit code for your Workbook by running the following in the VS C
   </TabItem>
 </Tabs>
 
-----
+If you already have today's starter, continue with that copy. From your workbook root, install and run the frontend:
 
-## Connecting to prior lessons
+```ps
+cd src/lesson-10/frontend
+pnpm install
+pnpm dev
+```
 
-In Lesson 09, we introduced:
+Open the URL printed by Vite. This lesson uses the hard-coded resource data already imported by the components; we don't need to run the backend.
 
-- Component composition strategies
-- Layout responsibility via a `PageLayout` component
-- Clear separation between layout, containers, and presentational components
+<Aside title="Tailwind is already configured">
+The starter uses Tailwind CSS 4 with the Vite plugin. Its `frontend/src/index.css` begins with `@import "tailwindcss";`. Keep that setup. There is no Tailwind installation or configuration step for this activity.
+</Aside>
 
-In Lesson 10, we build directly on that work by **refining the layout behaviour** inside the layout component.
+### Code Walkthrough
 
-## Strategy
+The file paths below start inside `src/lesson-10/frontend`. In `PageLayout.jsx` and `App.jsx`, use the active `children` implementation. You can remove the commented-out alternative that uses `left`, `middle`, and `right` props.
 
-We will modify the existing layout so it behaves differently across three screen sizes:
+<Steps>
 
-- **Mobile (default)**: stacked layout
-- **Tablet / medium screens**: Filters span the full width above Results and Details
-- **Desktop / large screens**: Filters, Results, and Details appear side-by-side
+1. **Check our starting point.**
 
-All changes for this lesson should occur inside the **layout component**.
+    Open the app in your browser and use DevTools' responsive mode to try widths of 390px, 800px, and 1280px.
 
-## Why this layout uses `children`
+    The starter stacks the cards at 390px. At 800px and 1280px, it puts all three cards beside each other. We already have the narrow and wide arrangements; the intermediate arrangement is the part we're missing.
 
-The `PageLayout` component is intentionally designed to accept `children` rather than fixed props like `left`, `middle`, and `right`.
+    Open `src/App.jsx`. Notice that Filters, Results, and Details are passed directly to `PageLayout` as children.
 
-This approach:
+1. **Give the grid more space at medium widths.**
 
-- Keeps the layout component **generic and reusable**
-- Allows the parent (`App.jsx`) to decide *what* content appears and *how* it spans the grid
-- Reinforces the idea that **layout defines structure**, while parents control composition
+    In `PageLayout.jsx`, add `md:gap-6` to the active `<main>` element.
 
-In this lesson, responsive behaviour is achieved by wrapping each child with an element that applies Tailwind grid utilities (such as `col-span-*`) at different breakpoints.
-
-This design mirrors real-world React layouts, where layout components provide structure and flexibility rather than enforcing a fixed page shape.
-
-## Phase 1: Review the current layout
-
-Open `src/components/layout/PageLayout.jsx`.
-
-Observe the current Tailwind classes applied to the `<main>` grid and its children.
-
-### What you should see in `PageLayout.jsx`
-
-Your layout component should look similar to this:
-
-```jsx
-export default function PageLayout({ header, children }) {
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="border-b border-sky-600 bg-white px-6 py-4">
-        {header}
-      </header>
-
-      <main className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 py-6 md:grid-cols-3">
+    ```diff lang="jsx" title="src/components/layout/PageLayout.jsx"
+    - <main className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 py-6 md:grid-cols-3">
+    + <main className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 py-6 md:grid-cols-3 md:gap-6">
         {children}
       </main>
-    </div>
-  );
-}
-```
+    ```
 
-For this lesson, **PageLayout.jsx is the only file that defines the grid itself**.
+    Resize the browser again. The gaps should increase at `md`, but the cards still use the same arrangement. Changing the space between items doesn't change how many columns each item occupies.
 
-Confirm the existing behaviour:
+1. **Make room for Filters above the other cards.**
 
-- On small screens, all sections stack vertically
-- On larger screens, the layout switches to columns
+    In `App.jsx`, replace the three direct children with these wrappers. Keep the existing imports and `PageLayout` header prop.
 
-Before making changes, resize the browser or use responsive mode in DevTools to verify this behaviour.
+    ```diff lang="jsx" title="src/App.jsx"
+      <PageLayout header={<Header tagline="Find the right resources, right away" />}>
+    -   <Filters />
+    -   <Results />
+    -   <Details />
+    +   <div className="md:col-span-3">
+    +     <Filters />
+    +   </div>
+    +   <div className="md:col-span-2">
+    +     <Results />
+    +   </div>
+    +   <div className="md:col-span-1">
+    +     <Details />
+    +   </div>
+      </PageLayout>
+    ```
 
-## Phase 2: Define the desired responsive behaviour
+    At 800px, Filters should occupy the first row. Results and Details should share the next row, with Results taking two of the three columns.
 
-We will target three layout modes:
+    Check 390px as well. The cards should still stack. We only applied the spans from `md` upward.
 
-### Mobile (default)
+    Now try 1280px. Filters still occupies the entire first row. Why? Our `md:` rules remain active at larger widths. We need another rule to change those spans.
 
-- Filters, Results, and Details stack vertically
-- Each section spans the full width
+1. **Restore three cards beside each other at large widths.**
 
-### Medium screens (`md`)
+    Add `lg:col-span-1` to the Filters and Results wrappers.
 
-- Filters appear in a full-width row at the top
-- Results and Details appear side-by-side beneath Filters
+    ```diff lang="jsx" title="src/App.jsx"
+    - <div className="md:col-span-3">
+    + <div className="md:col-span-3 lg:col-span-1">
+        <Filters />
+      </div>
+    - <div className="md:col-span-2">
+    + <div className="md:col-span-2 lg:col-span-1">
+        <Results />
+      </div>
+      <div className="md:col-span-1">
+        <Details />
+      </div>
+    ```
 
-### Large screens (`lg`)
+    At 1280px, each card should now occupy one column. Details already spans one column from `md` upward, so it doesn't need a different rule at `lg`.
 
-- Filters appear in the left column
-- Results appear in the center column
-- Details appear in the right column
+    Notice that the grid itself still has three columns. We changed how its children use those columns.
 
-Keep this layout description visible while implementing the changes.
+1. **Check the complete layout code.**
 
-## Phase 3: Modify the grid for the intermediate layout
+    Your layout component should now look like this:
 
-In `PageLayout.jsx`, update the grid configuration so that:
+    ```jsx title="src/components/layout/PageLayout.jsx"
+    export default function PageLayout({ header, children }) {
+      return (
+        <div className="min-h-screen bg-gray-100">
+          <header className="border-b border-sky-600 bg-white px-6 py-4">
+            {header}
+          </header>
 
-- The grid switches to multiple columns at the `md` breakpoint
-- The Filters section spans all columns at `md`
-- Results and Details share the row beneath
+          <main className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 py-6 md:grid-cols-3 md:gap-6">
+            {children}
+          </main>
+        </div>
+      );
+    }
+    ```
 
-This will require adjusting:
+    And the parent should compose the page like this:
 
-- `grid-cols-*`
-- `col-span-*`
-- Responsive prefixes (`md:` and `lg:`)
+    ```jsx title="src/App.jsx"
+    import Header from './components/Header';
+    import Filters from './components/Filters';
+    import Results from './components/Results';
+    import Details from './components/Details';
+    import PageLayout from './components/layout/PageLayout';
 
-Avoid hard-coding pixel values. Use Tailwind's breakpoint system exclusively.
+    function App() {
+      return (
+        <PageLayout header={<Header tagline="Find the right resources, right away" />}>
+          <div className="md:col-span-3 lg:col-span-1">
+            <Filters />
+          </div>
+          <div className="md:col-span-2 lg:col-span-1">
+            <Results />
+          </div>
+          <div className="md:col-span-1">
+            <Details />
+          </div>
+        </PageLayout>
+      );
+    }
 
-### Snippet to implement the `md` layout (children-based)
+    export default App;
+    ```
 
-With the `children` approach, the layout component defines the grid, and the parent controls how each child spans that grid.
+1. **Check the transitions, not just the three examples.**
 
-**Step A: Update the grid spacing in `PageLayout.jsx`:**
+    Use the viewport width in DevTools to check both sides of each breakpoint.
 
-```jsx
-<main className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 py-6 md:grid-cols-3 md:gap-6">
-  {children}
-</main>
-```
+    | Width in CSS pixels | Expected arrangement with the default breakpoints |
+    | --- | --- |
+    | 390 and 767 | Three stacked cards |
+    | 768 and 1023 | Filters above Results and Details |
+    | 1024 and 1280 | Three cards beside each other |
 
-**Step B: In `App.jsx`, wrap each section to control its span at `md`:**
+    Slowly resize between those widths. Check that headings, labels, and resource text remain readable and that the page doesn't require horizontal scrolling. Use the keyboard to move through the controls and confirm their focus indicators remain visible.
 
-```jsx
-<PageLayout header={<Header tagline="Find the right resources, right away" />}>
-  <aside className="md:col-span-3">
-    <Filters />
-  </aside>
+    If Filters stays full-width on a large screen, check its `lg:` span. If the narrow layout develops extra columns, check that the multi-column spans have an `md:` prefix. If nothing changes at a breakpoint, check the class spelling and that you edited the active JSX.
 
-  <section className="md:col-span-2">
-    <Results />
-  </section>
+</Steps>
 
-  <aside className="md:col-span-1">
-    <Details />
-  </aside>
-</PageLayout>
-```
+### What we've accomplished
 
-Expected behaviour after this step:
+We've used the same components to create three page arrangements. `PageLayout` owns the grid, `App` controls the placement of its children, and the cards retain their shared appearance.
 
-- Mobile: stacked layout
-- Medium (`md`): Filters spans full width, Results and Details appear below
+Before moving on, explain why Results needs `lg:col-span-1` but Details doesn't. Being able to predict the result is more useful than remembering a string of classes.
 
-## Phase 4: Refine the desktop layout
+----
 
-Extend the layout rules at the `lg` breakpoint so that:
+## Practice
 
-- Filters no longer span all columns
-- Each section occupies its own column
+In the starter kit, `homework.md` describes the continuation of your Users and Posts homework from Lesson 09. Apply today's layout ideas to that existing project.
 
-At this point, the layout should clearly shift between three distinct configurations.
+Your task is to make its layout readable at small, medium, and large widths, using Tailwind utilities. Keep the existing components and hard-coded data; decide which section should span the medium layout based on the content in your page.
 
-Use DevTools to verify transitions between breakpoints.
+Your solution should:
 
-### Snippet to implement the `lg` layout (children-based)
+- Stack the main sections on narrow screens.
+- Give the primary section a full-width row at medium widths, with the remaining content below it.
+- Arrange the sections horizontally at large widths.
+- Adjust spacing at a breakpoint to improve readability.
+- Keep grid rules in the layout component and span rules on the composition wrappers that place its children.
+- Preserve the existing content, semantic markup, and visible keyboard focus indicators.
 
-Extend the same wrappers so that at the `lg` breakpoint, the layout becomes fully horizontal again.
+Use the breakpoint checks from the walkthrough to verify your work. Add a short explanation to your homework's `README.md` describing which section gets the extra space and why. Keep the existing CSS setup, but implement these layout changes with utility classes rather than new custom CSS or inline styles.
 
-Update the wrappers in `App.jsx`:
+### Stretch your understanding
 
-```jsx
-<PageLayout header={<Header tagline="Find the right resources, right away" />}>
-  <aside className="md:col-span-3 lg:col-span-1">
-    <Filters />
-  </aside>
+Try adding an optional `layout` prop to `PageLayout` to choose between two arrangements. Work out both the grid's column count and the children's spans before writing the code.
 
-  <section className="md:col-span-2 lg:col-span-1">
-    <Results />
-  </section>
+Keep complete Tailwind class names in each alternative, such as `'md:grid-cols-3'` and `'md:grid-cols-4'`. Tailwind detects classes by scanning source text, so constructing a class from fragments can prevent it from generating the CSS you need. See [detecting classes in source files](https://tailwindcss.com/docs/detecting-classes-in-source-files).
 
-  <aside className="md:col-span-1 lg:col-span-1">
-    <Details />
-  </aside>
-</PageLayout>
-```
-
-Expected behaviour after this step:
-
-- Mobile: stacked
-- Medium (`md`): Filters on top, Results and Details below
-- Large (`lg`): Filters, Results, and Details side-by-side
-
-## Phase 5: Improve layout clarity and spacing
-
-Once the structure is correct, refine the visual clarity:
-
-- Adjust `gap-*` values between grid items
-- Ensure consistent padding across sections
-- Confirm that content does not feel cramped or overly sparse at any breakpoint
-
-Focus on **consistency and readability**, not decorative styling.
-
-<LinkButton href="https://refactoringui.com/" target="_blank" icon="external">Refactoring UI</LinkButton>
-
-## Assessment
-
-- The layout changes correctly across mobile, medium, and large screens
-- All responsive behaviour is controlled via Tailwind utility classes
-- Changes are isolated to the layout component
-- Breakpoints are used intentionally and consistently
-- The UI remains readable and well-spaced at all sizes
-
-## Student exercise
-
-- Introduce an optional `layout` (or `variant`) prop on the `PageLayout` component that switches between two different Tailwind class rule sets (e.g., `standard` (3 cols) and `wide` (4 cols) ), while rendering the same children.
-- Change the visual order of sections at one breakpoint using Tailwind's `order-*` utilities
-
-## Push to your GitHub workbook repo
-
-1. Stage all changes:
-```sh
-git add -A
-```
-2. Commit:
-```sh
-git commit -m 'Lesson 10 - responsive layout with Tailwind'
-```
-3. Push:
-```sh
-git push origin main
-```
+For each arrangement, check the same viewport widths and explain what makes it useful for your content.
