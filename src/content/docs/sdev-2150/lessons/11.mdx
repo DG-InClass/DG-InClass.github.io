@@ -112,6 +112,8 @@ The starter already uses Tailwind 4 and its Vite plugin. We'll add DaisyUI 5 usi
 
 The file paths below start inside `src/lesson-11/frontend`. Use the active `children` implementation in `PageLayout.jsx`; the starter also contains commented-out alternatives that we won't use.
 
+In the diffs below, lines marked `-` are removed and lines marked `+` are added. Unmarked lines provide context. Make the changes without copying the diff markers into your files.
+
 <Steps>
 
 1. **Check the existing layout.**
@@ -135,11 +137,17 @@ The file paths below start inside `src/lesson-11/frontend`. Use the active `chil
 
     In `src/index.css`, keep the Tailwind import and add the plugin block immediately after it:
 
-    ```css title="src/index.css"
-    @import "tailwindcss";
-    @plugin "daisyui" {
-      themes: light --default, dark, cupcake;
-    }
+    ```diff lang="css" title="src/index.css"
+      @import "tailwindcss";
+    + @plugin "daisyui" {
+    +   themes: light --default, dark, cupcake;
+    + }
+      :root {
+        font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+        line-height: 1.5;
+        font-weight: 400;
+
+    -   color-scheme: light;
     ```
 
     Keep the existing `:root` font and rendering declarations below this block, but remove its `color-scheme: light;` declaration so we aren't forcing a light colour scheme while experimenting with themes.
@@ -166,24 +174,23 @@ The file paths below start inside `src/lesson-11/frontend`. Use the active `chil
 
 1. **Apply a theme to the page.**
 
-    Replace the active `PageLayout` function with the following. The grid classes and `children` remain in place.
+    Add the theme constant and update the outer wrapper and header in the active `PageLayout` function. The grid classes and `children` remain in place.
 
-    ```jsx title="src/components/layout/PageLayout.jsx"
-    export default function PageLayout({ header, children }) {
-      const theme = 'light';
+    ```diff lang="jsx" title="src/components/layout/PageLayout.jsx"
+      export default function PageLayout({ header, children }) { //({ header, left, middle, right }) {
+    +   const theme = 'light';
+    +
+        return (
+    -     <div className="min-h-screen bg-gray-100">
+    -       <header className="border-b border-sky-600 bg-white px-6 py-4">
+    +     <div data-theme={theme} className="min-h-screen bg-base-200 text-base-content">
+    +       <header className="border-b border-base-300 bg-base-100 px-6 py-4">
+              {header}
+            </header>
 
-      return (
-        <div data-theme={theme} className="min-h-screen bg-base-200 text-base-content">
-          <header className="border-b border-base-300 bg-base-100 px-6 py-4">
-            {header}
-          </header>
-
-          <main className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 py-6 md:grid-cols-3">
-            {children}
-          </main>
-        </div>
-      );
-    }
+            <main className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 py-6 md:grid-cols-3">
+              {children}
+            </main>
     ```
 
     We're placing `data-theme` on the React layout so it applies to that element and its descendants. It can also be placed on the document's `<html>` element when a whole-document theme is appropriate; the layout is a convenient choice for this exercise.
@@ -192,21 +199,24 @@ The file paths below start inside `src/lesson-11/frontend`. Use the active `chil
 
 1. **Update the shared card.**
 
-    Replace the contents of `Card.jsx` with this version:
+    In `Card.jsx`, replace the classes on the section, header, and heading:
 
-    ```jsx title="src/components/ui/Card.jsx"
-    export default function Card({ title, children }) {
-      return (
-        <section className="card h-full border border-base-300 bg-base-100 text-base-content shadow-sm">
-          <header className="border-b border-base-300 px-4 py-3">
-            <h2 className="card-title text-sm">{title}</h2>
-          </header>
-          <div>
-            {children}
-          </div>
-        </section>
-      );
-    }
+    ```diff lang="jsx" title="src/components/ui/Card.jsx"
+      export default function Card({ title, children }) {
+        return (
+    -     <section className="h-full rounded border border-gray-200 bg-white shadow-sm">
+    -       <header className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+    -         <h2 className="leading-relaxed font-bold text-sm text-gray-900">{title}</h2>
+    +     <section className="card h-full border border-base-300 bg-base-100 text-base-content shadow-sm">
+    +       <header className="border-b border-base-300 px-4 py-3">
+    +         <h2 className="card-title text-sm">{title}</h2>
+            </header>
+            <div>
+              {children}
+            </div>
+          </section>
+        );
+      }
     ```
 
     All three cards should update because they already use this shared component. Its `title` and `children` props haven't changed.
@@ -215,33 +225,62 @@ The file paths below start inside `src/lesson-11/frontend`. Use the active `chil
 
 1. **Finish the Details buttons and colours.**
 
-    In `Details.jsx`, replace the final button container with:
+    In `Details.jsx`, update the final button container and the **Copy email** button. The **Open map** button already has its new classes from our earlier check.
 
-    ```jsx title="src/components/Details.jsx"
-    <div className="flex flex-wrap gap-2 border-t border-base-300 px-4 py-3">
-      <button type="button" className="btn btn-outline btn-sm">
-        Copy email
-      </button>
-      <button type="button" className="btn btn-primary btn-sm">
-        Open map
-      </button>
-    </div>
+    ```diff lang="jsx" title="src/components/Details.jsx"
+    - <div className="flex gap-2 border-t border-gray-200 px-4 py-3">
+    + <div className="flex flex-wrap gap-2 border-t border-base-300 px-4 py-3">
+        <button
+          type="button"
+    -     className="rounded border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+    +     className="btn btn-outline btn-sm"
+        >
+          Copy email
+        </button>
+        <button
+          type="button"
+          className="btn btn-primary btn-sm"
+        >
+          Open map
+        </button>
+      </div>
     ```
 
     The buttons now share a size while retaining different visual treatments. `flex-wrap` lets them wrap when space is limited.
 
-    Next, replace the following colour classes in the same file. Keep the other classes and all the text.
+    Next, update the heading and summary in the same file:
 
-    | Existing class | Replacement |
-    | --- | --- |
-    | `text-gray-900` | `text-base-content` |
-    | `text-gray-500` | `text-base-content/80` |
-    | `text-gray-700` | `text-base-content` |
-    | `text-gray-600` | `text-base-content/80` |
+    ```diff lang="jsx" title="src/components/Details.jsx"
+    - <h2 className="text-base font-semibold text-gray-900">Peer Tutoring Centre</h2>
+    - <p className="text-sm text-gray-500">Drop-in tutoring and study support.</p>
+    + <h2 className="text-base font-semibold text-base-content">Peer Tutoring Centre</h2>
+    + <p className="text-sm text-base-content/80">Drop-in tutoring and study support.</p>
+    ```
+
+    Apply the same idea to the description list. Here's the change for Category:
+
+    ```diff lang="jsx" title="src/components/Details.jsx"
+      <dl className="grid grid-cols-12 gap-y-2 text-sm">
+    -   <dt className="col-span-4 font-semibold text-gray-700">Category</dt>
+    -   <dd className="col-span-8 text-gray-600">Academic</dd>
+    +   <dt className="col-span-4 font-semibold text-base-content">Category</dt>
+    +   <dd className="col-span-8 text-base-content/80">Academic</dd>
+    ```
+
+    Repeat those class replacements for Location, Hours, and Contact: change `text-gray-700` to `text-base-content` on each `<dt>`, and `text-gray-600` to `text-base-content/80` on each `<dd>`. Keep the other classes and all the text.
 
     The `/80` modifier makes the content colour partially transparent. Check that the resulting text remains readable on the selected surface.
 
-    In `Header.jsx`, also replace `text-sky-600` with `text-primary` and `text-gray-500` with `text-base-content/80`. This lets the directory heading and tagline follow the theme.
+    In `Header.jsx`, update the directory heading and tagline so they follow the theme as well:
+
+    ```diff lang="jsx" title="src/components/Header.jsx"
+    - <h1 className="text-xl font-semibold text-sky-600">NAIT Resource Directory</h1>
+    - <p className="text-sm text-gray-500">
+    + <h1 className="text-xl font-semibold text-primary">NAIT Resource Directory</h1>
+    + <p className="text-sm text-base-content/80">
+        {tagline ? tagline : 'Find student support services, labs, and campus resources.'}
+      </p>
+    ```
 
 1. **Compare the enabled themes.**
 
