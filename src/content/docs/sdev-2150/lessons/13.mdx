@@ -1,69 +1,56 @@
 ---
 title: Lifting State and Component Communication
-description: SUMMARY
+description: Share filter and selection state through a common parent, derive visible results, and connect the details panel.
 sidebar:
-  label: Lesson 13 ✅
-draft: true
+  label: 13 - Lifting State
 ---
 
-import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
-import { Image } from 'astro:assets';
+import { Aside, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import When from '../../../../components/astro/When.astro';
 
 <When planned='Lesson 13' />
 
 ## Lecture
 
-TBD
+In Lesson 12, Filters remembered our choices and Results remembered a selected resource. Each component could respond to its own events. Now we want those choices to affect other components: a search should change Results, and selecting a result should change Details.
 
-## Activity
-
-TBD
-
-## Practice
-
-TBD
-
-----
-
-## OLD Content....
-
-import dragons from '@assets/other/here-be-dragons.png';
-
-<Image src={dragons} alt="Here be dragons" />
-
-
-
+Let's look at the component that brings those pieces together. `App` already renders Filters, Results, and Details. It can own the information they share and pass each child what it needs. Moving state to that common parent is called **lifting state up**.
 
 ### Learning Outcome Guide
 
 *At the end of this class, you should be able to...*
 
-- Explain the concept of lifting state up and when to apply it in React applications.
-- Pass state and event handlers between parent and child components using props.
-- Identify the challenges of prop drilling and discuss patterns for managing shared state effectively.
+- Identify the nearest common parent for components that need shared state.
+- Move state to that parent and pass values and callbacks through props.
+- Derive a filtered list from existing data and state.
+- Render a useful message when there is no selection or no matching result.
+- Keep local form feedback separate from shared application state.
 
-Additional Notes:
-- Emphasize the "single source of truth" principle in React state management.
-- Encourage visualizing data flow diagrams before coding to clarify component relationships.
-- Avoid introducing Context API yet - save it for global or complex state lessons (Week 8+).
-- In React 19, `use` and server-driven state patterns simplify lifting in async data scenarios - mention as a preview only.
+### Agree on the component contract
 
-## Lesson focus
+| Component | Receives | Reports through a callback |
+| --- | --- | --- |
+| Filters | Search text, selected categories, Open now | Changes to those filter values |
+| Results | Filter values and the selected resource | The resource the user selects |
+| Details | The selected resource | Nothing for this activity |
 
-This lesson connects three core ideas:
+`App` will be the **single source of truth** for the shared values. Children render the values passed down to them and call the callbacks passed down to them. Calling a callback doesn't bubble a custom DOM event; it's an ordinary function call.
 
-- Working with forms (submission + simple validation)
-- Conditional rendering
-- Lifting state to share data between components
+This follows the same communication goal as our Web Components work in Lesson 03: the result item doesn't need to find the details panel. The parent connects them. React's [sharing state guide](https://react.dev/learn/sharing-state-between-components) explains this pattern.
 
-We will extend the existing **Filters**, **Results**, and **Details** components in the NAIT Student Resources project.
+### Store the choices; calculate the result
+
+The search text is state. The array of resources that match that text can be calculated during rendering. Keeping another state variable for the filtered array would give us two values to keep synchronized.
+
+For our directory, filters will apply as soon as their values change. An empty category array means All, and category names will keep the same capitalization as the source data. Our form submission will demonstrate validation separately; it won't be required to refresh the results.
 
 ----
 
-## Starter Kit Code
+## Activity
 
-Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
+### Starter Kit Code
+
+From the root of your workbook, grab today's starter for your section. Continue with your existing copy if you've already downloaded it.
 
 <Tabs syncKey='section'>
   <TabItem label='A01'>
@@ -78,239 +65,359 @@ Grab the starter kit code for your Workbook by running the following in the VS C
   </TabItem>
 </Tabs>
 
+```ps
+cd src/lesson-13/frontend
+pnpm install
+pnpm dev
+```
+
+The starter includes local filter state and local result selection from Lesson 12. It still uses `src/data/resources.js`; we don't need the backend. Details still contains hard-coded text.
+
+### Code Walkthrough
+
+Paths below start inside `src/lesson-13/frontend`. Use the active JSX in `App.jsx`; the commented-out alternative layout can be removed.
+
+<Aside title="Reading the diffs" type="tip">
+Use unchanged lines to find each edit. Remove `-` lines, add `+` lines, and don't copy the markers. When a step changes both a parent and child, finish both edits before checking the browser.
+</Aside>
+
+<Steps>
+
+1. **Connect Results to the parent first.**
+
+    We'll move one piece of state at a time. Add the hook import at the top of `App.jsx`, then add selection state inside `App`.
+
+    ```diff lang="jsx" title="src/App.jsx"
+    + import { useState } from 'react';
+      import Header from './components/Header';
+    ```
+
+    ```diff lang="jsx" title="src/App.jsx"
+      function App() {
+    +   const [selectedResource, setSelectedResource] = useState(null);
+    +
+        return (
+    ```
+
+    Pass the value and setter where Results is rendered.
+
+    ```diff lang="jsx" title="src/App.jsx"
+          <section className="md:col-span-2 lg:col-span-1">
+    -       <Results />
+    +       <Results
+    +         selectedResource={selectedResource}
+    +         onSelectResource={setSelectedResource}
+    +       />
+          </section>
+    ```
+
+    Now remove the duplicate state from Results and receive the two props.
+
+    ```diff lang="jsx" title="src/components/Results.jsx"
+    - import { useState } from 'react';
+
+      import ResultsItem from './ResultsItem';
+    ```
+
+    ```diff lang="jsx" title="src/components/Results.jsx"
+    - export default function Results() {
+    -   const [selectedResource, setSelectedResource] = useState(null);
+    + export default function Results({ selectedResource, onSelectResource }) {
+
+        return (
+    ```
+
+    ```diff lang="jsx" title="src/components/Results.jsx"
+                location={r.location}
+    -           onClick={() => setSelectedResource(r)}
+    +           onClick={() => onSelectResource(r)}
+                selected={selectedResource?.id === r.id}
+    ```
+
+    Select two different resources. The highlight should still move. The visible behaviour is unchanged, but `App` now owns the selection.
+
+1. **Pass the selected resource to Details.**
+
+    In `App.jsx`, replace the unconditional Details component. With no selection, we'll render a prompt instead.
+
+    ```diff lang="jsx" title="src/App.jsx"
+          <aside className="md:col-span-1 lg:col-span-1">
+    -       <Details />
+    +       {selectedResource ? (
+    +         <Details resource={selectedResource} />
+    +       ) : (
+    +         <p className="text-sm text-base-content/70">
+    +           Select a resource to view details.
+    +         </p>
+    +       )}
+          </aside>
+    ```
+
+    Receive the prop in Details.
+
+    ```diff lang="jsx" title="src/components/Details.jsx"
+      // src/components/Details.jsx
+    - export default function Details() {
+    + export default function Details({ resource }) {
+        return (
+    ```
+
+    Replace the hard-coded values in its heading and description list. Keep the existing labels and classes.
+
+    ```diff lang="jsx" title="src/components/Details.jsx"
+    -           <h2 className="text-base font-semibold text-gray-900">Peer Tutoring Centre</h2>
+    -           <p className="text-sm text-gray-500">Drop-in tutoring and study support.</p>
+    +           <h2 className="text-base font-semibold text-gray-900">{resource.title}</h2>
+    +           <p className="text-sm text-gray-500">{resource.summary}</p>
+    ```
+
+    ```diff lang="jsx" title="src/components/Details.jsx"
+                <dt className="col-span-4 font-semibold text-gray-700">Category</dt>
+    -           <dd className="col-span-8 text-gray-600">Academic</dd>
+    +           <dd className="col-span-8 text-gray-600">{resource.category}</dd>
+
+                <dt className="col-span-4 font-semibold text-gray-700">Location</dt>
+    -           <dd className="col-span-8 text-gray-600">Building W, Room W101</dd>
+    +           <dd className="col-span-8 text-gray-600">{resource.location}</dd>
+
+                <dt className="col-span-4 font-semibold text-gray-700">Hours</dt>
+    -           <dd className="col-span-8 text-gray-600">Mon-Thu 10:00-16:00</dd>
+    +           <dd className="col-span-8 text-gray-600">{resource.hours}</dd>
+
+                <dt className="col-span-4 font-semibold text-gray-700">Contact</dt>
+    -           <dd className="col-span-8 text-gray-600">tutoring@nait.ca</dd>
+    +           <dd className="col-span-8 text-gray-600">{resource.contact}</dd>
+    ```
+
+    Refresh: you should see the selection prompt. Click a result: every details field should describe that resource. Copy email and Open map remain starter placeholders for now.
+
+1. **Make result selection work with the keyboard.**
+
+    This starter attaches selection to an `<li>`, which isn't a keyboard control. Move that handler onto a button inside the existing heading.
+
+    ```diff lang="jsx" title="src/components/ResultsItem.jsx"
+    -     <li onClick={onClick} className={`px-4 py-3 text-gray-900 hover:bg-gray-50 cursor-pointer ${selected ? 'bg-sky-50' : ''}`}>
+    +     <li className={`px-4 py-3 text-gray-900 ${selected ? 'bg-sky-50' : ''}`}>
+            <div className="flex items-start justify-between gap-3">
+    -         <h2 className="text-sm font-semibold">{title}</h2>
+    +         <h2 className="text-sm font-semibold">
+    +           <button type="button" onClick={onClick} aria-pressed={selected}
+    +             className="cursor-pointer rounded text-left underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-sky-600">
+    +             {title}
+    +           </button>
+    +         </h2>
+    ```
+
+    Tab to a resource title and press Enter or Space. The same state change should update the highlight and Details.
+
+1. **Move the three shared filter values to App.**
+
+    Add them alongside selection state.
+
+    ```diff lang="jsx" title="src/App.jsx"
+      function App() {
+        const [selectedResource, setSelectedResource] = useState(null);
+    +   const [searchTerm, setSearchTerm] = useState('');
+    +   const [selectedCategories, setSelectedCategories] = useState([]);
+    +   const [openNowOnly, setOpenNowOnly] = useState(false);
+    ```
+
+    Pass the values and callbacks to Filters.
+
+    ```diff lang="jsx" title="src/App.jsx"
+          <aside className="md:col-span-3 lg:col-span-1">
+    -       <Filters />
+    +       <Filters
+    +         searchTerm={searchTerm}
+    +         onSearchChange={setSearchTerm}
+    +         selectedCategories={selectedCategories}
+    +         onCategoryToggle={setSelectedCategories}
+    +         openNowOnly={openNowOnly}
+    +         onOpenNowChange={setOpenNowOnly}
+    +       />
+          </aside>
+    ```
+
+    In Filters, replace the three local declarations with props. We'll keep `useState` for a local message about form submission.
+
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+    - export default function Filters() {
+    -   const [searchTerm, setSearchTerm] = useState('');
+    -   const [selectedCategories, setSelectedCategories] = useState([]);
+    -   const [openNowOnly, setOpenNowOnly] = useState(false);
+    + export default function Filters({
+    +   searchTerm, onSearchChange,
+    +   selectedCategories, onCategoryToggle,
+    +   openNowOnly, onOpenNowChange,
+    + }) {
+    +   const [validationMessage, setValidationMessage] = useState('');
+    ```
+
+    Update the category handler to call the parent setter and make All clear the category array.
+
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+        function toggleCategory(category) {
+    -     setSelectedCategories((prev) => {
+    +     onCategoryToggle((prev) => {
+    +       if (category === 'All') return [];
+            if (prev.includes(category)) {
+    ```
+
+    Here `onCategoryToggle` receives a React state setter, so it accepts an updater function. It's a prop name we chose, not a built-in React event.
+
+    Change the input handlers and the existing Reset handler as well.
+
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+    -             onChange={(e) => setSearchTerm(e.target.value)}
+    +             onChange={(e) => onSearchChange(e.target.value)}
+                  value={searchTerm}
+    ```
+
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+                    checked={openNowOnly}
+    -               onChange={(e) => setOpenNowOnly(e.target.checked)}
+    +               onChange={(e) => onOpenNowChange(e.target.checked)}
+    ```
+
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+                    onClick={() => {
+    -                 setSearchTerm('');
+    -                 setSelectedCategories([]);
+    -                 setOpenNowOnly(false);
+    +                 onSearchChange('');
+    +                 onCategoryToggle([]);
+    +                 onOpenNowChange(false);
+    +                 setValidationMessage('');
+                    }}
+    ```
+
+    Finally, replace the category button's conditional class. This makes the empty-array meaning of All visible and avoids competing text colours.
+
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+                    type="button"
+    -               className={`${selectedCategories.includes(label) && 'bg-sky-600 text-white'} rounded border border-sky-600 px-3 py-1 text-xs font-semibold text-sky-700 hover:bg-sky-50 hover:text-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-200`}
+    +               className={`btn btn-sm ${(label === 'All'
+    +                 ? selectedCategories.length === 0
+    +                 : selectedCategories.includes(label)) ? 'btn-primary' : 'btn-outline'}`}
+    +               aria-pressed={label === 'All'
+    +                 ? selectedCategories.length === 0
+    +                 : selectedCategories.includes(label)}
+                    onClick={() => toggleCategory(label)}
+    ```
+
+    Try Search, categories, Open now, and Reset. They should still respond. Results hasn't received the filters yet, so it still shows the full list.
+
+1. **Derive the visible results.**
+
+    Pass the same three filter values to Results in `App.jsx`.
+
+    ```diff lang="jsx" title="src/App.jsx"
+            <Results
+              selectedResource={selectedResource}
+              onSelectResource={setSelectedResource}
+    +         searchTerm={searchTerm}
+    +         selectedCategories={selectedCategories}
+    +         openNowOnly={openNowOnly}
+            />
+    ```
+
+    Receive them and calculate the matching resources before returning JSX.
+
+    ```diff lang="jsx" title="src/components/Results.jsx"
+    - export default function Results({ selectedResource, onSelectResource }) {
+    + export default function Results({
+    +   selectedResource, onSelectResource,
+    +   searchTerm, selectedCategories, openNowOnly,
+    + }) {
+    +   const query = searchTerm.trim().toLowerCase();
+    +   const filteredResources = resources.filter((resource) => {
+    +     const matchesSearch = resource.title.toLowerCase().includes(query);
+    +     const matchesCategory = selectedCategories.length === 0
+    +       || selectedCategories.includes(resource.category);
+    +     const matchesOpenNow = !openNowOnly || resource.openNow;
+    +     return matchesSearch && matchesCategory && matchesOpenNow;
+    +   });
+
+        return (
+          <Card title="Results">
+    +       <p className="p-4 text-sm" role="status">
+    +         Showing {filteredResources.length} of {resources.length} resources.
+    +       </p>
+    +       {filteredResources.length === 0 && (
+    +         <p className="px-4 pb-4">No resources match. Try changing or resetting the filters.</p>
+    +       )}
+            <ul className="divide-y divide-gray-200">
+    -         {resources.map((r) => (
+    +         {filteredResources.map((r) => (
+    ```
+
+    Keep the rest of the list, including `key={r.id}`. Type part of a resource title, choose a category, and check Open now. A result must pass all three tests. With multiple categories, it can belong to any selected category.
+
+    Try a nonsense search and then Reset. You should see the empty message followed by the full list. Selection remains independent of filtering: hiding a selected result doesn't clear Details in this version.
+
+1. **Give form submission a clear purpose.**
+
+    Filtering already happens while typing. We'll use submission to check whether any filters have been chosen, with feedback inside Filters. Replace its existing handler.
+
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+        function handleSubmit(e) {
+          e.preventDefault();
+    -     console.log('Filters submitted');
+    +     const hasFilters = searchTerm.trim() !== ''
+    +       || selectedCategories.length > 0 || openNowOnly;
+    +     setValidationMessage(hasFilters
+    +       ? 'Your filters are already applied to the results.'
+    +       : 'Choose a filter to narrow the results. All resources are currently shown.');
+        }
+    ```
+
+    Rename the submit button and add the feedback after the form's button row.
+
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+    -             Filter
+    +             Check filters
+                </button>
+    ```
+
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+    +         <p role="status" className="text-sm text-base-content/70">
+    +           {validationMessage}
+    +         </p>
+            </form>
+    ```
+
+    Submit with no filters, then with a search term. The message should describe each submission. Reset should clear it. This is local feedback: Results and Details don't need it, so there is no reason to lift it.
+
+</Steps>
+
+### What we've accomplished
+
+Trace a title click from the button to `onSelectResource`, through `App`'s setter, and back down to Details. Then trace a search change through the same pattern. There is one owner for each shared value.
+
+Passing props through many intermediate components is often called **prop drilling**. Our composition only needs a few explicit connections. We'll consider other patterns when the application needs them.
+
 ----
 
-## Connecting to prior lessons
+## Practice
 
-In Lesson 12, we added local state:
+### Take this demo farther
 
-- `searchTerm`, `selectedCategories`, and `openNowOnly` inside **Filters**
-- `selectedResource` inside **Results**
+- Add shared `virtualOnly` state in App. Wire the existing Virtual options checkbox through Filters, include it in Reset and form validation, and use it in Results' filter calculation.
+- Move the no-selection message into Details. Let Details accept `null`, render its prompt in that case, and simplify App to always render the component.
+- Decide whether a selected resource should remain visible in Details after filters hide it. Describe your chosen behaviour before changing any code.
 
-Each component owns its own state.
+Check combinations, not just individual controls: Virtual options plus a category, a search with no matches, and Reset after several changes.
 
-But now we want:
+### Homework: connect Users and Posts
 
-- Filters to affect Results
-- Selecting a result to affect Details
+Continue the existing project using today's `homework.md`. This time the homework deliberately uses **submit-based searching**: typing edits `searchTerm`, and submitting copies an accepted value to `submittedSearchTerm`. Only the submitted value filters users.
 
-To do that, we need **shared state**.
+Your solution should:
 
-# Phase 1: Identify Shared State
+- Lift `searchTerm`, `submittedSearchTerm`, and `selectedUserId` into their common parent.
+- Keep `UserSearch` controlled through props and show an inline message for an empty or whitespace-only submission.
+- Derive the visible users from the submitted term and the visible posts from the selected user's id.
+- Pass data and callbacks to Users and Posts, keeping stable keys and a visible selection.
+- Show helpful messages for no matches and no selected user.
 
-Ask:
-
-- Who needs the filter values?
-- Who needs the selected resource?
-
-Currently:
-
-- Filters owns filter state
-- Results owns selected resource state
-
-However:
-
-- Results needs filter state
-- Details needs selected resource
-
-That means this state must move up to their **nearest common ancestor**.
-
-# Phase 2: Lift State to the Parent (App)
-
-Open `App.jsx` (or your top-level layout component).
-
-Add shared state:
-
-```jsx
-// App.jsx
-...
-const [searchTerm, setSearchTerm] = useState('');
-const [selectedCategories, setSelectedCategories] = useState([]);
-const [openNowOnly, setOpenNowOnly] = useState(false);
-const [selectedResource, setSelectedResource] = useState(null);
-...
-```
-
-The parent now owns all shared state.
-
-# Phase 3: Update Filters to Use Props
-
-Update how `Filters` is rendered:
-
-```jsx
-// App.jsx
-<Filters
-  searchTerm={searchTerm}
-  onSearchChange={setSearchTerm}
-  selectedCategories={selectedCategories}
-  onCategoryToggle={setSelectedCategories}
-  openNowOnly={openNowOnly}
-  onOpenNowChange={setOpenNowOnly}
-/>
-```
-
-Inside `Filters`:
-
-- Remove local `useState`
-- Use props instead (add the necessary props based on what we passed above)
-
-Example controlled input:
-
-```jsx
-// Filters.jsx
-<input
-  value={searchTerm}
-  onChange={(e) => onSearchChange(e.target.value)}
-/>
-```
-
-For category toggling, implement toggle logic in the parent or pass a toggle handler.
-
-The key idea:
-
-Filters no longer owns state. It receives state and notifies the parent.
-
-# Phase 4: Update Results to Use Lifted State
-
-Render Results like this:
-
-```jsx
-// App.jsx
-<Results
-  selectedResource={selectedResource}
-  onSelectResource={setSelectedResource}
-  searchTerm={searchTerm}
-  selectedCategories={selectedCategories}
-  openNowOnly={openNowOnly}
-/>
-```
-
-Inside `Results`:
-
-- Replace local selected state
-- Use props instead (add the necessary props based on what we passed above)
-
-```jsx
-// Results.jsx
-...
-onClick={() => onSelectResource(resource)}
-...
-```
-
-Results now:
-
-- Receives filter values
-- Receives selected resource
-- Notifies parent when a resource is selected
-
-# Phase 5: Conditional Rendering in Details
-
-Update how `Details` is rendered in the parent:
-
-```jsx
-// App.jsx
-{selectedResource ? (
-  <Details resource={selectedResource} />
-) : (
-  <div className="text-sm text-base-content/70">
-    Select a resource to view details.
-  </div>
-)}
-```
-
-The resource is now passed as a prop. Update the `Details` component to make use of the prop for rendering.
-
-This demonstrates:
-
-- Conditional rendering using a ternary
-- Rendering based entirely on state
-
-No manual DOM updates.
-
-# Phase 6: Simple Form Validation
-
-Return to the `Filters` component.
-
-Update the submit handler:
-
-```jsx
-function handleSubmit(e) {
-  e.preventDefault();
-
-  if (!searchTerm.trim() && selectedCategories.length === 0 && !openNowOnly) {
-    alert('Please select at least one filter option.');
-    return;
-  }
-
-  console.log('Filters submitted');
-}
-```
-
-Attach it:
-
-```jsx
-<form onSubmit={handleSubmit}>
-```
-
-We are still not filtering the data yet.
-
-> **Discussion:** Is there still a need for the "Filter" submit button? All components are reactive to state changes, so filtering happens without submitting the form.
-
-This step reinforces:
-
-- Forms still use `preventDefault()`
-- Validation logic is just JavaScript
-- State is accessible through props
-
-# Phase 7: Single Source of Truth
-
-Now, `App` owns:
-
-- Filter state
-- Selected resource state
-
-Child components:
-
-- Receive data via props
-- Send events upward via callbacks
-
-Data flows down.
-Events flow up.
-
-This is lifting state.
-
-# Key Concepts Reinforced
-
-- Shared state lives in the nearest common ancestor
-- Child components should be as stateless as possible
-- Conditional rendering is just rendering based on state
-- Forms behave the same in React, just declaratively
-
-# Assessment
-
-- Filters no longer owns shared state
-- Results no longer owns selected resource state
-- App coordinates state across components
-- Details renders conditionally
-- Form submission includes validation
-
-## Student exercise
-
-- Move the conditional rendering for no resource selected into `Details` (i.e. display a "No resource selected" message in the `Details` component, not in `App.jsx`).
-- Implement the virtual options filter
-- Implement the filtering of the results using the passed props in `Results`.
-
-# Push to your GitHub workbook repo
-
-1. Stage all changes:
-```sh
-git add -A
-```
-2. Commit:
-```sh
-git commit -m 'Lesson 13 - lifting state and shared communication'
-```
-3. Push:
-```sh
-git push origin main
-```
+Test typing before submission, submitting, selecting two different users, and getting zero matches. Document the state ownership and the distinction between typed and submitted text in your `README.md`. Follow the starter's submission instructions when your checks pass.

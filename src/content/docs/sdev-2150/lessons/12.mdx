@@ -1,74 +1,67 @@
 ---
 title: Event Handling and State in React
-description: SUMMARY
+description: Make the resource directory interactive with event handlers, controlled inputs, and local component state.
 sidebar:
-  label: Lesson 12 ✅
-draft: true
+  label: 12 - Events and State
 ---
 
-import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
-import { Image } from 'astro:assets';
+import { Aside, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import When from '../../../../components/astro/When.astro';
 
 <When planned='Lesson 12' />
 
 ## Lecture
 
-TBD
+We've assembled our resource directory from components and worked on its appearance. Let's try using it. We can type into Search and check Open now, but the rest of the interface doesn't know what we've done. The category buttons don't remember a selection either.
 
-## Activity
-
-TBD
-
-## Practice
-
-TBD
-
-----
-
-## OLD Content....
-
-import dragons from '@assets/other/here-be-dragons.png';
-
-<Image src={dragons} alt="Here be dragons" />
-
-
-
+In this lesson, we'll give our components that memory. We'll use **state** to keep track of input and **event handlers** to update it. Our first goal is deliberately small: make the controls respond and show what they remember. Connecting Filters to Results comes in Lesson 13.
 
 ### Learning Outcome Guide
 
 *At the end of this class, you should be able to...*
 
-- Implement event handling for user interactions in React components.
-- Use the `useState` hook to manage and update component state.
-- Build interactive UI components that respond to user input.
+- Attach click, change, and submit handlers through JSX.
+- Use `useState` to retain a string, an array, and a boolean between renders.
+- Control text inputs with `value` and checkboxes with `checked`.
+- Calculate a new array from previous state without modifying the old array.
+- Explain which component owns a piece of local state.
 
-Additional Notes:
-- Emphasize that React events are synthetic and cross-browser compatible.
-- Keep examples focused on `useState`; context-based state will come later.
-- Encourage using DaisyUI components (e.g., buttons, inputs) to demonstrate styling within event-driven UIs.
-- In React 19, the new Actions API (`useActionState`) can streamline form event handlingâ€”mention as an emerging feature but keep focus on `useState` for now.
+### Target behaviour
+
+| Interaction | What we should see |
+| --- | --- |
+| Type into Search | A preview repeats the current search term |
+| Select a category | Its button shows that it is selected |
+| Select that category again | Its highlight disappears |
+| Choose All | The category selection becomes empty |
+| Check Open now | A preview changes from No to Yes |
+| Submit the form | The browser logs the current values without reloading |
+
+### Remembering information between renders
+
+A normal local variable is created again each time React calls our component. `useState` gives us a value that React remembers and a function that requests an update:
+
+```js
+const [searchTerm, setSearchTerm] = useState('');
+```
+
+We read `searchTerm` while rendering. An event handler calls `setSearchTerm` with the next value. React then renders with that value. Calling the setter doesn't change the variable in the handler that's already running. See React's [`useState` reference](https://react.dev/reference/react/useState).
+
+Call hooks at the top level of a component or custom hook, before any conditional returns. Don't put a `useState` call inside a click handler, loop, or `if` statement.
+
+### Let state describe the interface
+
+An uncontrolled input already lets us type. A **controlled input** also makes its current value available to our React code. We supply `value` and an `onChange` handler; for a checkbox, we supply `checked` and read `event.target.checked`. React's [input reference](https://react.dev/reference/react-dom/components/input#controlling-an-input-with-a-state-variable) compares the two approaches.
+
+We don't need to query the DOM or change classes ourselves. JSX describes what the interface should look like for the current state.
 
 ----
 
-## Lesson focus
+## Activity
 
-This lesson introduces **event handling and state management in React**.
+### Starter Kit Code
 
-You will:
-
-- Handle user interactions (click, change events)
-- Use the `useState` hook
-- Build controlled form inputs
-- Update UI reactively based on state
-
-All work will build directly on the existing Resource Directory example.
-
-----
-
-## Starter Kit Code
-
-Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
+From the root of your workbook, grab the starter for your section. If you already have today's starter, continue with that copy.
 
 <Tabs syncKey='section'>
   <TabItem label='A01'>
@@ -83,288 +76,215 @@ Grab the starter kit code for your Workbook by running the following in the VS C
   </TabItem>
 </Tabs>
 
-----
-
-## Connecting to prior lessons
-
-So far, the UI:
-
-- Has structured layout
-- Uses Tailwind for styling
-- Uses DaisyUI for consistent components
-
-However, it is still mostly **static**. In this walthrough, we will make the UI **interactive**.
-
-# Phase 1: Import and use `useState`
-
-Open your `Filters` component.
-
-At the top of the file, import `useState`:
-
-```jsx
-import { useState } from 'react';
+```ps
+cd src/lesson-12/frontend
+pnpm install
+pnpm dev
 ```
 
-This hook allows us to store and update component state.
+Open the URL printed by Vite. The starter already includes React, Tailwind, and DaisyUI. Its resource data is local, so we don't need the backend today.
+
+### Code Walkthrough
+
+All file paths below start inside `src/lesson-12/frontend`. We'll work in `src/components/Filters.jsx`; leave the existing layout and resource data in place.
+
+<Aside title="Reading the diffs" type="tip">
+Find the unchanged lines in your file first. Remove lines marked `-`, add lines marked `+`, and keep the surrounding context. Don't copy the diff markers into your source code. Each diff builds on the earlier steps.
+</Aside>
+
+<Steps>
 
-## Phase 2: Controlled text input
+1. **Give Filters a value to remember.**
 
-Convert the search input into a **controlled component**.
+    Import `useState` and declare the search state inside the component, before its `return`.
 
-### Step 1: Add state
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+    + import { useState } from 'react';
+      import Card from './ui/Card';
 
-```jsx
-const [searchTerm, setSearchTerm] = useState('');
-```
+      // src/components/Filters.jsx
+      export default function Filters() {
+    +   const [searchTerm, setSearchTerm] = useState('');
+    +
+        return (
+    ```
 
-### Step 2: Bind the input
+    Now find the input with `id="q"`. Keep its placeholder and styling, and add the two props below.
 
-```jsx
-<input
-  type="text"
-  value={searchTerm}
-  onChange={(e) => setSearchTerm(e.target.value)}
-  className="input input-bordered w-full"
-  placeholder="Search resources..."
-/>
-```
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+              <input
+                id="q"
+                type="text"
+    +           value={searchTerm}
+    +           onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Try: tutoring, mental health, bursary"
+    ```
+
+    The arrow function is our event handler. React calls it when the input changes, and `e.target.value` supplies the current text.
 
-### Step 3: Confirm reactivity
+1. **Make the state visible outside the input.**
 
-Add a temporary preview below the input:
+    Find the end of the Search input's containing `<div>`, just before the first horizontal rule. Add a preview there.
 
-```jsx
-<p className="text-sm text-base-content/70">
-  Searching for: {searchTerm}
-</p>
-```
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+                  placeholder="Try: tutoring, mental health, bursary"
+                  className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                />
+              </div>
+    +         <p className="text-sm text-base-content/70">
+    +           Searching for: {searchTerm || '(nothing yet)'}
+    +         </p>
 
-Observe how typing updates the UI immediately.
+              <hr className="border-gray-200" />
+    ```
+
+    Type `tutoring`, then delete it. The preview should follow each change. Results stays the same: this state belongs to Filters, and we haven't shared it with another component.
+
+1. **Remember multiple category selections.**
+
+    Add another state variable and a handler below `searchTerm`.
+
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+      export default function Filters() {
+        const [searchTerm, setSearchTerm] = useState('');
+    +   const [selectedCategories, setSelectedCategories] = useState([]);
+    +
+    +   function toggleCategory(category) {
+    +     setSelectedCategories((previous) => {
+    +       if (category === 'All') return [];
+    +       if (previous.includes(category)) {
+    +         return previous.filter((item) => item !== category);
+    +       }
+    +       return [...previous, category];
+    +     });
+    +   }
 
-> **Note:** you may have noticed that prior to controlling the input, the value was already being "rendered" in the input text field, like you would expect. What was not happening, however, was the component rerendering the input as a result of state change. So, you may be wondering, "Why even add state if the outcome is the same?" The short answer is that the outcome *is not the same*. Prior to adding state to the input, we had not simple way of capturing the field's value. Since we're not working in the DOM, there's no way to `document.querySelector()` (or other similar approach) to access the input. Now, with state, we always have a direct reference to teh fields's value that can be used in whatever way we wish.
->
-> You can read more about uncontrolled and controlled inputs here: https://react.dev/reference/react-dom/components/input#reading-the-input-values-when-submitting-a-form.
+        return (
+    ```
 
-## Phase 3: Category button multi-selection
+    The next array depends on the previous array, so we pass an **updater function** to the setter. `filter` and the spread syntax create new arrays. We don't use `push` or `splice` on the state array.
 
-Allow users to select a category (or multiple categories) and reflect that selection visually.
+    Our category contract is simple: an empty array means All. We never store the word `'All'` alongside actual categories.
 
-### Step 1: Add state
+1. **Connect the category buttons.**
 
-```jsx
-const [selectedCategories, setSelectedCategories] = useState([]);
+    Find the button inside the category `.map()`. Replace its class and add a handler and pressed state. The starter already has `type="button"`, which prevents category clicks from submitting the form.
 
-function toggleCategory(category) {
-  setSelectedCategories((prev) => {
-    if (prev.includes(category)) {
-      return prev.filter((c) => c !== category);
-    }
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+                    key={label}
+                    type="button"
+    -               className="rounded border border-sky-600 px-3 py-1 text-xs font-semibold text-sky-700 hover:bg-sky-50"
+    +               className={`btn btn-sm ${
+    +                 (label === 'All'
+    +                   ? selectedCategories.length === 0
+    +                   : selectedCategories.includes(label))
+    +                   ? 'btn-primary' : 'btn-outline'
+    +               }`}
+    +               aria-pressed={label === 'All'
+    +                 ? selectedCategories.length === 0
+    +                 : selectedCategories.includes(label)}
+    +               onClick={() => toggleCategory(label)}
+                  >
+                    {label}
+    ```
 
-    return [...prev, category];
-  });
-}
-```
+    Click Academic, then Wellness. Both should remain selected. Click Academic again, then All. All should become the only highlighted button. `aria-pressed` also communicates the toggle state to assistive technology.
 
-### Step 2: Update button handlers
+    We pass a function to `onClick`. Writing `onClick={toggleCategory(label)}` would call our handler while rendering, before the user clicks anything.
 
-Example button:
+1. **Control a checkbox with a boolean.**
 
-```jsx
-<button
-  ...
-  className={`${selectedCategories.includes(label) && 'bg-sky-600 text-white'} ... `}
-  onClick={() => toggleCategory(label)}
->
-  {label}
-</button>
-```
+    Add the boolean alongside our other state.
 
-What to notice:
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+        const [searchTerm, setSearchTerm] = useState('');
+        const [selectedCategories, setSelectedCategories] = useState([]);
+    +   const [openNowOnly, setOpenNowOnly] = useState(false);
+    ```
 
-- Clicking updates the state
-- State is used to determine styling
-- There is no direct DOM manipulation required
-- Users can select multiple categories
+    Find the checkbox with `id="openNow"`.
 
-React re-renders automatically when the state is changed
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+                  type="checkbox"
+                  id="openNow"
+    +             checked={openNowOnly}
+    +             onChange={(e) => setOpenNowOnly(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
+    ```
 
-## Phase 4: Controlled checkbox
+    Extend our preview so we can see the boolean change.
 
-Track boolean state using a checkbox.
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+              <p className="text-sm text-base-content/70">
+                Searching for: {searchTerm || '(nothing yet)'}
+    +           {' | '}Open now only: {openNowOnly ? 'Yes' : 'No'}
+              </p>
+    ```
 
-### Step 1: Add state
+    Check and uncheck Open now. The preview should alternate between Yes and No. A checkbox's `value` is not its checked state; that's why we read `checked` here.
 
-```jsx
-const [openNowOnly, setOpenNowOnly] = useState(false);
-```
+1. **Handle submission without navigating away.**
 
-### Step 2: Bind checkbox
+    Add a submit handler immediately before the component's `return`.
 
-```jsx
-<input
-  type="checkbox"
-  className="checkbox"
-  checked={openNowOnly}
-  onChange={(e) => setOpenNowOnly(e.target.checked)}
-/>
-```
+    ```diff lang="jsx" title="src/components/Filters.jsx"
+    +   function handleSubmit(e) {
+    +     e.preventDefault();
+    +     console.log('Filters submitted', {
+    +       searchTerm,
+    +       selectedCategories,
+    +       openNowOnly,
+    +     });
+    +   }
+    +
+        return (
+          <Card title="Filters">
+            <div className="space-y-4 p-4">
+    -         <form id="frm-filter" className="space-y-4">
+    +         <form onSubmit={handleSubmit} id="frm-filter" className="space-y-4">
+    ```
 
-Add a small preview message if helpful:
+    Open the browser console, enter some values, and click Filter. Try pressing Enter in Search as well. Both should log the current values without reloading the page. Submitting on the form covers both interactions.
 
-```jsx
-<p className="text-sm">
-  Open now only: {openNowOnly ? 'Yes' : 'No'}
-</p>
-```
+    The handler reports our state; it doesn't filter the resource list yet.
 
-## Phase 5: State recap inside Filters
+</Steps>
 
-At this point, the `Filters` component manages:
+### Check your understanding
 
-- A string (`searchTerm`)
-- An array of strings (`selectedCategories`)
-- A boolean (`openNowOnly`)
+Try the controls using Tab, Space, and Enter. Then explain the sequence: a user acts, a handler requests a state change, and React renders the new state. Which line connects each input back to the value React remembers?
 
-All UI changes are driven by state.
-
-> **Note:** We are not yet applying this state to filter the results. That will come in the next lesson when we discuss **lifting state and shared data flow**.
-
-## Phase 6: Handling form submission
-
-In previous courses, you handled form submission using JavaScript and `addEventListener`. In React, form handling follows the same idea, but we attach the handler directly in JSX.
-
-Override the form’s default submit behavior.
-
-### Step 1: Add a submit handler
-
-Inside the `Filters` component, add:
-
-```jsx
-function handleSubmit(e) {
-  e.preventDefault();
-  console.log('Filters submitted');
-}
-```
-
-### Step 2: Attach it to the form
-
-Locate the `<form>` element inside `Filters` and update it:
-
-```jsx
-<form onSubmit={handleSubmit}>
-```
-
-Now, when the form is submitted (for example, by clicking a submit button), the page will no longer reload.
-
-Instead, you should see the message printed in the browser console.
-
-This reinforces:
-
-- React uses the same event model you’ve seen before
-- We prevent default browser behavior explicitly
-- Event handlers in React are attached declaratively
-
-We will connect this submit action to actual filtering logic in a future lesson.
-
-## Key Concepts Reinforced
-
-- React events are synthetic and cross-browser
-- `useState` stores reactive values
-- State updates trigger re-renders
-- UI should derive from state, not manual DOM updates
-
-## Assessment
-
-- Inputs are fully controlled
-- Buttons update state and styling correctly
-- Checkbox reflects boolean state
-- Selected result highlights properly
-- No direct DOM manipulation is used
-
----
-
-## Student Exercise: Clear Selected Filters
-
-Add a handler for the reset button that will return the filters to their original state.
-
-## Student Exercise: Selected Resource State
-
-Track which resource has been selected when a user clicks it.
-
-### Step 1: Add state
-
-Start by defining a new piece of state inside the `Results` component. This state should track the currently selected resource. Initially, no resource should be selected.
-
-<details>
-<summary>Show solution</summary>
-
-```jsx
-const [selectedResource, setSelectedResource] = useState(null);
-```
-
-</details>
-
-### Step 2: Add click handler to result item
-
-Next, attach a click handler to each rendered result item. When a result is clicked, update the state to store the clicked resource.
-
-<details>
-<summary>Show solution</summary>
-
-```jsx
-onClick={() => setSelectedResource(resource)}
-```
-
-</details>
-
-### Step 3: Highlight selected item
-
-Use conditional class logic to visually distinguish the selected resource. Compare each resource’s id to the currently selected resource’s id.
-
-<details>
-<summary>Show solution</summary>
-
-```jsx
-className={`card cursor-pointer ${
-  selectedResource?.id === resource.id ? 'border-primary border-2' : ''
-}`}
-```
-
-</details>
-
-### Step 4: Conditional preview (optional)
-
-Optionally, render a small preview below the list to confirm which resource is currently selected. Only render this element if a resource has been selected.
-
-<details>
-<summary>Show solution</summary>
-
-```jsx
-{selectedResource && (
-  <p className="text-sm mt-2">
-    Selected: {selectedResource.name}
-  </p>
-)}
-```
-
-</details>
-
-## Push to your GitHub workbook repo
-
-1. Stage all changes:
-```sh
-git add -A
-```
-2. Commit:
-```sh
-git commit -m 'Lesson 12 - event handling and state'
-```
-3. Push:
-```sh
-git push origin main
-```
+We've made Filters interactive using local state. In the next lesson, we'll let sibling components use that information.
 
 ----
 
-## Dan's Walkthrough
+## Practice
 
+### Take this demo farther
+
+Complete these small tasks in the resource directory without lifting state out of its current component.
+
+- Make Reset restore the search term, category array, and Open now state. Reset is already a `type="button"`; give it a click handler that resets the React values.
+- Control Virtual options with its own boolean state. Include it in the preview, submitted values, and Reset behaviour.
+- In `Results.jsx`, track the selected resource locally, initially `null`. Pass an `onClick` callback and a `selected` boolean to each `ResultsItem`.
+- Update `ResultsItem.jsx` to accept those props and provide a native button for selecting the resource. Keep the `<li>` as the list item and make the title button keyboard accessible. Use the `selected` prop to highlight the item and expose its pressed state.
+- Show the selected resource's `title` beneath the results list. Check `src/data/resources.js`: the property is `title`, not `name`.
+
+You should be able to select an item by mouse or keyboard and see exactly one highlight. Details will still show its original content. Connecting that panel is our next task.
+
+### Homework: Users and Posts
+
+Continue your existing Users and Posts project, following `homework.md` in today's starter. Keep the layout and DaisyUI work from Lesson 11.
+
+Your task is to create a `UserSearch` component with a controlled input and a submit handler, and add local selected-user state to `Users`. Submitting should log a message without reloading; selecting a user should visibly highlight that user.
+
+For this exercise, keep the search state in `UserSearch` and the selected-user state in `Users`. Searching the list and connecting selection to posts come later.
+
+Before finishing, verify that:
+
+- Typing changes the React state and submitting doesn't reload the page.
+- Selecting another user moves the highlight, including when using the keyboard.
+- Your existing layout still works at narrow and wide widths.
+- Your `README.md` explains where each state value lives and gives one event-handler example.
+
+Review your changes, then commit and push your workbook work as directed in `homework.md`.

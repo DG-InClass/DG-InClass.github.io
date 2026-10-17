@@ -1,74 +1,62 @@
 ---
-title: State-Driven UI in React
-description: SUMMARY
+title: Custom Hooks and Persisted Selection
+description: Extract selected-resource state into a custom hook and restore it from sessionStorage after a refresh.
 sidebar:
-  label: Lesson 15
-draft: true
+  label: 15 - Custom Hooks
 ---
 
-import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
-import { Image } from 'astro:assets';
+import { Aside, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import When from '../../../../components/astro/When.astro';
 
 <When planned='Lesson 15' />
 
 ## Lecture
 
-TBD
+Our directory now connects filters, results, and details through shared state. Select a resource and refresh the browser. The selection disappears because a new instance of the application starts with `useState(null)`.
 
-## Activity
-
-TBD
-
-## Practice
-
-TBD
-
-----
-
-## OLD Content....
-
-import dragons from '@assets/other/here-be-dragons.png';
-
-<Image src={dragons} alt="Here be dragons" />
-
-
-
+Let's make that selection survive a refresh. We'll first move the existing state into a **custom hook**, check that the interface still works, and then add browser storage behind the hook's interface.
 
 ### Learning Outcome Guide
 
 *At the end of this class, you should be able to...*
 
-- Explain how component state drives UI updates in React.
-- Implement conditional rendering and dynamic list rendering.
-- Compute and display derived state for responsive user feedback.
+- Extract component state logic into a custom hook.
+- Explain the hook's return values and where its state belongs.
+- Initialize state from stored JSON using an initializer function.
+- Store and clear a selected resource in `sessionStorage`.
+- Test persistence without confusing stored data with React state.
 
-Additional Notes:
-- Emphasize using stable keys when rendering lists to avoid performance or reconciliation issues.
-- Demonstrate how React avoids direct DOM manipulation by re-rendering declaratively.
-- React 19's improved rendering pipeline enhances async rendering - mention as a preview but stay with React 18 behaviour.
-- Reinforce that clear data flow and predictable state lead to reliable UI updates.
+### A useful boundary
+
+`App` needs to know which resource is selected and how to select another one. It doesn't need to know the storage key, JSON format, or browser storage methods.
+
+We'll preserve this interface:
+
+```js
+const [selectedResource, setSelectedResource] = useSelectedResource();
+```
+
+The first value is the current selection. The second is a function accepting a resource object or `null`. We'll use the familiar setter name in App, but this first version won't support React's function-updater form.
+
+A custom hook starts with `use` and composes other hooks. Each call has its own state; extracting a hook doesn't create a shared global store. We will call this hook once, in App, and continue sharing its values through props. See React's [custom hooks guide](https://react.dev/learn/reusing-logic-with-custom-hooks).
+
+### State and storage have different jobs
+
+| Mechanism | Responsibility in our app |
+| --- | --- |
+| React state | Supplies the current selection for rendering |
+| `sessionStorage` | Keeps a serialized copy available after a refresh |
+| Custom hook | Coordinates reading, updating, and clearing the selection |
+
+Browser storage keeps strings, so we'll use `JSON.stringify` when writing and `JSON.parse` when reading. `sessionStorage` is scoped to an origin and a browser tab's page session. It survives reloads; it isn't intended as permanent storage. Restored or duplicated tabs can retain or copy a session, so closing and reopening a tab is not a reliable clearing test. See MDN's [`sessionStorage` reference](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage).
 
 ----
 
-## Lesson focus
+## Activity
 
-This lesson introduces:
+### Starter Kit Code
 
-- What custom hooks are
-- Why custom hooks exist
-- How hooks can encapsulate reusable state logic
-- Persisting state using `sessionStorage`
-
-We will extend the existing NAIT Student Resources example.
-
-Specifically, we will persist the **selected resource** so that it remains selected after a page refresh.
-
-----
-
-## Starter Kit Code
-
-Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
+From the root of your workbook, grab today's starter for your section. If it's already present, continue with that copy.
 
 <Tabs syncKey='section'>
   <TabItem label='A01'>
@@ -83,203 +71,188 @@ Grab the starter kit code for your Workbook by running the following in the VS C
   </TabItem>
 </Tabs>
 
+```ps
+cd src/lesson-15/frontend
+pnpm install
+pnpm dev
+```
+
+Open the URL printed by Vite. Today's starter already has filtering, shared selection, and conditional details. Results still imports local resource data, so leave the backend stopped.
+
+### Code Walkthrough
+
+Paths below start inside `src/lesson-15/frontend`.
+
+<Aside title="Reading the diffs" type="tip">
+Find the surrounding code, remove `-` lines, and add `+` lines. Don't copy the diff markers. A new file is shown as ordinary JavaScript; subsequent changes to it use diffs.
+</Aside>
+
+<Steps>
+
+1. **Observe the behaviour we're changing.**
+
+    Select a resource and confirm its details appear. Refresh the page. You should see the selection prompt again.
+
+    Find `const [selectedResource, setSelectedResource] = useState(null);` in `src/App.jsx`. That's the state we'll extract. Search, categories, and the two filter checkboxes will keep their existing state.
+
+1. **Extract the state before adding persistence.**
+
+    Create the `src/hooks` folder and a new `useSelectedResource.js` file.
+
+    ```js title="src/hooks/useSelectedResource.js"
+    import { useState } from 'react';
+
+    export function useSelectedResource() {
+      const [selectedResource, setSelectedResource] = useState(null);
+
+      return [selectedResource, setSelectedResource];
+    }
+    ```
+
+    Import the hook into App and replace the existing selection declaration.
+
+    ```diff lang="jsx" title="src/App.jsx"
+      import { useState } from 'react';
+    + import { useSelectedResource } from './hooks/useSelectedResource';
+    ```
+
+    ```diff lang="jsx" title="src/App.jsx"
+        const [openNowOnly, setOpenNowOnly] = useState(false);
+    -   const [selectedResource, setSelectedResource] = useState(null);
+    +   const [selectedResource, setSelectedResource] = useSelectedResource();
+        const [virtualOnly, setVirtualOnly] = useState(false);
+    ```
+
+    Keep the `useState` import: App still uses it for its other values. Keep the props passed to Results and Details as they are.
+
+    Select a resource again. The interface should work exactly as before, including losing the selection after a refresh. We've changed where the logic is written; we haven't added persistence yet.
+
+1. **Read the saved selection when the state is initialized.**
+
+    Back in the hook, add a storage key and replace the `null` initial value with an initializer function.
+
+    ```diff lang="js" title="src/hooks/useSelectedResource.js"
+      import { useState } from 'react';
+
+    + const STORAGE_KEY = 'selectedResource';
+    +
+      export function useSelectedResource() {
+    -   const [selectedResource, setSelectedResource] = useState(null);
+    +   const [selectedResource, setSelectedResource] = useState(() => {
+    +     try {
+    +       const stored = sessionStorage.getItem(STORAGE_KEY);
+    +       if (stored === null) return null;
+    +       const resource = JSON.parse(stored);
+    +       return resource && typeof resource.id === 'string'
+    +         && typeof resource.title === 'string' ? resource : null;
+    +     } catch {
+    +       return null;
+    +     }
+    +   });
+
+        return [selectedResource, setSelectedResource];
+      }
+    ```
+
+    We pass a function instead of calling it ourselves. React uses it when initializing this instance's state, rather than rereading storage on every update. This is **lazy initialization**. Development Strict Mode can call an initializer twice to check it, so this function only reads and returns a value; it doesn't write to storage. See [avoiding recreated initial state](https://react.dev/reference/react/useState#avoiding-recreating-the-initial-state).
+
+    The `try` block covers both storage access and JSON parsing. The small shape check rejects values such as a saved number or an unrelated object. This isn't a full data validator; our app is saving its own resource objects.
+
+    If there is no saved value, the selection still starts as `null`. We need to write something before a refresh can restore it.
+
+1. **Save selections through the hook's update function.**
+
+    Add a function before the hook's return statement. It will update React state and attempt to save the supplied value.
+
+    ```diff lang="js" title="src/hooks/useSelectedResource.js"
+    -   return [selectedResource, setSelectedResource];
+    +   function updateSelectedResource(resource) {
+    +     setSelectedResource(resource);
+    +     try {
+    +       if (resource === null) {
+    +         sessionStorage.removeItem(STORAGE_KEY);
+    +       } else {
+    +         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(resource));
+    +       }
+    +     } catch (error) {
+    +       console.warn('Selection could not be saved for this tab.', error);
+    +     }
+    +   }
+    +
+    +   return [selectedResource, updateSelectedResource];
+      }
+    ```
+
+    App still calls its second returned value `setSelectedResource`. It now receives our wrapper function instead of React's setter directly. No change is needed in Results or Details.
+
+    Select a resource and refresh. Its details and highlight should return. In DevTools, inspect Session Storage for the frontend's origin. The `selectedResource` key should contain JSON for the selected resource.
+
+    If storage is unavailable, selecting still updates the interface for the current visit. The console warning explains why persistence didn't succeed.
+
+1. **Give ourselves a clear-selection check.**
+
+    In App, add a button at the start of the details wrapper, before its existing conditional rendering.
+
+    ```diff lang="jsx" title="src/App.jsx"
+          <aside className="md:col-span-1 lg:col-span-1">
+    +       <button type="button" className="btn btn-sm btn-outline mb-3"
+    +         disabled={selectedResource === null}
+    +         onClick={() => setSelectedResource(null)}>
+    +         Clear selection
+    +       </button>
+            {selectedResource ? (
+              <Details resource={selectedResource} />
+    ```
+
+    Select a resource, clear it, and refresh. The prompt should remain, and the storage key should be absent. This tests the `null` branch directly.
+
+1. **Check more than the happy path.**
+
+    Use the following checks on the same frontend URL and port. Different ports use different origins and therefore different storage.
+
+    | Check | Expected result |
+    | --- | --- |
+    | Select A, then B, then refresh | B returns |
+    | Select, clear, then refresh | No resource is selected |
+    | Change only the search term, then refresh | Selection returns; search resets |
+    | Change the saved value to invalid JSON in DevTools, then refresh | The app starts with no selection |
+    | Remove only the `selectedResource` key and refresh | The app starts with no selection |
+
+    Editing storage directly doesn't call a React setter. That's why these storage-edit checks include a refresh.
+
+</Steps>
+
+### What we've accomplished
+
+App still owns the selection through its hook call. The hook now hides the storage details behind a small interface, while Results and Details continue to receive props.
+
+Writing to storage from an event-triggered update function is valid. In Lesson 16, we'll explore a different requirement: keeping storage synchronized whenever selection state changes, using an Effect. That will also let us return React's setter directly.
+
+For now, we store a snapshot of the entire resource. If the original data changes, that snapshot can become stale. Storing only an id is a useful next design to consider.
+
 ----
 
-## Connecting to prior lessons
+## Practice
 
-Currently:
+### Take this demo farther
 
-- `App` owns `selectedResource`
-- `Results` notifies the parent when a resource is selected
-- `Details` renders conditionally based on `selectedResource`
+- Refactor the hook to store only the selected resource's id. Decide where to find the current resource object and what to display if the id no longer exists.
+- Add a named `clearSelectedResource` function as a third return value. Keep the storage work inside the hook.
+- Create a small `useBoolean` hook for an unrelated toggle. Call it twice and confirm the calls have independent state.
 
-If you refresh the page, the selected resource is lost.
+Keep these extensions focused on custom hooks. We haven't introduced `useEffect` yet.
 
-We will now persist it.
+### Homework: persist the selected user
 
-# Phase 1: What is a Custom Hook?
+Continue your Users and Posts project using today's `homework.md`. Create `src/hooks/useSelectedUser.js`, returning the selected user id and a function that updates it.
 
-A custom hook is simply:
+Your solution should:
 
-- A JavaScript function
-- Whose name starts with `use`
-- That calls one or more built-in hooks
+- Restore the id using a lazy initializer and a project-specific storage key.
+- Save an id when selected and remove the stored value when selection becomes `null`.
+- Handle absent or malformed saved data without breaking the page.
+- Keep storage access inside the hook, with one hook call in the parent that shares selection.
+- Preserve the id's type so comparisons against your user data still work.
+- Keep user highlighting, search, and post filtering working after the refactor.
 
-Example pattern:
-
-```js
-function useSomething() {
-  const [value, setValue] = useState(null);
-  return [value, setValue];
-}
-```
-
-Custom hooks allow us to extract and reuse logic across components.
-
-# Phase 2: Create the Hook File
-
-Create a new file:
-
-```
-src/hooks/useSelectedResource.js
-```
-
-Add the following:
-
-```js
-import { useState } from 'react';
-
-const STORAGE_KEY = 'selectedResource';
-
-export function useSelectedResource() {
-  const [selectedResource, setSelectedResource] = useState(() => {
-    const stored = sessionStorage.getItem(STORAGE_KEY);
-
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        return null;
-      }
-    }
-    
-    return null;
-  });
-
-  function updateSelectedResource(resource) {
-    setSelectedResource(resource);
-
-    if (resource === null) {
-      sessionStorage.removeItem(STORAGE_KEY);
-    } else {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(resource));
-    }
-  }
-
-  return [selectedResource, updateSelectedResource];
-}
-```
-
-## Important Concepts Introduced
-
-### Lazy Initialization
-
-```js
-useState(() => { ... })
-```
-
-The function runs only on initial render.
-
-This allows us to:
-
-- Read from `sessionStorage` once
-- Initialize state correctly
-- Avoid re-reading on every render
-
-# Phase 3: Replace Existing State in App
-
-Open `App.jsx`.
-
-Replace:
-
-```js
-const [selectedResource, setSelectedResource] = useState(null);
-```
-
-With:
-
-```js
-import { useSelectedResource } from './hooks/useSelectedResource';
-
-const [selectedResource, setSelectedResource] = useSelectedResource();
-```
-
-No other changes are required.
-
-# Phase 4: Test the Behavior
-
-1. Select a resource
-2. Refresh the page
-3. The same resource should still be selected
-
-Close the tab entirely and reopen it.
-
-The selection will be cleared.
-
-That is the difference between `sessionStorage` and `localStorage`.
-
-# How This Works
-
-- State still lives in React
-- `sessionStorage` mirrors that state
-- The hook encapsulates persistence logic
-
-The component does not need to know anything about storage.
-
-# Why Not Use useEffect Yet?
-
-We are writing to storage inside the setter.
-
-This works because:
-
-- The setter runs synchronously
-- We are simply mirroring state
-
-In the next lesson, we will discuss:
-
-- Side effects
-- Component lifecycle
-- Why `useEffect` exists
-- How to refactor this hook to separate state updates from persistence
-
-# Pros of This Approach
-
-- Low cognitive load
-- Clear demonstration of custom hooks
-- No lifecycle discussion required
-- Immediate visible benefit (refresh persistence)
-- Clean separation of concerns
-
-# Limitations
-
-- Side effects are inside the setter
-- Does not respond to external storage changes
-- Entire object is stored (not just id)
-- Hardcoded storage key
-
-These tradeoffs will help motivate the next lesson.
-
-# Key Concepts Reinforced
-
-- Custom hooks wrap reusable state logic
-- Hooks can compose other hooks
-- Lazy state initialization
-- Separation of concerns
-
-# Assessment
-
-- `selectedResource` is persisted across refresh
-- State is managed via a custom hook
-- `App` remains clean and readable
-- No `useEffect` is used yet
-
-# Student Exercise
-
-1. Refactor the hook to store only `resource.id` instead of the entire object.
-2. Add a third return value that clears the stored selection.
-3. Create a second hook called `useBoolean` for toggling true/false values.
-
-# Push to your GitHub workbook repo
-
-1. Stage all changes:
-```sh
-git add -A
-```
-2. Commit:
-```sh
-git commit -m 'Lesson 15 - custom hook for session storage'
-```
-3. Push:
-```sh
-git push origin main
-```
+Test selecting two users, refreshing, clearing, and refreshing again. Explain state ownership, lazy initialization, and the benefit of this hook in your `README.md`. No new dependencies or generic storage hook are needed. Follow the starter's submission instructions when those checks pass.

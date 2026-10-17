@@ -1,104 +1,59 @@
 ---
 title: Static Routing with React Router 7
-description: SUMMARY
+description: Organize the directory and an admin page into static routes with shared layout, navigation, and a resource creation form.
 sidebar:
-  label: Lesson 17 ✅
-draft: true
+  label: 17 - Static Routing
 ---
 
-import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
-import { Image } from 'astro:assets';
+import { Aside, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import When from '../../../../components/astro/When.astro';
 
 <When planned='Lesson 17' />
 
 ## Lecture
 
-TBD
+Our resource directory now loads data and remembers a selection. Let's give the application a second screen for managing those resources. We want a URL for each screen, navigation between them, and a header that stays in place.
 
-## Activity
-
-TBD
-
-## Practice
-
-TBD
-
-----
-
-## OLD Content....
-
-import dragons from '@assets/other/here-be-dragons.png';
-
-<Image src={dragons} alt="Here be dragons" />
-
-
-
+We'll use **React Router 7** in its declarative mode. The routes will have fixed paths: `/` for the directory and `/admin` for management. Here, *static routing* means those fixed path patterns; the pages can still fetch and change data.
 
 ### Learning Outcome Guide
 
 *At the end of this class, you should be able to...*
 
-- Configure React Router 7 with `createBrowserRouter` and `RouterProvider`.
-- Define static routes and navigate between them using the `Link` component.
-- Implement a layout route with `Outlet` to maintain consistent UI structure across pages.
+- Configure `BrowserRouter`, `Routes`, and `Route` for fixed client-side paths.
+- Move existing functionality into a page component without losing its behaviour.
+- Use a layout route and `Outlet` to share the header and page layout.
+- Use `NavLink` to navigate and identify the active page.
+- Build a basic create-resource form with pending, success, and error feedback.
 
-Additional Notes:
-- Encourage students to keep routes simple (no params yet) and confirm understanding before adding dynamic paths.
-- React Router 7's Data APIs (loaders, actions) will be introduced in later lessons when working with API-driven routes.
+### Plan the responsibilities
 
-----
+| File | Responsibility after the refactor |
+| --- | --- |
+| `main.jsx` | Defines the router and route tree |
+| `App.jsx` | Renders the shared layout and an `Outlet` |
+| `Header.jsx` | Contains navigation to both pages |
+| `ResourceDirectoryPage.jsx` | Owns directory filters, selection, fetching, and composition |
+| `AdminPage.jsx` | Loads the management list and handles the create form |
+| `PageLayout.jsx` | Continues to supply the responsive grid |
 
-## Start the backend API
+The nested route's element appears where App renders `Outlet`. The index route supplies the default child at `/`. React Router's [routing guide](https://reactrouter.com/start/declarative/routing) shows this relationship.
 
-Lesson 17 continues using the local backend server.
+Our resource ids will still be used in API requests, but we won't introduce route parameters, loaders, or actions in this lesson.
 
-In a second terminal:
+### What navigation preserves
 
-1. Move into the backend folder:
-```sh
-cd backend
-```
-2. Install dependencies (first time only):
-```sh
-npm install
-```
-3. Start the server:
-```sh
-npm start
-```
+The shared layout stays mounted when we move between its child routes. The page component being left is removed, and the page being entered mounts. Returning to the directory creates fresh filter state and fetches the list again. Selection can be restored from `sessionStorage` through our custom hook.
 
-The server listens on `http://localhost:3000`.
-
-We will continue using:
-
-- `GET /resources`
-- `POST /resources`
-- `PUT /resources/:id`
-
-Keep this server running while you work on the frontend.
-
----
-
-## Lesson focus
-
-This lesson introduces **static routing** using **React Router 7**.
-
-We will:
-
-- Add routing to the existing NAIT Student Resources example
-- Turn the current resource directory page into the **index route**
-- Add a second **admin route**
-- Build shared navigation between pages
-- Create a simple admin page for listing, creating, and updating resources
-
-This lesson is about **structure and navigation**, not advanced route loaders or nested data APIs.
+Calling `useResources` in both pages gives each page its own request state. The hook doesn't create a shared cache.
 
 ----
 
-## Starter Kit Code
+## Activity
 
-Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
+### Starter Kit Code
+
+From the root of your workbook, grab today's starter for your section, or continue with your existing copy.
 
 <Tabs syncKey='section'>
   <TabItem label='A01'>
@@ -113,631 +68,372 @@ Grab the starter kit code for your Workbook by running the following in the VS C
   </TabItem>
 </Tabs>
 
-----
+Use two terminals, each starting at the workbook root.
 
-
-## Connecting to prior lessons
-
-So far, the app behaves like a single page with one main screen.
-
-It already includes:
-
-- Fetching resources from the backend
-- Selecting a resource
-- Rendering details
-- Persisting selected resource
-
-Now we want to organize the app into two static pages:
-
-1. A public-facing resource directory page
-2. An admin page for managing resources
-
----
-
-## Phase 1: Install React Router 7
-
-Install React Router:
-
-```sh
-npm install react-router
+```ps title="Terminal 1: frontend"
+cd src/lesson-17/frontend
+pnpm install
+pnpm add react-router@7
+pnpm dev
 ```
 
-We are using React Router 7 for static route configuration inside the client app.
-
----
-
-## Phase 2: Create route-level page components
-
-Create a new folder:
-
-```text
-src/pages/
+```ps title="Terminal 2: backend"
+cd src/lesson-17/backend
+pnpm install
+pnpm start
 ```
 
-Create these files:
+Use the frontend URL printed by Vite, and check that [the backend resource list](http://localhost:3000/resources) is available. Install `react-router` in the frontend, following the package used in the [declarative installation guide](https://reactrouter.com/start/declarative/installation).
 
-```text
-src/pages/ResourceDirectoryPage.jsx
-src/pages/AdminPage.jsx
-```
+### Code Walkthrough
 
-### ResourceDirectoryPage
+Paths below start inside `src/lesson-17/frontend`.
 
-This page should render the existing UI for:
+<Aside title="Reading the diffs" type="tip">
+Find the surrounding lines before editing. Remove `-` lines, add `+` lines, and don't copy the markers. We'll copy the existing directory into its new page before simplifying App, so we have all its code available throughout the move.
+</Aside>
 
-- Filters
-- Results
-- Details
+<Steps>
 
-It will use the same hooks and props you already have in the app. For now, create a simple placeholder component:
+1. **Check the existing directory and request cleanup.**
 
-```js
-// src/pages/ResourceDirectoryPage.jsx
-export default ResourceDirectoryPage = () => {
-  return (
-    <h1>Resource Directory Page</h1>
-  );
-};
+    Select a resource and refresh. Confirm that the backend list loads and selection returns.
 
-```
-### AdminPage
+    The supplied starter's `src/hooks/useResources.js` contains the earlier demonstration implementation, including a two-second delay. Before adding navigation, replace that file with the complete `useResources.js` from [Lesson 16's Code Walkthrough](/sdev-2150/lessons/16/#code-walkthrough), in the step **Create a hook for loading resources**. If you're continuing your completed Lesson 16 code, keep that version.
 
-Create a basic admin page that will:
+    Check that it uses `requestVersion` to retry, creates its controller inside the Effect, and guards completion updates with `signal.aborted`. Its returned values are still `resources`, `isLoading`, `error`, and `refetch`.
 
-- Display all resources in a list
-- Contain a form for creating a resource
-- Allow editing an existing resource
+    This prepares us for leaving a page while its request is pending. Refresh once more to confirm the directory still loads.
 
-For now, keep the layout simple and create a placeholder component:
+1. **Move the directory into a page component.**
 
-```jsx
-// src/pages/AdminPage.jsx
-export default AdminPage = () => {
-  return (
-    <h1>Admin Page</h1>
-  );
-};
-```
+    Create `src/pages`. Copy the entire current `src/App.jsx` into `src/pages/ResourceDirectoryPage.jsx`. We'll edit that copy first; leave the original App in place for the moment.
 
----
+    In the copied file, combine the React imports, fix relative paths, and remove the layout imports.
 
-## Phase 3: Use the existing layout component
+    ```diff lang="jsx" title="src/pages/ResourceDirectoryPage.jsx"
+    - import { useState } from 'react';
+    - import { useResources } from './hooks/useResources';
+    - import { useSelectedResource } from './hooks/useSelectedResource';
+    + import { useEffect, useState } from 'react';
+    + import { useResources } from '../hooks/useResources';
+    + import { useSelectedResource } from '../hooks/useSelectedResource';
 
-The project already includes a layout component:
+    - import Header from './components/Header';
+    - import Filters from './components/Filters';
+    - import Results from './components/Results';
+    - import Details from './components/Details';
+    - import PageLayout from './components/layout/PageLayout';
+    - import { useEffect } from 'react';
+    + import Filters from '../components/Filters';
+    + import Results from '../components/Results';
+    + import Details from '../components/Details';
 
-```text
-src/components/layout/PageLayout.jsx
-```
-
-We will continue using this component rather than creating a new layout.
-
-In this routing setup:
-
-- `PageLayout` controls the visual layout of the page
-- `Header` will contain the navigation links
-- `Outlet` renders whichever page matches the current route
-
-Instead of introducing a new layout component, we will update **App.jsx** so it becomes the router layout wrapper.
-
-Open **src/App.jsx** and update it so that it renders `PageLayout` and an `Outlet`:
-
-> NOTE: you may want to copy the "guts" of the PageLayout component into an empty file to save for use later on.
-
-```jsx
-// src/App.jsx
-import { Outlet } from 'react-router';
-
-import Header from './components/Header';
-import PageLayout from './components/layout/PageLayout';
-
-export default function App() {
-  return (
-    <PageLayout header={<Header tagline="Find the right resources, right away" />}>
-      <Outlet />
-    </PageLayout>
-  );
-}
-```
-
-Navigation will live inside **Header.jsx**, not inside **App.jsx** or **PageLayout.jsx**. In the next step after updating `App.jsx`, you will update **Header.jsx** to add the `NavLink` components for the directory and admin routes.
-
-#### Update the Header component with navigation
-
-Open `src/components/Header.jsx` and update it to include navigation links using `NavLink` from React Router.
-
-`NavLink` works like a normal link, but it also knows when the current route matches its `to` path. This allows us to style the active navigation item.
-
-Update the component as follows:
-
-```jsx
-// src/components/Header.jsx
-import { NavLink } from 'react-router';
-
-export default function Header({ tagline }) {
-  return (
-    <div className="flex flex-wrap items-end justify-between gap-2">
-      <div>
-        <h1 className="text-xl font-semibold text-sky-600">NAIT Resource Directory</h1>
-        <p className="text-sm text-gray-500">
-          {tagline ? tagline : 'Find student support services, labs, and campus resources.'}
-        </p>
-      </div>
-
-      <nav className="flex gap-2">
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `btn btn-sm cursor-pointer btn-ghost text-xs ${isActive ? 'text-sky-700' : 'hover:text-sky-700'}`
-          }
-        >
-          Directory
-        </NavLink>
-
-        <NavLink
-          to="/admin"
-          className={({ isActive }) =>
-            `btn btn-sm cursor-pointer btn-ghost text-xs ${isActive ? 'text-sky-700' : 'hover:text-sky-700'}`
-          }
-        >
-          Admin
-        </NavLink>
-      </nav>
-    </div>
-  );
-}
-```
-
-This adds navigation to both routes:
-
-- **Directory** --> `/`
-- **Admin** --> `/admin`
-
-The `isActive` value provided by `NavLink` allows the current page to be visually highlighted.
-
-Key idea:
-
-- `App.jsx` becomes the **router layout**
-- `PageLayout` remains the **visual layout component**
-- `Outlet` renders the current page
-- `Header.jsx` becomes the shared navigation UI
-
----
-
-## Phase 4: Configure routes in `main.jsx`
-
-Replace the existing root render with a component-based router setup.
-
-Example:
-
-```jsx
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import {
-  BrowserRouter,
-  Route,
-  Routes,
-} from 'react-router';
-
-import App from './App.jsx';
-import ResourceDirectoryPage from './pages/ResourceDirectoryPage';
-import AdminPage from './pages/AdminPage';
-
-import './index.css';
-
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App />}>
-          <Route index element={<ResourceDirectoryPage />} />
-          <Route path="admin" element={<AdminPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  </StrictMode>
-);
-```
-
-Important ideas:
-
-- `/` becomes the **index route**
-- `/admin` becomes the second static route
-- `<Routes>` contains the route tree
-- `<Route>` components define the hierarchy
-- `App.jsx` acts as the router layout
-- `Outlet` renders the current page inside the layout
-
----
-
-## Phase 5: Move existing directory logic into the index route
-
-> Note: you may have already moved all the required code for this file in a previous step with your instructor.
-
-Open `ResourceDirectoryPage.jsx`.
-
-Move the current app-level directory UI into this page.
-
-This page should still use:
-
-- `useResources()`
-- `useSelectedResource()`
-- loading and error UI
-- the existing Filters / Results / Details composition
-
-At the end of this step:
-
-- The directory should work exactly as before
-- It now renders at `/`
-
-```jsx
-// src/pages/ResourceDirectoryPage.jsx
-import { useState } from 'react';
-import { useResources } from '../hooks/useResources';
-import { useSelectedResource } from '../hooks/useSelectedResource';
-
-import Filters from '../components/Filters';
-import Results from '../components/Results';
-import Details from '../components/Details';
-
-export default function ResourceDirectoryPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [openNowOnly, setOpenNowOnly] = useState(false);
-  const [selectedResource, setSelectedResource] = useSelectedResource();
-  const [virtualOnly, setVirtualOnly] = useState(false);
-
-  const { resources, isLoading, error, refetch } = useResources();
-
-  return (
-    <>
-      {/* The following is not great for UX/UI, but it gets the point across. Feel free to style
-      the loading and error states in "nicer" way. */}
-      {isLoading && (
-        <div className="text-sm text-base-content/70">Loading resources...</div>
-      )}
-      {error && (
-        <div className="alert alert-error">
-          <div>
-            <p className="font-semibold">Could not load resources</p>
-            <p className="text-sm opacity-80">{error.message}</p>
-            <button className="btn btn-sm mt-2" onClick={refetch}>Try again</button>
-          </div>
-        </div>
-      )}
-      <aside className="md:col-span-3 lg:col-span-1">
-        <Filters
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          selectedCategories={selectedCategories}
-          onCategoryToggle={setSelectedCategories}
-          openNowOnly={openNowOnly}
-          onOpenNowChange={setOpenNowOnly}
-          virtualOnly={virtualOnly}
-          onVirtualOnlyChange={setVirtualOnly}
-        />
-      </aside>
-      <section className="md:col-span-2 lg:col-span-1">
-        <Results
-          resources={resources}
-          selectedResource={selectedResource}
-          onSelectResource={setSelectedResource}
-          searchTerm={searchTerm}
-          selectedCategories={selectedCategories}
-          openNowOnly={openNowOnly}
-          virtualOnly={virtualOnly}
-        />
-      </section>
-      <aside className="md:col-span-1 lg:col-span-1">
-        {selectedResource ? (
-          <Details resource={selectedResource} />
-        ) : (
-          <div className="text-sm text-base-content/70">
-            Select a resource to view details.
-          </div>
-        )}
-      </aside>
-    </>
-  );
-}
-```
-
----
-
-## Phase 6: Build the admin page shell
-
-Open `AdminPage.jsx`.
-
-Start with a simple page structure:
-
-```jsx
-import { useResources } from '../hooks/useResources';
-
-export default function AdminPage() {
-  const { resources, isLoading, error, refetch } = useResources();
-
-  return (
-    <>
-      <div>
-        <h1 className="text-2xl font-bold">Admin</h1>
-        <p className="text-sm text-base-content/70">
-          Manage student resources.
-        </p>
-      </div>
-
-      {isLoading && <p>Loading resources...</p>}
-
-      {error && (
-        <div className="alert alert-error">
-          <span>{error.message}</span>
-          <button className="btn btn-sm" onClick={refetch}>Try again</button>
-        </div>
-      )}
-
-      <section className="md:col-span-3 lg:col-span-3">
-        <Card title="Current Resources">
-          <div className="card-body">
-            <ul className="space-y-2">
-              {resources.map((resource) => (
-                <li key={resource.id} className="rounded border border-gray-200 p-3">
-                  <p className="font-semibold">{resource.title}</p>
-                  <p className="text-sm text-base-content/70">{resource.category}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Card>
-      </section>
-    </>
-  );
-}
-```
-
-This gives us the admin route and a live list from the backend.
-
----
-
-## Phase 7: Add create-resource form
-
-In `AdminPage.jsx`, add local form state:
-
-```js
-// Set some default values for testing
-const [formData, setFormData] = useState({
-  title: 'Study Group',
-  category: 'Wellness',
-  summary: 'Some summary of the resource.',
-  location: 'NAIT Campus',
-  hours: 'Mon-Fri 08:00-13:00',
-  contact: 'study@nait.ca',
-  virtual: false,
-  openNow: false,
-});
-```
-
-Add a simple controlled form for creating a resource.
-
-For example:
-
-```jsx
-// Add this section just above the existing current resources section
-<section className="md:col-span-3 lg:col-span-3">
-  <Card title="Resource Form">
-    <div className="card-body">
-      <form onSubmit={handleCreateResource} id="frm-add-resource" className="space-y-4">
-        <div className="space-y-1">
-          <label htmlFor="q" className="block text-sm font-medium text-gray-700">
-            Search
-          </label>
-          <input
-            id="q"
-            type="text"
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="Resource title"
-          />
-        </div>
-
-        <hr className="border-gray-200" />
-
-        <div className="flex gap-2">
-          <button
-            type="reset"
-            className="rounded border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-            onClick={() => setFormData({
-              title: '',
-              category: '',
-              summary: '',
-              location: '',
-              hours: '',
-              contact: '',
-              virtual: false,
-              openNow: false,
-            })}
-          >
-            Reset
-          </button>
-          <button
-            type="submit"
-            className="rounded bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700"
-          >
-            Add Resource
-          </button>
-        </div>
-      </form>
-    </div>
-  </Card>
-</section>
-```
-
-Add a submit handler:
-
-```js
-async function handleCreateResource(e) {
-  e.preventDefault();
-
-  const res = await fetch('http://localhost:3000/resources', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(formData),
-  });
-
-  if (!res.ok) {
-    throw new Error('Could not create resource');
-  }
-
-  refetch();
-}
-```
-
-For this lesson, simple inline handling is fine.
-
-The key idea is that the admin route now performs **write operations**.
-
-> ### Student Exercise
-> Implement the remaining form fields for the resource field.
-
----
-
-## Phase 8: Validate the finished routes
-
-Test the following:
-
-1. Visiting `/` shows the directory page
-2. Visiting `/admin` shows the admin page
-3. Navigation links switch between pages
-4. The directory still fetches and renders resources
-5. The admin page lists resources
-6. You can create a new resource
-
----
-
-## Key Concepts Reinforced
-
-- React Router 7 can define static route structure using `<BrowserRouter>`, `<Routes>`, and `<Route>`
-- `Outlet` allows the router layout (`App.jsx`) to render different page components
-- `NavLink` helps with route-aware navigation
-- Route components help separate concerns
-- Static routing gives structure before deeper routing features are introduced
-
----
-
-## Assessment
-
-- The app uses React Router 7
-- The existing resource directory is now the index route
-- An admin route exists at `/admin`
-- Shared layout and navigation are working
-- The admin page lists resources and supports create/update operations
-
----
-
-## Student Exercise
-1. Add the functionality to the AdminPage for a user to update existing resources
-
-    **Add update-resource behaviour**
-
-    Keep updating simple.
-
-    Approach:
-
-    - Click an existing resource in the admin list
-    - Populate the same form with its values
-    - Track which resource is being edited
-    - Submit with `PUT /resources/:id` instead of `POST /resources`
-
-    Add editing state:
-
-    ```js
-    const [editingId, setEditingId] = useState(null);
+    - function App() {
+    + function ResourceDirectoryPage() {
     ```
 
-    When a list item is clicked:
+    Keep the state, hooks, existing selection-logging Effect, and all three directory sections. Change only the outside layout tags to a fragment, and rename the export at the bottom.
 
-    ```js
-    function handleEditStart(resource) {
-      setEditingId(resource.id);
-      setFormData({
-        title: resource.title,
-        category: resource.category,
-        summary: resource.summary,
-        location: resource.location,
-        hours: resource.hours,
-        contact: resource.contact,
-        virtual: resource.virtual,
-        openNow: resource.openNow,
-      });
-    }
+    ```diff lang="jsx" title="src/pages/ResourceDirectoryPage.jsx"
+        return (
+    -     <PageLayout header={<Header tagline="Find the right resources, right away" />}>
+    +     <>
     ```
 
-    Now update the submit handler:
-
-    ```js
-    async function handleSubmit(e) {
-      e.preventDefault();
-
-      const isEditing = editingId !== null;
-      const url = isEditing
-        ? `http://localhost:3000/resources/${editingId}`
-        : 'http://localhost:3000/resources';
-
-      const method = isEditing ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Could not ${isEditing ? 'update' : 'create'} resource`);
+    ```diff lang="jsx" title="src/pages/ResourceDirectoryPage.jsx"
+    -     </PageLayout>
+    +     </>
+        );
       }
 
-      setEditingId(null);
-      setFormData({
-        title: '',
-        category: '',
-        summary: '',
-        location: '',
-        hours: '',
-        contact: '',
-        virtual: false,
-        openNow: false,
-      });
+    - export default App;
+    + export default ResourceDirectoryPage;
+    ```
 
-      refetch();
+    The starter's loading and error messages also need to span the shared grid. Find these two elements in the copied page.
+
+    ```diff lang="jsx" title="src/pages/ResourceDirectoryPage.jsx"
+          {isLoading && (
+    -       <div className="text-sm text-base-content/70">Loading resources...</div>
+    +       <div role="status" className="md:col-span-3 text-sm text-base-content/70">Loading resources...</div>
+          )}
+          {error && (
+    -       <div className="alert alert-error">
+    +       <div role="alert" className="md:col-span-3 alert alert-error">
+    ```
+
+    If you continued from Lesson 16, your messages are already inside the Results column; keep that arrangement instead.
+
+    A fragment adds no wrapper element to the DOM. Our Filters, Results, and Details wrappers can therefore remain direct children of PageLayout's grid.
+
+1. **Create the second page with a live resource list.**
+
+    Add a new `src/pages/AdminPage.jsx` file. This small page uses the existing Card and fetching hook.
+
+    ```jsx title="src/pages/AdminPage.jsx"
+    import Card from '../components/ui/Card';
+    import { useResources } from '../hooks/useResources';
+
+    export default function AdminPage() {
+      const { resources, isLoading, error, refetch } = useResources();
+
+      return (
+        <div className="md:col-span-3 space-y-4">
+          <div>
+            <h2 className="text-2xl font-bold">Manage resources</h2>
+            <p>Create a resource and check the current list.</p>
+          </div>
+          {isLoading ? (
+            <p role="status">Loading resources...</p>
+          ) : error ? (
+            <div role="alert" className="alert alert-error">
+              <span>{error.message}</span>
+              <button type="button" className="btn btn-sm" onClick={refetch}>Try again</button>
+            </div>
+          ) : (
+            <Card title={`Current resources (${resources.length})`}>
+              <ul className="space-y-2 p-4">
+                {resources.map((resource) => (
+                  <li key={resource.id} className="rounded border border-base-300 p-3">
+                    <p className="font-semibold">{resource.title}</p>
+                    <p className="text-sm">{resource.category}</p>
+                  </li>
+                ))}
+              </ul>
+              {resources.length === 0 && <p className="p-4">No resources yet.</p>}
+            </Card>
+          )}
+        </div>
+      );
     }
     ```
 
-    At this point:
+    The outer `md:col-span-3` wrapper lets this page occupy the full grid width. Our directory uses three grid children; Admin uses one full-width child.
 
-    - New resources can be created
-    - Existing resources can be edited
-    - The list refreshes after changes
+1. **Turn App into the shared layout.**
 
-2. Update the `useResources` hook to include return a `addResource` function to the returned object. 
-3. Add a cancel button when editing that resets the form and clears `editingId`.
-4. Add a small success message after creating or updating a resource.
-5. Add a count of total resources at the top of the admin page.
-6. Add admin form validation on the inputs.
+    Our directory code is now in its own file. Replace `src/App.jsx` with this small layout component. The full file is shown because its responsibility has changed completely.
 
----
+    ```jsx title="src/App.jsx"
+    import { Outlet } from 'react-router';
+    import Header from './components/Header';
+    import PageLayout from './components/layout/PageLayout';
 
-# Push to your GitHub workbook repo
+    export default function App() {
+      return (
+        <PageLayout header={<Header tagline="Find the right resources, right away" />}>
+          <Outlet />
+        </PageLayout>
+      );
+    }
+    ```
 
-1. Stage all changes:
-```sh
-git add -A
-```
-2. Commit:
-```sh
-git commit -m 'Lesson 17 - static routing with admin page'
-```
-3. Push:
-```sh
-git push origin main
-```
+    Wire the route tree in `src/main.jsx` before checking the browser. Until the child routes are configured, the outlet has no page to display.
+
+    ```diff lang="jsx" title="src/main.jsx"
+      import { StrictMode } from 'react';
+      import { createRoot } from 'react-dom/client';
+    + import { BrowserRouter, Routes, Route } from 'react-router';
+      import './index.css';
+      import App from './App.jsx';
+    + import ResourceDirectoryPage from './pages/ResourceDirectoryPage';
+    + import AdminPage from './pages/AdminPage';
+
+      createRoot(document.getElementById('root')).render(
+        <StrictMode>
+    -     <App />
+    +     <BrowserRouter>
+    +       <Routes>
+    +         <Route path="/" element={<App />}>
+    +           <Route index element={<ResourceDirectoryPage />} />
+    +           <Route path="admin" element={<AdminPage />} />
+    +         </Route>
+    +       </Routes>
+    +     </BrowserRouter>
+        </StrictMode>,
+      );
+    ```
+
+    Visit `/` on your frontend's origin. The directory should work again. Now enter `/admin` in the address bar: the management list should appear beneath the same header. Keep the API's port 3000 separate from the frontend URL.
+
+1. **Add shared navigation.**
+
+    In Header, import `NavLink` and add a `<nav>` after the title/tagline group.
+
+    ```diff lang="jsx" title="src/components/Header.jsx"
+    + import { NavLink } from 'react-router';
+    +
+      // src/components/Header.jsx
+      export default function Header({ tagline }) {
+    ```
+
+    ```diff lang="jsx" title="src/components/Header.jsx"
+              {tagline ? tagline : 'Find student support services, labs, and campus resources.'}
+            </p>
+          </div>
+    +     <nav aria-label="Main navigation" className="flex gap-2">
+    +       <NavLink to="/" end
+    +         className={({ isActive }) => `btn btn-sm ${isActive ? 'btn-primary' : 'btn-ghost'}`}>
+    +         Directory
+    +       </NavLink>
+    +       <NavLink to="/admin"
+    +         className={({ isActive }) => `btn btn-sm ${isActive ? 'btn-primary' : 'btn-ghost'}`}>
+    +         Admin
+    +       </NavLink>
+    +     </nav>
+        </div>
+    ```
+
+    Move between pages using the links, then use the browser's Back and Forward buttons. The URL and highlighted link should agree. `NavLink` supplies `isActive` for styling and marks the current page for assistive technology.
+
+    Select a resource, visit Admin, then return to Directory. The selection should restore, while the filters return to their initial values. Explain that result using page mounting and session storage.
+
+1. **Prepare a small create-resource form.**
+
+    In AdminPage, import `useState` and define the initial values outside the component.
+
+    ```diff lang="jsx" title="src/pages/AdminPage.jsx"
+    + import { useState } from 'react';
+      import Card from '../components/ui/Card';
+      import { useResources } from '../hooks/useResources';
+
+    + const initialForm = {
+    +   title: '',
+    +   category: 'Academic',
+    +   summary: 'A student support resource.',
+    +   location: 'NAIT Campus',
+    +   hours: 'Contact for hours',
+    +   contact: 'support@example.com',
+    +   virtual: false,
+    +   openNow: false,
+    + };
+    +
+      export default function AdminPage() {
+        const { resources, isLoading, error, refetch } = useResources();
+    +   const [formData, setFormData] = useState(initialForm);
+    +   const [isSaving, setIsSaving] = useState(false);
+    +   const [saveError, setSaveError] = useState('');
+    +   const [saveMessage, setSaveMessage] = useState('');
+    ```
+
+    The backend requires all eight fields, with booleans for `virtual` and `openNow`. We'll edit the title in class and send the shown demonstration defaults for the other fields. Completing those controls is part of Practice. The backend generates the id for a new resource.
+
+    Insert the form between the page introduction and the loading/list conditional.
+
+    ```diff lang="jsx" title="src/pages/AdminPage.jsx"
+                <p>Create a resource and check the current list.</p>
+              </div>
+    +         <Card title="New resource">
+    +           <form onSubmit={handleCreateResource} className="space-y-3 p-4">
+    +             <p className="text-sm">Enter a title. The other fields use our demonstration defaults.</p>
+    +             <label htmlFor="resource-title" className="block font-semibold">Resource title</label>
+    +             <input id="resource-title" className="input w-full" required
+    +               value={formData.title} disabled={isSaving}
+    +               onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+    +             <button type="submit" className="btn btn-primary" disabled={isSaving}>
+    +               {isSaving ? 'Saving...' : 'Add resource'}
+    +             </button>
+    +             {saveError && <p role="alert" className="text-error">{saveError}</p>}
+    +             <p role="status">{saveMessage}</p>
+    +           </form>
+    +         </Card>
+              {isLoading ? (
+    ```
+
+    Add the handler in the next step before testing this form.
+
+1. **Create a resource and handle the response.**
+
+    Put this handler after the state declarations and before AdminPage's return.
+
+    ```diff lang="jsx" title="src/pages/AdminPage.jsx"
+          const [saveMessage, setSaveMessage] = useState('');
+    +
+    +     async function handleCreateResource(e) {
+    +       e.preventDefault();
+    +       if (isSaving) return;
+    +       setSaveError('');
+    +       setSaveMessage('');
+    +       if (!formData.title.trim()) {
+    +         setSaveError('Enter a resource title.');
+    +         return;
+    +       }
+    +       setIsSaving(true);
+    +       try {
+    +         const response = await fetch('http://localhost:3000/resources', {
+    +           method: 'POST',
+    +           headers: { 'Content-Type': 'application/json' },
+    +           body: JSON.stringify({ ...formData, title: formData.title.trim() }),
+    +         });
+    +         if (!response.ok) {
+    +           throw new Error(`Could not create resource (${response.status}).`);
+    +         }
+    +         const created = await response.json();
+    +         setFormData({ ...initialForm });
+    +         setSaveMessage(`Created ${created.title}.`);
+    +         refetch();
+    +       } catch (err) {
+    +         setSaveError(err.message);
+    +       } finally {
+    +         setIsSaving(false);
+    +       }
+    +     }
+
+          return (
+    ```
+
+    Enter a distinctive title and submit once. You should see Saving, a confirmation, and then the resource in the refreshed list. Navigate to Directory, clear any filters, and find that resource there too.
+
+    This backend writes to its `resources.json`, so a successful create survives a page refresh. The POST belongs in the submit handler because it is caused by that user action; placing it in a mounting Effect could create unwanted duplicates.
+
+    Stop the backend and try another create. The form should show an error and retain the title. Restart the backend before continuing. Keep list-loading errors separate from save errors so a failed refresh isn't mistaken for a failed create.
+
+1. **Check the finished routes.**
+
+    | Check | Expected result |
+    | --- | --- |
+    | Open `/` | Directory with working filters and details |
+    | Open `/admin` directly and refresh | Management page on the Vite development server |
+    | Use navigation, Back, and Forward | Correct page and active link |
+    | Navigate away during a slow list request | Obsolete request is cleaned up |
+    | Create and then return to Directory | New resource appears in the fetched list |
+    | Resize to narrow and wide widths | Directory grid and full-width Admin remain readable |
+
+    Use the keyboard for links and form submission too. When deploying later, a host serving `BrowserRouter` URLs must return the app's HTML for paths such as `/admin`; Vite provides this during development.
+
+</Steps>
+
+### What we've accomplished
+
+We've separated page responsibilities while keeping a shared header and layout. The router chooses a page; each page owns its relevant state and requests. The guided activity supports listing and creating resources. Updating an existing resource is the next independent challenge.
+
+An Admin route is a page organization choice here. This classroom backend has no authentication or authorization; naming a path `/admin` doesn't restrict access.
+
+----
+
+## Practice
+
+### Complete the management page
+
+Extend the resource directory's Admin page using the existing backend contract:
+
+- Add controlled inputs for category, summary, location, hours, contact, Virtual options, and Open now. Use `checked` for boolean fields, and keep labels connected to their inputs.
+- Let a user choose an existing resource with a keyboard-accessible Edit button. Populate the form and track `editingId`, using `null` for create mode.
+- Submit new resources with `POST /resources`; update an existing resource with `PUT /resources/:id`, encoding the id in the URL. PUT requires the complete set of fields and must retain the existing id.
+- Make create and edit modes clear through headings or button labels. Add Cancel editing to clear the id, form, and old feedback.
+- Retain the entered values on failure, disable submission while saving, and refresh the list after success.
+
+Check that editing changes one existing record instead of adding a duplicate. Confirm that Cancel returns to create mode. If you edit the currently selected resource, revisit the saved-snapshot limitation from Lesson 16 and decide how to refresh those details.
+
+As a routing extension, add a `*` fallback route inside the shared layout that shows a helpful not-found message and a link to Directory.
+
+### Homework: organize Users and Posts into pages
+
+Continue your existing project using today's `homework.md`. Create a Users and Posts page at `/` and a management page at `/users/manage`, with shared layout and navigation.
+
+Your management page should list users and support create/edit modes with controlled name, email, phone, and website fields. Include clear feedback and a way to cancel editing or clear the form. Preserve user search, selected-user persistence, and loading posts on the main page.
+
+JSONPlaceholder simulates writes; it doesn't permanently save your changes. Use the homework's local-state approach, or combine simulated requests with local state updates. Don't expect refetching its user list to return a newly created user. If you simulate POST requests, assign each locally added user a unique client id so repeated creations have distinct React keys.
+
+Verify both URLs, direct refreshes, Back/Forward navigation, creating, editing, cancelling, and the existing Users and Posts behaviour. Keep route parameters, loaders, and actions for later lessons. Record your route structure and how simulated changes are stored in your `README.md`, then follow the starter's submission instructions.

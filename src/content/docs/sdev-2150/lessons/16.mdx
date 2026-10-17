@@ -1,100 +1,56 @@
 ---
-title: Component Lifecycle in React
-description: SUMMARY
+title: Component Lifecycle and Effects in React
+description: Synchronize selection with browser storage and fetch resources using Effects, dependencies, and cleanup.
 sidebar:
-  label: Lesson 16 ✅
-draft: true
+  label: 16 - Lifecycle and Effects
 ---
 
-import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
-import { Image } from 'astro:assets';
+import { Aside, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import When from '../../../../components/astro/When.astro';
 
 <When planned='Lesson 16' />
 
 ## Lecture
 
-TBD
+In Lesson 15, our custom hook saved a selection whenever we called its update function. Now we'll explore how React can synchronize an external system with state after a render is committed.
 
-## Activity
-
-TBD
-
-## Practice
-
-TBD
-
-----
-
-## OLD Content....
-
-import dragons from '@assets/other/here-be-dragons.png';
-
-<Image src={dragons} alt="Here be dragons" />
-
-
-
+We'll use that idea twice: keep browser storage synchronized with the selected resource, and load resource data from our backend. Both involve work outside the calculation of JSX. React calls this kind of synchronization an **Effect**.
 
 ### Learning Outcome Guide
 
 *At the end of this class, you should be able to...*
 
-- Explain the React component lifecycle and how it applies to functional components.
-- Use the `useEffect` hook to handle side effects such as data fetching, subscriptions, and cleanup.
-- Manage dependency arrays to control when effects run and prevent unnecessary updates.
+- Distinguish rendering, committing UI updates, and running Effects.
+- Use `useEffect` to synchronize state with an external system.
+- Explain dependency arrays and the cleanup function.
+- Fetch resource data through a custom hook with loading, error, and retry states.
+- Prevent an obsolete request from overwriting a newer request's state.
 
-Additional Notes:
-- Emphasize how `useEffect` replaces class lifecycle methods (`componentDidMount`, `componentDidUpdate`, `componentWillUnmount`).
-- Demonstrate how missing dependencies can lead to stale data or infinite loops.
-- Mention React's strict mode intentionally double-invokes effects in development for debugging - this is normal.
-- React 19 introduces improvements to `useEffect` timing and async rendering consistency - note as a preview only.
+### A practical lifecycle model
 
-----
+React calls our component to calculate the UI: **render**. It applies the necessary DOM changes: **commit**. An Effect then performs its synchronization work. When dependencies change, React runs the previous cleanup before the next setup. Cleanup also runs when the component is removed.
 
-## Start the backend API
+Keep rendering free of writes and requests. A fetch directly in the component body could start again every time state changes. Work caused by a particular click, such as submitting a new resource, can stay in that event handler. Effects handle synchronization caused by the component being present or its dependencies changing.
 
-Lesson 16 includes fetching resources from a local backend server.
+| Dependency argument | When setup runs |
+| --- | --- |
+| Omitted | After every commit for the component |
+| `[]` | On mounting, with no dependency-driven reruns |
+| `[selectedResource]` | On mounting and after that value changes |
 
-In a second terminal:
+Dependencies must include the reactive values used by the Effect. They aren't an arbitrary schedule to choose for convenience. React's [`useEffect` reference](https://react.dev/reference/react/useEffect) describes setup, dependencies, and cleanup.
 
-1. Move into the backend folder:
-```sh
-cd backend
-```
-2. Install dependencies (first time only):
-```sh
-npm install
-```
-3. Start the server:
-```sh
-npm start
-```
-
-The server listens on `http://localhost:3000`.
-
-We will fetch the list of resources from:
-
-- `GET /resources`
-
-Keep this server running while you work on the frontend.
-
-## Lesson focus
-
-This lesson introduces:
-
-- A practical lifecycle mental model for function components
-- Side effects and why React separates them from rendering
-- The `useEffect` hook
-- Fetching data with `useEffect` using a custom hook
-- Refactoring a custom hook to move side effects out of the setter
-
-We will build directly on the NAIT Student Resources example and the `useSelectedResource` hook created in Lesson 15.
+<Aside title="Keep Strict Mode enabled">
+The starter uses Strict Mode. During development, React runs an extra setup/cleanup cycle when checking Effects. You may see an aborted request followed by a successful one. Correct cleanup makes that safe; removing Strict Mode would hide the check.
+</Aside>
 
 ----
 
-## Starter Kit Code
+## Activity
 
-Grab the starter kit code for your Workbook by running the following in the VS Code terminal at the root of your workbook.
+### Starter Kit Code
+
+From the root of your workbook, grab today's starter for your section, or continue with the copy you already have.
 
 <Tabs syncKey='section'>
   <TabItem label='A01'>
@@ -109,344 +65,288 @@ Grab the starter kit code for your Workbook by running the following in the VS C
   </TabItem>
 </Tabs>
 
+Use two terminals, each starting at your workbook root.
+
+```ps title="Terminal 1: frontend"
+cd src/lesson-16/frontend
+pnpm install
+pnpm dev
+```
+
+```ps title="Terminal 2: backend"
+cd src/lesson-16/backend
+pnpm install
+pnpm start
+```
+
+Open the frontend URL printed by Vite. In another browser tab, check [the resource endpoint](http://localhost:3000/resources). You should see an array of resource objects. Keep the backend running while we work.
+
+### Code Walkthrough
+
+Paths below start inside `src/lesson-16/frontend`. The starter already calls `useSelectedResource` in App, but Results still imports hard-coded data. We'll finish the storage refactor before introducing the network request.
+
+<Aside title="Reading the diffs" type="tip">
+Locate the unchanged context, remove `-` lines, and add `+` lines. Don't copy the markers. New files use ordinary code blocks; edits to starter files use diffs.
+</Aside>
+
+<Steps>
+
+1. **Keep the storage read in the initializer.**
+
+    Open `src/hooks/useSelectedResource.js`. Its initializer already reads JSON. Move storage access into the `try` block as well, so unavailable storage and malformed JSON both fall back to no selection.
+
+    ```diff lang="js" title="src/hooks/useSelectedResource.js"
+    - import { useState } from 'react';
+    + import { useEffect, useState } from 'react';
+    ```
+
+    ```diff lang="js" title="src/hooks/useSelectedResource.js"
+        const [selectedResource, setSelectedResource] = useState(() => {
+    -     const stored = sessionStorage.getItem(STORAGE_KEY);
+    -
+    -     if (stored) {
+    -       try {
+    -         return JSON.parse(stored);
+    -       } catch {
+    -         return null;
+    -       }
+    +     try {
+    +       const stored = sessionStorage.getItem(STORAGE_KEY);
+    +       if (stored === null) return null;
+    +       const resource = JSON.parse(stored);
+    +       return resource && typeof resource.id === 'string'
+    +         && typeof resource.title === 'string' ? resource : null;
+    +     } catch {
+    +       return null;
+          }
+    -
+    -     return null;
+        });
+    ```
+
+    If you brought forward the guarded initializer from Lesson 15, keep it. This edit brings the supplied starter to the same point.
+
+1. **Synchronize storage with an Effect.**
+
+    Replace the wrapper function with an Effect, and return React's setter directly.
+
+    ```diff lang="js" title="src/hooks/useSelectedResource.js"
+    -   function updateSelectedResource(resource) {
+    -     setSelectedResource(resource);
+    -
+    -     if (resource === null) {
+    -       sessionStorage.removeItem(STORAGE_KEY);
+    -     } else {
+    -       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(resource));
+    +   useEffect(() => {
+    +     try {
+    +       if (selectedResource === null) {
+    +         sessionStorage.removeItem(STORAGE_KEY);
+    +       } else {
+    +         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(selectedResource));
+    +       }
+    +     } catch (error) {
+    +       console.warn('Selection could not be saved for this tab.', error);
+          }
+    -   }
+    +   }, [selectedResource]);
+
+    -   return [selectedResource, updateSelectedResource];
+    +   return [selectedResource, setSelectedResource];
+    ```
+
+    If you're continuing your Lesson 15 implementation, remove its entire wrapper, including its `try`/`catch`, when making this replacement.
+
+    Select a resource and refresh. The same selection should return. App's hook call and component props haven't changed.
+
+    This Effect doesn't need cleanup: writing a stored value doesn't leave a timer, subscription, or request running. Don't remove the stored key in cleanup; that would undo the persistence we're trying to achieve.
+
+1. **Create a hook for loading resources.**
+
+    Add `src/hooks/useResources.js`. Read the request from top to bottom before using the hook.
+
+    ```js title="src/hooks/useResources.js"
+    import { useEffect, useState } from 'react';
+
+    const API_BASE_URL = 'http://localhost:3000';
+
+    export function useResources() {
+      const [resources, setResources] = useState([]);
+      const [isLoading, setIsLoading] = useState(true);
+      const [error, setError] = useState(null);
+      const [requestVersion, setRequestVersion] = useState(0);
+
+      useEffect(() => {
+        const controller = new AbortController();
+        const { signal } = controller;
+
+        async function fetchResources() {
+          try {
+            const response = await fetch(`${API_BASE_URL}/resources`, { signal });
+            if (!response.ok) {
+              throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+            }
+            const data = await response.json();
+            if (!Array.isArray(data)) {
+              throw new Error('Expected an array of resources.');
+            }
+            if (!signal.aborted) setResources(data);
+          } catch (err) {
+            if (!signal.aborted) setError(err);
+          } finally {
+            if (!signal.aborted) setIsLoading(false);
+          }
+        }
+
+        fetchResources();
+        return () => controller.abort();
+      }, [requestVersion]);
+
+      function refetch() {
+        setIsLoading(true);
+        setError(null);
+        setRequestVersion((version) => version + 1);
+      }
+
+      return { resources, isLoading, error, refetch };
+    }
+    ```
+
+    The hook starts in a loading state. A successful response supplies an array; a failed request supplies an error. `fetch` doesn't reject merely because the server returns an HTTP error status, so we check `response.ok` ourselves.
+
+    The Effect owns each request and its controller. Cleanup aborts that request when the hook unmounts or another request version replaces it. Checking the signal before **every** completion update prevents an obsolete request from changing the resources, error, or loading state.
+
+    `refetch` clears the error, shows loading, and changes a dependency. React then cleans up the previous Effect and starts a fresh request. Retry requests get the same cleanup as the first request.
+
+    Notice that the Effect callback itself isn't `async`. It must return a cleanup function, not a Promise. The asynchronous work lives in the inner function.
+
+1. **Replace the static resource source.**
+
+    Import the hook into App and call it alongside the other hooks, before `return`.
+
+    ```diff lang="jsx" title="src/App.jsx"
+      import { useSelectedResource } from './hooks/useSelectedResource';
+    + import { useResources } from './hooks/useResources';
+    ```
+
+    ```diff lang="jsx" title="src/App.jsx"
+        const [virtualOnly, setVirtualOnly] = useState(false);
+    +   const { resources, isLoading, error, refetch } = useResources();
+
+        return (
+    ```
+
+    Add the array to the existing Results props; keep all the filter and selection props.
+
+    ```diff lang="jsx" title="src/App.jsx"
+            <Results
+    +         resources={resources}
+              selectedResource={selectedResource}
+              onSelectResource={setSelectedResource}
+    ```
+
+    In Results, remove the local data import and receive that prop instead.
+
+    ```diff lang="jsx" title="src/components/Results.jsx"
+      import ResultsItem from './ResultsItem';
+    - import { resources } from '../data/resources';
+      import Card from './ui/Card';
+
+    - export default function Results({ selectedResource, searchTerm, selectedCategories, onSelectResource, openNowOnly, virtualOnly }) {
+    + export default function Results({ resources, selectedResource, searchTerm, selectedCategories, onSelectResource, openNowOnly, virtualOnly }) {
+    ```
+
+    Leave its filtering and `.map()` logic in place. Refresh and check the Network panel for `GET /resources`. Results should now display backend data. The UI may briefly show an empty list; let's describe that waiting state properly.
+
+1. **Render loading, error, or results in the same grid position.**
+
+    In App, wrap the existing Results component with a conditional inside its current `<section>`. These two diffs show the beginning and end of that same section; retain all the props between them.
+
+    ```diff lang="jsx" title="src/App.jsx"
+          <section className="md:col-span-2 lg:col-span-1">
+    +       {isLoading ? (
+    +         <p role="status" className="text-sm">Loading resources...</p>
+    +       ) : error ? (
+    +         <div role="alert" className="alert alert-error">
+    +           <div>
+    +             <p className="font-semibold">Could not load resources</p>
+    +             <p>{error.message}</p>
+    +             <button type="button" className="btn btn-sm mt-2" onClick={refetch}>
+    +               Try again
+    +             </button>
+    +           </div>
+    +         </div>
+    +       ) : (
+            <Results
+              resources={resources}
+    ```
+
+    ```diff lang="jsx" title="src/App.jsx"
+              openNowOnly={openNowOnly}
+              virtualOnly={virtualOnly}
+            />
+    +       )}
+          </section>
+    ```
+
+    Loading and errors now occupy the Results column instead of becoming extra grid items. Filters and Details keep their existing positions.
+
+1. **Test the request lifecycle.**
+
+    Use DevTools network throttling and refresh. You should see Loading resources before the list appears. Then stop the backend with Ctrl+C in its own terminal and refresh the frontend. You should see the error and Try again button.
+
+    Restart the backend with `pnpm start`, then click Try again without refreshing the browser. The list should return. Restore normal network speed afterward.
+
+    Keep Strict Mode enabled. An aborted development request shouldn't display an error or hide the loading message for the current request.
+
+1. **Verify that clearing selection is persisted too.**
+
+    Add a button before the existing details conditional in App.
+
+    ```diff lang="jsx" title="src/App.jsx"
+          <aside className="md:col-span-1 lg:col-span-1">
+    +       <button type="button" className="btn btn-sm btn-outline mb-3"
+    +         disabled={selectedResource === null}
+    +         onClick={() => setSelectedResource(null)}>
+    +         Clear selection
+    +       </button>
+            {selectedResource ? (
+              <Details resource={selectedResource} />
+    ```
+
+    Select, refresh, clear, and refresh again. The final refresh should show the selection prompt, and Session Storage should no longer contain the key.
+
+</Steps>
+
+### What we've accomplished
+
+Our two hooks now have distinct jobs. `useSelectedResource` synchronizes selection with storage. `useResources` manages an asynchronous read and exposes enough state for the UI to explain what's happening.
+
+The saved selection is still a resource snapshot. Fetching a new list doesn't automatically update that saved object. Consider how storing an id and looking up the current object would change this design.
+
 ----
 
-## Connecting to Lesson 15
+## Practice
 
-In Lesson 15, our hook persisted selection like this:
+### Take this demo farther
 
-- Read from `sessionStorage` during state initialization
-- Write to `sessionStorage` inside the setter function
+- Add an Effect that updates `document.title` with the selected resource's title, or a default when nothing is selected. Restore the previous document title in cleanup.
+- Add a temporary console log to observe changes in selection. Explain why its dependency array contains `selectedResource`.
+- Add a no-results message that appears only after a successful request when the filtered list is empty. Distinguish an empty response from a failed request.
 
-That worked, but it mixes:
+Before experimenting with a missing dependency array, predict what will happen. In particular, a fetching Effect that updates state after every commit can cause a repeated-request loop.
 
-- Updating React state
-- Performing a side effect (writing to browser storage)
+### Homework: fetch Users and Posts
 
-In this lesson, we will separate those concerns using `useEffect`.
+Continue the same project using today's `homework.md`. Refactor `useSelectedUser` so an Effect persists the selected user id, then replace the local data with [JSONPlaceholder](https://jsonplaceholder.typicode.com/).
 
-# Phase 1: Lifecycle mental model for function components
+Use these endpoints:
 
-React function components follow this loop:
+- `https://jsonplaceholder.typicode.com/users` for the user list.
+- `https://jsonplaceholder.typicode.com/posts?userId=ID` for the selected user's posts.
 
-1. Render, React calls your component function to compute UI
-2. Commit, React updates the DOM
-3. Effects run, React runs `useEffect` callbacks
+Your solution should have separate loading and error feedback for users and posts. Check HTTP status, clean up pending requests, and ignore obsolete completions. When selection becomes `null`, clear the posts and show the selection prompt. While loading another user's posts, don't present the previous user's posts as the new user's results.
 
-Important idea:
+Test a refresh with a saved selection, clearing selection, a failed request, and rapid selection changes under network throttling. The final posts must always belong to the currently selected user. Keep your existing submit-based user search working.
 
-- Rendering should be pure
-- Side effects should run after the DOM is updated
-
-# Phase 2: What counts as a side effect?
-
-A side effect is any work that reaches outside React rendering, for example:
-
-- Writing to `localStorage` or `sessionStorage`
-- Fetching data
-- Setting timers
-- Updating document title
-- Subscribing to events
-
-Today we focus on storage and fetching.
-
-# Phase 3: Introduce `useEffect`
-
-At a high level:
-
-```js
-useEffect(() => {
-  // run after render
-}, [dependencies]);
-```
-
-- The callback runs after React renders and commits
-- The dependency array controls when it re-runs
-
-Common dependency patterns:
-
-- `[]` runs once after the first render
-- `[value]` runs when `value` changes
-- no array runs after every render
-
-# Phase 4: Fetching as a side effect
-
-Fetching data is a classic side effect:
-
-- It reaches outside the component
-- It happens over time
-- It updates React state when the result arrives
-
-To keep components clean, we will fetch through a custom hook.
-
-# Phase 5: Create `useResources`
-
-Create a new file:
-
-```
-src/hooks/useResources.js
-```
-
-Add the following:
-
-```js
-import { useEffect, useState } from 'react';
-
-const API_BASE_URL = 'http://localhost:3000';
-
-export function useResources() {
-  const [resources, setResources] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  async function fetchResources(signal) {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/resources`, { signal });
-
-      if (!res.ok) {
-        throw new Error(`Request failed: ${res.status} ${res.statusText}`);
-      }
-
-      const data = await res.json();
-      setResources(data);
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        setError(err);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchResources(controller.signal);
-
-    return () => {
-      controller.abort();
-    };
-  }, []);
-
-  function refetch() {
-    const controller = new AbortController();
-    fetchResources(controller.signal);
-  }
-
-  return { resources, isLoading, error, refetch };
-}
-```
-
-Notes:
-
-- `useEffect(..., [])` runs once after the first render
-- We store the results in React state
-- We use `AbortController` so the request can be cancelled if the component unmounts
-
-# Phase 6: Use `useResources` in `App`
-
-Open `App.jsx`.
-
-Import and use the hook:
-
-```js
-import { useResources } from './hooks/useResources';
-
-const { resources, isLoading, error, refetch } = useResources();
-```
-
-Pass `resources` into your `Results` component.
-
-For example:
-
-```jsx
-<Results
-  resources={resources}
-  selectedResource={selectedResource}
-  onSelectResource={setSelectedResource}
-/>
-```
-
-If your `Results` component currently imports static data, remove that import and use the `resources` prop instead.
-
-# Phase 7: Conditional rendering for loading and errors
-
-Still in `App.jsx`, render UI based on request state.
-
-Add a simple loading state:
-
-```jsx
-{isLoading && (
-  <div className="text-sm text-base-content/70">Loading resources...</div>
-)}
-```
-
-Add a simple error state:
-
-```jsx
-{error && (
-  <div className="alert alert-error">
-    <div>
-      <p className="font-semibold">Could not load resources</p>
-      <p className="text-sm opacity-80">{error.message}</p>
-      <button className="btn btn-sm mt-2" onClick={refetch}>Try again</button>
-    </div>
-  </div>
-)}
-```
-
-Then render your normal layout when data is available.
-
-We are not trying to build a perfect UX here.
-
-The goal is to reinforce:
-
-- side effects belong in effects
-- data arrives later
-- UI should reflect loading and error states
-
-# Phase 8: Refactor `useSelectedResource` to use `useEffect`
-
-Open:
-
-```
-src/hooks/useSelectedResource.js
-```
-
-Update the import:
-
-```js
-import { useEffect, useState } from 'react';
-```
-
-Now refactor the hook so that:
-
-- The setter only updates state
-- The effect mirrors state into `sessionStorage`
-
-Replace the file contents with the following:
-
-```js
-import { useEffect, useState } from 'react';
-
-const STORAGE_KEY = 'selectedResource';
-
-export function useSelectedResource() {
-  const [selectedResource, setSelectedResource] = useState(() => {
-    const stored = sessionStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        return null;
-      }
-    }
-
-    return null;
-  });
-
-  useEffect(() => {
-    if (selectedResource === null) {
-      sessionStorage.removeItem(STORAGE_KEY);
-      return;
-    }
-
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(selectedResource));
-  }, [selectedResource]);
-
-  return [selectedResource, setSelectedResource];
-}
-```
-
-What changed:
-
-- We removed the custom setter
-- The effect watches `selectedResource`
-- Any change to state is persisted automatically
-
-# Phase 9: Confirm App usage stays the same
-
-Open `App.jsx`.
-
-It should still look like this:
-
-```js
-import { useSelectedResource } from './hooks/useSelectedResource';
-
-const [selectedResource, setSelectedResource] = useSelectedResource();
-```
-
-No other changes should be needed.
-
-# Phase 10: Validate behavior
-
-1. Select a resource
-2. Refresh the page
-3. The selection should persist
-
-Now test clearing selection:
-
-- Add a temporary "Clear selection" button in the UI that calls `setSelectedResource(null)`
-- Confirm that the selection clears and storage is removed
-
-You can remove the button after testing.
-
-# Phase 11: Why this version is better
-
-This version has a clearer separation:
-
-- State updates are pure and local to React
-- Side effects run after rendering
-- The component code stays focused on UI
-
-This pattern scales to other side effects like fetch and subscriptions.
-
-# Notes about dev mode
-
-If you notice effects running more than once in development, that can be normal.
-
-Many Vite + React projects enable React Strict Mode during development, and Strict Mode may intentionally re-run certain logic to help surface unsafe side effects.
-
-For this lesson:
-
-- Always validate behavior in the UI
-- Do not try to "fix" Strict Mode by removing it
-
-# Key Concepts Reinforced
-
-- Render should be pure
-- Side effects belong in `useEffect`
-- Dependency arrays control when effects run
-- Custom hooks can hide complexity behind a clean API
-
-# Assessment
-
-- Resources are fetched from the backend using the `useResources` hook
-- Loading and error states are handled using conditional rendering
-- The hook persists selected resource via `useEffect`
-- Side effects are not performed inside the setter
-- Selection persists across refresh
-- Setting selection to null removes the stored value
-
-# Student Exercise
-
-1. Add a `useEffect` in `App.jsx` that logs to the console when selection changes.
-2. Add an effect that updates `document.title` to include the selected resource title (or a default).
-3. Discuss: what would happen if you removed the dependency array?
-
-# Push to your GitHub workbook repo
-
-1. Stage all changes:
-```sh
-git add -A
-```
-2. Commit:
-```sh
-git commit -m 'Lesson 16 - useEffect, lifecycle, and fetching'
-```
-3. Push:
-```sh
-git push origin main
-```
+The starter's homework snippets are sketches; apply the status checks and cleanup from this activity when implementing them. In your `README.md`, explain why fetching during rendering is unsuitable and how your dependency arrays connect requests to selection. Follow the starter's submission instructions after checking the behaviour.
