@@ -50,6 +50,14 @@ A custom hook starts with `use` and composes other hooks. Each call has its own 
 
 Browser storage keeps strings, so we'll use `JSON.stringify` when writing and `JSON.parse` when reading. `sessionStorage` is scoped to an origin and a browser tab's page session. It survives reloads; it isn't intended as permanent storage. Restored or duplicated tabs can retain or copy a session, so closing and reopening a tab is not a reliable clearing test. See MDN's [`sessionStorage` reference](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage).
 
+### Why and when to use `useEffect()`
+
+Rendering calculates what to display from props and state. React may repeat that calculation, so we shouldn't write to storage or start requests in the component body. `useEffect()` lets us synchronize with something outside React after it commits an update to the UI.
+
+Use an Effect when that synchronization should follow the component appearing or its props/state changing. For our selection, an Effect can keep `sessionStorage` up to date whenever `selectedResource` changes. Calculations such as filtering resources can happen during rendering; work tied to a specific click can stay in its event handler.
+
+Today we'll save through our update function; Lesson 16 will switch to an Effect. See React's [synchronizing with Effects guide](https://react.dev/learn/synchronizing-with-effects).
+
 ----
 
 ## Activity

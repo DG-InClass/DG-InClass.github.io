@@ -26,11 +26,17 @@ We'll use that idea twice: keep browser storage synchronized with the selected r
 - Fetch resource data through a custom hook with loading, error, and retry states.
 - Prevent an obsolete request from overwriting a newer request's state.
 
+### Why and when to use `useEffect()`
+
+`useEffect()` lets us keep a component synchronized with something outside React, such as browser storage or a server. React may render a component repeatedly, so rendering should only calculate the UI. The Effect's callback runs after React commits the update, keeping storage writes and requests out of that calculation.
+
+Use an Effect when the work should follow the component appearing or a dependency changing. Here, storage follows `selectedResource`; fetching starts when the component using our hook mounts and repeats when `requestVersion` changes for a retry.
+
+We don't need an Effect to filter resources from existing state; we can calculate that during rendering. Work caused by one action, such as submitting a form, belongs in that event handler. Being asynchronous doesn't, by itself, mean that `fetch()` needs an Effect.
+
 ### A practical lifecycle model
 
 React calls our component to calculate the UI: **render**. It applies the necessary DOM changes: **commit**. An Effect then performs its synchronization work. When dependencies change, React runs the previous cleanup before the next setup. Cleanup also runs when the component is removed.
-
-Keep rendering free of writes and requests. A fetch directly in the component body could start again every time state changes. Work caused by a particular click, such as submitting a new resource, can stay in that event handler. Effects handle synchronization caused by the component being present or its dependencies changing.
 
 | Dependency argument | When setup runs |
 | --- | --- |
