@@ -1,0 +1,59 @@
+---
+title: TDD Fundamentals
+description: SUMMARY
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import todo from '@assets/undraw/undraw_under-construction_c2y1.svg';
+
+
+
+<Image src={todo} alt="Author TODO Items" class="float-end ml-3" width="150" />
+<Aside type="note" title="Prerequisites">
+  You don't need a whole lot of background programming concepts to get into writing unit tests. All you need to know is how to
+
+  - Create and use variables with strings and numbers (booleans would be nice too)
+  - Use arithmetic operators with strings and numbers (`+`, `-`, `*`, and `/`)
+  - Create and call functions
+  - Create ultra-simple objects
+  - Use JavaScript modules with `import` and `export`
+  - Work with a very basic NodeJS project
+</Aside>
+
+## Learning Outcome Guide
+
+*At the end of this class, you should be able to...*
+
+
+
+<Code lang="diff" meta='lang="html"' code="+ <h1>Hello Code</h1>" />
+
+
+
+## Setting Up for TDD
+
+The key to doing TDD is thinking about what you want to create from the perspective of an *endpoint* you want to achieve.
+
+<Steps>
+1. Start a new project in a folder by running `pnpm init` followed by `pnpm add -D vitest`.
+1. Edit the `package.json` to have the `"test"` script run `vitest`.
+
+    ```diff lang="json" title="package.json"
+        "scripts": {
+    -     "test": "echo \"Error: no test specified\" && exit 1"
+    +     "test": "vitest"
+        }
+    ```
+
+</Steps>
+
+That's it! From here on out, it's all about following a cycle - [Red-Green-Refactor].
+
+## Fractional Improvements
+
+Let's model the simple idea of a **fraction** with a numerator and denominator.
+
+$$
+\frac{1}{2}
+$$

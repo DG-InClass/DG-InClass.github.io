@@ -143,6 +143,22 @@ export default defineConfig({
                         ],
                     },
                     {
+                        label: 'Workshops',
+                        id: 'workshops',
+                        link: '/workshops/',
+                        icon: 'information',
+                        items: [
+                            {
+                                label: 'Workshop Resources',
+                                items: [ 'workshops' ]
+                            },
+                            {
+                                label: 'TDD',
+                                items: [{ autogenerate: {directory: 'workshops/tdd' }}]
+                            }
+                        ]
+                    },
+                    {
                         label: 'Everything Else',
                         id: 'errata',
                         link: '/guides/',
