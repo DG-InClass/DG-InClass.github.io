@@ -1,6 +1,8 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import { satteri } from '@astrojs/markdown-satteri';
+import { satteriKatex } from './plugins/satteri-katex.mjs';
 
 import tailwindcss from '@tailwindcss/vite';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
@@ -12,6 +14,12 @@ import clerk from '@clerk/astro';
 // https://astro.build/config
 export default defineConfig({
     site: 'https://dg-inclass.github.io',
+    markdown: {
+        processor: satteri({
+            features: { math: true },
+            mdastPlugins: [satteriKatex],
+        }),
+    },
     integrations: [
         clerk(),
         mermaid(),
@@ -32,6 +40,7 @@ export default defineConfig({
               ],
             },
             customCss: [
+                'katex/dist/katex.min.css',
                 // Path to your Tailwind base styles:
                 './src/styles/global.css',
             ],

@@ -10,6 +10,9 @@ importers:
 
   .:
     dependencies:
+      '@astrojs/markdown-satteri':
+        specifier: ^0.4.7
+        version: 0.4.7
       '@astrojs/starlight':
         specifier: ^0.42.10
         version: 0.42.10(astro@7.4.7(@types/node@24.10.1)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))(typescript@7.1.0-beta)
@@ -31,9 +34,15 @@ importers:
       flag-icons:
         specifier: ^7.6.0
         version: 7.6.0
+      katex:
+        specifier: ^0.19.1
+        version: 0.19.1
       mermaid:
         specifier: ^12.3.0
         version: 12.3.0
+      satteri:
+        specifier: ^0.11.6
+        version: 0.11.6
       sharp:
         specifier: ^0.35.5
         version: 0.35.5(@types/node@24.10.1)
@@ -2019,6 +2028,10 @@ packages:
 
   katex@0.18.10:
     resolution: {integrity: sha512-/B6p9eY9DX7aHBfpkHdpirDTZ5QH9xTwL9y837PWuzuv41O5jFdqNQwVQEQsimY0/iVNkwBY4+4hMfhQ7d4Dbw==}
+    hasBin: true
+
+  katex@0.19.1:
+    resolution: {integrity: sha512-jG8uKntjSEcm2EpQOh0XturpPuuC9r3Sq5HLHdsFdWZT27E672SF19QEi+of0/YeOy15lDgRhKvr5614uRrEfA==}
     hasBin: true
 
   khroma@2.1.0:
@@ -4584,6 +4597,10 @@ snapshots:
     dependencies:
       commander: 15.0.0
 
+  katex@0.19.1:
+    dependencies:
+      commander: 15.0.0
+
   khroma@2.1.0: {}
 
   klona@2.0.6: {}
@@ -5047,7 +5064,7 @@ snapshots:
     dependencies:
       '@types/nlcst': 2.0.3
       nlcst-to-string: 4.0.0
-      unist-util-visit: 5.1.0
+      unist-util-visit: 5.2.0
 
   robust-predicates@3.0.3: {}
 

@@ -70,6 +70,32 @@ These diagnostics are not suppressed, so `pnpm check` currently exits unsuccessf
 Starlight's i18next dependency also declares TypeScript 5/6 support and emits a peer
 dependency warning with this beta. Recheck compatibility when updating these packages.
 
+### Math formulas
+
+Math is rendered at build time with KaTeX in Markdown and MDX. Use `$...$` for
+inline formulas and `$$` on separate lines for display formulas:
+
+```md
+A fraction: $\frac{1}{2}$.
+
+$$
+\frac{1}{2}
+$$
+```
+
+Fenced blocks labelled `math` also render as display formulas:
+
+````md
+```math
+\frac{1}{2}
+```
+````
+
+Use `tex` fences or inline code to show formula source without rendering it.
+Escape literal dollar signs in prose as `\$`. Invalid formulas fail the build
+with a KaTeX error. The renderer is in `plugins/satteri-katex.mjs`; run its tests
+with `node --test plugins/satteri-katex.test.mjs`.
+
 ## 👀 Want to learn more?
 
 Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
