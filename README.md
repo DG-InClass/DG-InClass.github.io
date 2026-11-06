@@ -47,8 +47,28 @@ All commands are run from the root of the project, from a terminal:
 | `pnpm dev`             | Starts local dev server at `localhost:4321`      |
 | `pnpm build`           | Build your production site to `./dist/`          |
 | `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
+| `pnpm check`           | Generate Astro types and type-check with TypeScript |
+| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro sync` |
 | `pnpm astro -- --help` | Get help using the Astro CLI                     |
+
+### Type checking
+
+`pnpm check` runs `astro sync` followed by `tsc --noEmit --runExternalCode`.
+The <a href="https://github.com/withastro/astro/tree/main/packages/language-tools/ts-content-mapper#usage" target="_blank">Astro content mapper</a>
+lets TypeScript check `.astro` components directly. This experimental workflow
+currently uses pinned versions of TypeScript (`7.1.0-beta`) and the mapper (`0.2.0`).
+The `--runExternalCode` flag allows TypeScript to execute the configured mapper.
+
+The pnpm package extension for `@astrojs/astro2tsx@0.1.3` supplies its missing
+`@emnapi/runtime@1.11.3` dependency, matching its `@emnapi/core` version. Without
+this correction, pnpm can select an incompatible runtime from another dependency
+and the mapper fails to initialize. Reassess this extension when upgrading the converter.
+
+Current limitation: the checker follows imported dependency source files and reports
+internal virtual-module and type errors in Starlight, Clerk, and Expressive Code.
+These diagnostics are not suppressed, so `pnpm check` currently exits unsuccessfully.
+Starlight's i18next dependency also declares TypeScript 5/6 support and emits a peer
+dependency warning with this beta. Recheck compatibility when updating these packages.
 
 ## 👀 Want to learn more?
 
