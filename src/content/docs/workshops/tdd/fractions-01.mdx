@@ -52,8 +52,163 @@ That's it! From here on out, it's all about following a cycle - [Red-Green-Refac
 
 ## Fractional Improvements
 
-Let's model the simple idea of a **fraction** with a numerator and denominator.
+Let's model the simple idea of a **fraction** with a numerator and denominator: $\frac{1}{2}$. It's going to be an object in order to preserve the numerator and denominator values. We want just a few requirements to start:
 
-$$
-\frac{1}{2}
-$$
+- It must render as a string when displayed. For example: `1/2`.
+- It must work with math operators when doing things like addition, multiplication, etc.
+
+<Steps>
+1. Start the test runner in your VS Code terminal by typing `pnpm test`. At first, it will fail with a message about not having any test files.
+
+    ```ps title="Run the tests"
+    pnpm test
+    $ vitest
+
+    DEV  v5.1.0 C:/GH/dgilleland/SDEV1150/RnD/Fractions
+
+    No test files found. You can change the file name pattern by pressing "p"
+
+    include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+    exclude:  **/node_modules/**, **/.git/**
+    ```
+
+1. Let's do a minimal setup by adding a test file: `fractions.spec.js`. Now the failure message will update to say that there are no tests in that file.
+
+    ```ps
+    RERUN  fractions.spec.js x1 
+
+    ❯ fractions.spec.js (0 test)
+
+    ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+    FAIL  fractions.spec.js [ fractions.spec.js ]
+    Error: No test suite found in file C:/GH/dgilleland/SDEV1150/RnD/Fractions/fractions.spec.js
+    ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+    Test Files  1 failed (1)
+          Tests  no tests
+      Start at  17:22:41
+      Duration  30ms
+
+    FAIL  Tests failed. Watching for file changes...
+          press h to show help, press q to quit
+    ```
+
+1. Create two empty tests, one for each requirement we've identified. Note that these have a `.todo` in the test function as an indicator that the tests are not complete yet. On the plus side, the failure message is now replaced with a listing of the planned unit tests.
+
+    ```js title="fraction.spec.js"
+    import { it, expect } from 'vitest';
+
+    it.todo('should represent the fraction 1/2 as a string', function() {
+
+    });
+
+    it.todo('should perform addition for two fractions', function() {
+
+    });
+    ```
+
+    ```ps title=""
+    ↓ fractions.spec.js (2 tests | 2 todo)
+      □ should represent the fraction 1/2 as a string
+      □ should perform addition for two fractions
+
+    Test Files  1 skipped (1)
+          Tests  2 todo (2)
+      Start at  17:26:47
+      Duration  25ms
+
+    PASS  Waiting for file changes...
+          press h to show help, press q to quit
+    ```
+
+
+1. Let's work on our first requirement: Having a fraction object render as a string. Since we're taking a TDD approach, we need to start with a *failing test*.
+1. Notice how our test follows an [Arrange-Act-Assert] pattern. The failure point in our test is in the "Arrange" section. We're trying to use a function to give us a fraction object, but that function does not exist.
+1. We'll address this first problem by creating an ultra-simple solution. First we'll create our file that provides a fraction.
+
+
+    Next, we'll update the test file with an import statement. Now our test passes.
+1. If it seems like the prior solution is a "cheat", you're not wrong to think that. To move in the right direction, let's do another version of this first test, this time with a different set of parameters for the `createFraction()` function.
+1. Now our test fails, and the reason should be obvious. We hard-coded a result in our solution. It's time to fix the problem by making use of those arguments we are sending into the function.
+1. We have two passing tests - both focused on the string representation of our fraction.
+1. Now it's time to write the test for performing math operations. We're focusing on just addition, so we'll make our addition intentions clear and predictable.
+
+    ```math
+    \frac{1}{4} + \frac{1}{4} = 0.5
+    ```
+
+1. If we attempt a "quick" solution to just get this test to pass, we'll discover that it breaks the other two tests.
+1. The real solution is to finally get down to the real notion of a fraction. It needs to be an object with a numerator and denominator. Let's re-tool accordingly so that we can get the first two tests back as passing tests.
+1. Now let's address how to do the math with fractions. The key here will be to implement a `.asValue()` function on the object so that the numeric conversion can happen automatically to produce a predictable result.
+1. Just to round out our ideas for supporting math operations, let's do another one. This time, we'll check that we can do multiplication.
+
+    ```math
+    \frac{1}{2} \times \frac{1}{2} = 0.25
+    ```
+
+</Steps>
+
+
+<details>
+<summary>Code</summary>
+
+```js title="fractions.spec.js"
+import { it, expect } from 'vitest';
+import { createFraction } from './fraction';
+
+it('should represent the fraction 1/2 as a string', function() {
+    // Arrange
+    const sut = createFraction(1, 2);
+    // Act
+    const actual = sut.toString();
+    // Assert
+    expect(actual).toBe('1/2')
+});
+
+it('should represent the fraction 1/4 as a string', function() {
+    // Arrange
+    const sut = createFraction(1, 4);
+    // Act
+    const actual = sut.toString();
+    // Assert
+    expect(actual).toBe('1/4')
+});
+
+it('should perform addition for two fractions', function() {
+    // Arrange
+    const firstFraction = createFraction(1, 4);
+    const secondFraction = createFraction(1, 4);
+    // Act
+    const actual = firstFraction + secondFraction;
+    // Assert
+    expect(actual).toBe(0.5)
+});
+
+it('should perform multiplication for two fractions', function() {
+    // Arrange
+    const firstFraction = createFraction(1, 2);
+    const secondFraction = createFraction(1, 2);
+    // Act
+    const actual = firstFraction * secondFraction;
+    // Assert
+    expect(actual).toBe(0.25)
+});
+```
+
+```js title="fraction.js"
+export function createFraction(numerator, denominator) {
+    return {
+        toString() {
+            return `${numerator}/${denominator}`;
+        },
+        valueOf() {
+            return numerator / denominator;
+        }
+    };
+}
+```
+
+
+</details>
