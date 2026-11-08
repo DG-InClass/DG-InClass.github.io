@@ -60,7 +60,7 @@ Let's model the simple idea of a **fraction** with a numerator and denominator: 
 <Steps>
 1. Start the test runner in your VS Code terminal by typing `pnpm test`. At first, it will fail with a message about not having any test files.
 
-    ```ps title="Run the tests"
+    ```ps title="Run the tests" del={6}
     pnpm test
     $ vitest
 
@@ -74,7 +74,7 @@ Let's model the simple idea of a **fraction** with a numerator and denominator: 
 
 1. Let's do a minimal setup by adding a test file: `fractions.spec.js`. Now the failure message will update to say that there are no tests in that file.
 
-    ```ps
+    ```ps del="FAIL"
     RERUN  fractions.spec.js x1 
 
     ❯ fractions.spec.js (0 test)
@@ -151,10 +151,10 @@ Let's model the simple idea of a **fraction** with a numerator and denominator: 
 </Steps>
 
 
-<details>
-<summary>Code</summary>
+## Code
 
-```js title="fractions.spec.js"
+
+```js title="fractions.spec.js" showLineNumbers=true collapse={5-10,14-19,23-29,33-39}
 import { it, expect } from 'vitest';
 import { createFraction } from './fraction';
 
@@ -197,7 +197,7 @@ it('should perform multiplication for two fractions', function() {
 });
 ```
 
-```js title="fraction.js"
+```js title="fraction.js" showLineNumbers
 export function createFraction(numerator, denominator) {
     return {
         toString() {
@@ -210,5 +210,3 @@ export function createFraction(numerator, denominator) {
 }
 ```
 
-
-</details>
