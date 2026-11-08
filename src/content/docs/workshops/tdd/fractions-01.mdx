@@ -7,9 +7,11 @@ import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCar
 import { Image } from 'astro:assets';
 import todo from '@assets/undraw/undraw_under-construction_c2y1.svg';
 
-import { Quiz } from 'starlight-quiz/components';
+import { Quiz, QuizIntro, QuizResults } from 'starlight-quiz/components';
 
-<Quiz>
+<QuizIntro />
+
+<Quiz shuffle autoNumber>
 The most important aspect of TDD is.
 
 - [ ] Ensuring complete code coverage
@@ -20,6 +22,8 @@ TDD was popularized under that name: "*Test*-Driven Development".
 
 Since then, many attempts have been made to refocus the attention on TDD as not being about "tests" per-se, but as a means of defining ***specifications*** for the system under test. And that's the better perspective to take with TDD. Specifications drive the definition of the system being "right".
 </Quiz>
+
+<QuizResults />
 
 <Image src={todo} alt="Author TODO Items" class="float-end ml-3" width="150" />
 <Aside type="note" title="Prerequisites">
