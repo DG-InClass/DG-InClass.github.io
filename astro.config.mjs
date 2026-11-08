@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightQuiz from 'starlight-quiz';
 import { satteri } from '@astrojs/markdown-satteri';
 import { satteriKatex } from './plugins/satteri-katex.mjs';
 import codeblocks from 'starlight-codeblocks';
@@ -200,6 +201,7 @@ export default defineConfig({
                 },
                 ),
                 codeblocks(),
+                starlightQuiz(),
             ]
         }),
     ],
