@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import { satteri } from '@astrojs/markdown-satteri';
 import { satteriKatex } from './plugins/satteri-katex.mjs';
+import codeblocks from 'starlight-codeblocks';
 
 import tailwindcss from '@tailwindcss/vite';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
@@ -198,6 +199,7 @@ export default defineConfig({
                     },
                 },
                 ),
+                codeblocks(),
             ]
         }),
     ],
