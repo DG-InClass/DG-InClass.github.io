@@ -1,0 +1,298 @@
+---
+title: Practice Version Control
+description: A walk-through of using version control with your website source code.
+sidebar:
+  label: Practice Version Control
+draft: false
+---
+
+import { Aside, Badge, Code, FileTree, Icon, LinkButton, Steps } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import professor from '../../../assets/undraw/undraw_professor_d7zn.svg';
+import commits from './0011/2024-commits.png';
+
+
+If you are writing **source code** (HTML, CSS, JavaScript, C#, etc.), then you should be using a version control system.
+
+Version control systems help you by providing a history of your source code changes. It goes a lot deeper than that, and its benefits get more profound as your skills with it improve. Nevertheless, *version control is a necessity* in today's job market. The most popular version control system today is **git**, and the most popular place to host your git repositories online is <a target="_blank" href="https://github.com">GitHub</a>.
+
+In this tutorial, we will create a git repository to hold the source code for a simple website. We will also push it up to GitHub using the GitHub CLI.
+
+<Aside title="YOU Need This!">
+I wrote this tutorial for beginners like you who are getting into software development of any kind. Virtually every employer is going to expect that you've learned something about version control, even if the primary job you are doing is writing JavaScript or building web pages.
+
+Beyond assuming that you've <a href="/general/0010">setup your development system</a>, I've written this without expecting you to know anything about using git and GitHub. If you already know some of this, great! I hope this helps you reinforce your understanding of the **basics of version control**.
+
+> *Not knowing version control - for software developers - is like not knowing how to turn on your computer.*
+
+</Aside>
+
+## Setting Up Your Repository Folder
+
+<Steps>
+1. We will start with an empty folder. Create a new folder somewhere on your computer (e.g.: under `C:\GH\Sandbox`) and name the folder **`My-First-Repo`**.
+1. Launch Visual Studio Code and select `Open Folder...` from the `File` menu (or press <kbd>Ctrl</kbd>+<kbd>k</kbd> <kbd>Ctrl</kbd>+<kbd>o</kbd>).
+   <Aside>
+   There are a *lot* of keyboard shortcuts in Visual Studio. That's why many times you will encounter *shortcut combinations*, such as the one that opens a folder:
+
+   1. Press <kbd>Ctrl</kbd>+<kbd>k</kbd>
+   1. Then press <kbd>Ctrl</kbd>+<kbd>o</kbd>
+   1. You should see a dialog where you can select which folder to open.
+   </Aside>
+
+1. Create a new file by pressing <kbd>Ctrl</kbd>+<kbd>n</kbd>. Then paste in the following code.
+
+   ```
+   # Folder to ignore for Node-based projects
+   node_modules
+
+   # Folder for my local computer only (Dan's personal favorites)
+   [Nn]o[Ttrack]
+   [Rr]n[Dd]
+   ```
+
+1. Save the file (<kbd>Ctrl</kbd>+<kbd>s</kbd>) and name it `.gitignore` (*note the leading dot in the filename*).
+1. Create another new file named `.gitattributes`, and paste in the following code.
+
+   ```
+   # Set default behavior to automatically normalize line endings.
+   * text=auto
+   
+   # Force batch scripts to always use CRLF line endings so that if a repo is accessed
+   # in Windows via a file share from Linux, the scripts will work.
+   *.{cmd,[cC][mM][dD]} text eol=crlf
+   *.{bat,[bB][aA][tT]} text eol=crlf
+   *.{ics,[iI][cC][sS]} text eol=crlf
+   
+   # Force bash scripts to always use LF line endings so that if a repo is accessed
+   # in Unix via a file share from Windows, the scripts will work.
+   *.sh text eol=lf
+   ```
+
+   <Aside title="Why .gitattributes?" type="tip">
+   This sample code is from the article <a type="_blank" href="https://rehansaeed.com/gitattributes-best-practices/">.gitattributes Best Practices</a> []() by Muhammad Rehan Saeed. If you want a deeper understanding, I strongly recommend reading <a type="_blank" href="https://thelinuxcode.com/gitattribute-file-in-git/#google_vignette">**Dymystifying the .gitattributes File**</a>.
+   </Aside>
+
+1. Create one more file named `ReadMe.md` and enter the following code.
+
+   ```md
+   # My First Repo
+
+   I am following Dan's [Practice Version Control](https://dg-inclass.github.io/general/0011/) tutorial for my website's source code.
+   ```
+
+1. What you should see is a folder with three core files that every repository should have.
+
+   <FileTree>
+   - My-First-Repo
+     - .gitignore
+     - .gitattributes
+     - ReadMe.md
+   </FileTree>
+</Steps>
+
+We've created a folder for our source control. Now it's time to add version control.
+
+### Set Up Version Control
+
+The git version control system works by treating a folder as a **repository** of your source code. To set up version control, you need to *initialize* the folder (a one-time step) and then make regular and frequent *commits* of changes to your source code. We'll do all these steps from within Visual Studio Code's built-in terminal environment.
+
+<Steps>
+1. Open the terminal in VS Code (<kbd>Ctrl</kbd>+<kbd>`</kbd>).
+1. Type `git init` to initialize the folder as a git repository.
+1. Stage (prepare) your current files for entry into the version control history.
+
+   ```ps
+   git add .
+   ```
+
+1. Commit (save) the staged files as a permanent "snapshot" of the current state of your source code.
+
+   ```ps
+   git commit -m "My first commit"
+   ```
+
+1. Follow steps 3 & 4 whenever your changes are ready to be added to the git history.
+</Steps>
+
+How often should you do a `git add .` and `git commit -m "Message"`? Whenever you make a set of changes that represents a *stable* update to your source code. The key, however, is to not put off doing commits. **Small and frequent commits** is the secret sauce to good version control.
+
+One last note. You should put some thought into the messages you use for your commits. If you make them meaningful, then they will help "future you" down the road. Don't fall into the trap of sloppy commit messages!
+
+<img src="https://imgs.xkcd.com/comics/git_commit.png" alt="Funny Comic" />
+
+### Add the Repo to Your GitHub account
+
+Right now, your code repository exists only on your computer. Most of the time, we want to have a copy of it "in the cloud" (if only as a *backup* should the worst happen to your computer). In this part, we will use the GitHub CLI to take our code and clone it onto GitHub.
+
+<Steps>
+1. In the terminal, type the following.
+
+   ```ps
+   gh repo create
+   ```
+
+1. Using the arrow keys on your keyboard, select the option "Push an existing local repository to GitHub".
+1. Press <kbd>Enter</kbd> to accept the default path of your current repository (`.`).
+1. Press <kbd>Enter</kbd> to use the current name of your repository folder (`My-First-Repo`) as the repository name on GitHub.
+1. Select your personal Github user account as the "Repository Owner".
+1. Press <kbd>Enter</kbd> for all the remaining prompts to accept the defaults.
+</Steps>
+
+When you are done, your local repository will be cloned onto GitHub. To open the GitHub repo from VS Code, type `gh browse` in the terminal.
+
+## Adding Source Code
+
+<Steps>
+1. We're going to use the following folder structure for our new files.
+
+   <FileTree>
+   - My-First-Repo
+     - src
+       - **index.html** Our Web Page
+       - css
+         - **styles.css** Some simple styles
+       - img
+         - **professor.svg** Because having pictures is cool
+       - js
+         - **main.js** This site is all about JavaScript, you know...
+     - .gitignore
+     - .gitattributes
+     - ReadMe.md
+   </FileTree>
+
+   <Aside type="tip" title="Preview your site">
+   I'm going to assume that you know how to preview your HTML pages in the browser.
+   
+   If you've never worked with HTML/CSS before this, I recommend that you check out <a target="_blank" href="https://developer.mozilla.org/en-US/curriculum/core/semantic-html/">this course on HTML</a> <Badge text="MDN" size="small" variant="note" />.
+   </Aside>
+
+1. Create the `index.html` file and use the following code.
+   ```html
+   // index.html
+   <!DOCTYPE html>
+   <html lang="en">
+   <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <title>My Simple Website</title>
+       <link rel="stylesheet"
+         href="./css/styles.css">
+   </head>
+   <body>
+       <h1>Welcome</h1>
+       <img src="./img/professor.svg" alt="My Instructor">
+       <p>I am practicing the use of Version Control as I learn JavaScript. Join me on the journey!</p>
+   </body>
+   </html>
+   ```
+1. Create a simple `styles.css` with the following code.
+   ```css
+   // styles.css
+   img {
+    float: right;
+    width: 250px;
+    padding-left: 50px;
+   }
+   ```
+1. Add the following image by right-clicking it and saving the image to your computer. Make sure to name it `professor.svg`.
+   
+   <Image src={professor} alt="Sample Undraw Image of a Professor" width="400" />
+
+1. Lastly, commit and push the changes.
+
+   ```ps
+   git add .
+   git commit -m "First pass on my website content"
+   git push
+   ```
+
+   Notice how I've added the `git push` command. This will make sure to push your local git history to GitHub.
+</Steps>
+
+### More Source Code
+
+Let's throw in just a bit more to improve the look of our site. Specifically, we want to add a 3rd-party CSS file and a touch of JavaScript.
+
+<Steps>
+1. Modify your `index.html` file to include the following highlighted changes.
+
+   ```html {8-9, 11}
+   // index.html
+   <!DOCTYPE html>
+   <html lang="en">
+   <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <title>My Simple Website</title>
+       <link rel="stylesheet"
+         href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+   </head>
+   <body class="container">
+       <h1>Welcome</h1>
+       <img src="./img/professor.svg" alt="My Instructor">
+       <p>I am practicing the use of Version Control as I learn JavaScript. Join me on the journey!</p>
+   </body>
+   </html>
+   ```
+
+1. This has applied the third-party library <a target="_blank" href="https://picocss.com/">PicoCSS</a>. Let's commit our work.
+
+   ```ps
+   git add .
+   git commit -m "Added PicoCSS stylesheet"
+   ```
+
+1. Now, let's throw in a touch of ***JavaScript***. Create the `main.js` file with the following content.
+
+   ```js
+   // main.js
+   let today = new Date();
+   let copyrightMessage = `<footer>&copy; ${today.getFullYear()}</footer>`;
+   document.body.innerHTML += copyrightMessage;
+   ```
+
+   Don't worry if you are unsure of what the code does - we'll look at understanding JavaScript in later tutorials. This sample is just to complete our sample of typical file types used in websites: `*.html`, `*.css`, `*.js`, and images.
+1. To get our JavaScript to run in our website, we need to link to it with a `<script>` tag. Modify the `<head>` of the page to match the following.
+
+   ```html {8}
+   // index.html
+   <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <title>My Simple Website</title>
+       <link rel="stylesheet"
+         href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+       <script src="./js/main.js" type="module"></script>
+   </head>
+   ```
+
+1. Now when we view our page, a footer is added dynamically with a copyright for the current year. Let's commit our work.
+
+   ```ps
+   git add .
+   git commit -m "Add copyright year via JavaScript"
+   git push
+   ```
+
+</Steps>
+
+
+
+----
+
+## Conclusion
+
+In this tutorial, we created a local repository using Visual Studio Code and git. We added files, committed changes, and pushed/synchronized our work with GitHub. This whole cycle of a) write code, b) commit changes, and c) repeat is what makes up the bulk of our creative work as software developers.
+
+<LinkButton href="/general/1100/">Build a Routine</LinkButton>
+
+As you continue to expand your knowledge and develop your skills, you have the opportunity to get better and better with version control. I find myself using `git` several times a day. From the public repositories of my work and personal GitHub accounts, I've done well over 4,000 commits in 2024 alone. Just remember the *secret sauce:* **Small and Frequent commits**.
+
+<Image src={commits} alt="Dan's 2024 Commit Tally" />
+
+<Aside title="Warning for Students" type="danger">
+One of the things you learned in this tutorial is how to use the GitHub CLI to publish your local repository onto your GitHub account.
+
+But **do not** publish the *assignments* and *labs* your instructors have given you for your courses. Making a *copy* like that could be considered ***academic dishonesty***! Those assignments are already in *private* GitHub repositories, so the only thing you need to do is the `git pull` and `git push` to synchronise your local work with what's already on GitHub.
+</Aside>
