@@ -91,7 +91,7 @@ export default defineConfig({
                         ],
                     },
                     {
-                        label: 'Co-Requisites',
+                        label: 'Tools',
                         link: '/general/',
                         icon: 'laptop',
                         items: [

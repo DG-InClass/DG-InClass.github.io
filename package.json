@@ -19,6 +19,7 @@
     "@expressive-code/plugin-collapsible-sections": "^0.44.3",
     "@expressive-code/plugin-line-numbers": "^0.44.3",
     "@tailwindcss/vite": "^4.3.5",
+    "@vscode/codicons": "0.0.46-24",
     "astro": "^7.4.7",
     "astro-mermaid": "^2.2.0",
     "flag-icons": "^7.6.0",
