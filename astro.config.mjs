@@ -99,59 +99,75 @@ export default defineConfig({
                         ]
                     },
                     {
-                        label: 'SDEV-1150 (JavaScript)',
-                        id: 'sdev1150',
-                        link: '/sdev-1150/',
+                        label: 'Classes',
+                        id: 'classes',
+                        link: '/classes/',
                         icon: 'information',
                         items: [
-                            { label: "About SDEV-1150", items: ['sdev-1150','sdev-1150/qna']},
-                            { 
-                                label: "Lessons",
-                                items: [{ autogenerate: { directory: 'sdev-1150/lessons' } }]
+                            
+                            {
+                                label: 'SDEV-1150 (JavaScript)',
+                                collapsed: true,
+                                items: [
+                                    { label: "About SDEV-1150", items: ['sdev-1150','sdev-1150/qna']},
+                                    { 
+                                        label: "Lessons",
+                                        items: [{ autogenerate: { directory: 'sdev-1150/lessons' } }]
+                                    },
+                                    {
+                                        label: "Notes",
+                                        items: [{ autogenerate: { directory: 'sdev-1150/notes'} }]
+                                    },
+                                ],
                             },
                             {
-                                label: "Notes",
-                                items: [{ autogenerate: { directory: 'sdev-1150/notes'} }]
+                                label: 'SDEV-2150 (React)',
+                                collapsed: true,
+                                items: [
+                                    { label: "About SDEV-2150", items: ['sdev-2150','sdev-2150/qna']},
+                                    {
+                                        label: "Lessons",
+                                        items: [{ autogenerate: { directory: 'sdev-2150/lessons' } }]
+                                    },
+                                    {
+                                        label: "Notes",
+                                        items: [{ autogenerate: { directory: 'sdev-2150/notes'} }]
+                                    },
+                                ],
                             },
-                        ],
+                            {
+                                label: 'DMIT Courses',
+                                collapsed: true,
+                                items: ['dmit',
+                                    { 
+                                        label: "DMIT-2008", items: [
+                                            'dmit/dmit-2008',
+                                            'dmit/dmit-2008-c3',
+                                            'dmit/dmit-2008-c4',
+                                            'dmit/dmit-2008-c5',
+                                            'dmit/dmit-2008-c6',
+                                            'dmit/dmit-2008-c7',
+                                        ]
+                                    },
+                                    { 
+                                        label: "CPSC-1520", items: ['dmit/cpsc-1520']
+                                    }
+                                ],
+                            },
+                        ]
                     },
                     {
-                        label: 'SDEV-2150 (React)',
-                        id: 'sdev2150',
-                        link: '/sdev-2150/',
+                        label: 'Coding',
+                        id: 'coding',
+                        link: '/coding/',
                         icon: 'information',
                         items: [
-                            { label: "About SDEV-2150", items: ['sdev-2150','sdev-2150/qna']},
-                            {
-                                label: "Lessons",
-                                items: [{ autogenerate: { directory: 'sdev-2150/lessons' } }]
-                            },
-                            {
-                                label: "Notes",
-                                items: [{ autogenerate: { directory: 'sdev-2150/notes'} }]
-                            },
-                        ],
-                    },
-                    {
-                        label: 'DMIT Courses',
-                        id: 'dmit',
-                        link: '/dmit/',
-                        icon: 'information',
-                        items: ['dmit',
-                            { 
-                                label: "DMIT-2008", items: [
-                                    'dmit/dmit-2008',
-                                    'dmit/dmit-2008-c3',
-                                    'dmit/dmit-2008-c4',
-                                    'dmit/dmit-2008-c5',
-                                    'dmit/dmit-2008-c6',
-                                    'dmit/dmit-2008-c7',
-                                ]
-                            },
-                            { 
-                                label: "CPSC-1520", items: ['dmit/cpsc-1520']
-                            }
-                        ],
+                            'coding',
+                            { label: 'JavaScript/TypeScript', collapsed: true, items: [{ autogenerate: {directory: 'coding/js-ts'}}]},
+                            { label: 'SQL', collapsed: true, items: [{ autogenerate: {directory: 'coding/sql'}}]},
+                            { label: 'C#', collapsed: true, items: [{ autogenerate: {directory: 'coding/csharp'}}]},
+                            { label: 'Logic & Problem Solving', collapsed: true, items: [{ autogenerate: {directory: 'coding/logic'}}]},
+                        ]
                     },
                     {
                         label: 'Workshops',

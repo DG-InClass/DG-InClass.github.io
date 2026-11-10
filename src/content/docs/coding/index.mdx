@@ -1,0 +1,36 @@
+---
+title: Programming Languages
+description: Here are my writings (tutorials, how-to guides, explanations, and references) aimed at helping students learn to code in specific programming languages such as JavaScript/TypeScript, SQL, C#, etc.
+---
+
+import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+Here are my writings (tutorials, how-to guides, explanations, and references) aimed at helping students learn to code in specific programming languages such as JavaScript/TypeScript, SQL, C#, etc.
+
+import QuoteMe from './quote-me.mdx';
+
+<QuoteMe />
+<CardGrid>
+    <LinkCard
+        title="JavaScript/TypeScript"
+        href="/coding/js-ts/"
+        description="Content being migrated/adapted from teaching CPSC-1520"
+    />
+    <LinkCard
+        title="SQL"
+        href="/coding/sql/"
+        description="Old workbook content to be adapted to this site"
+    />
+    <LinkCard
+        title="C# (C-Sharp)"
+        href="/coding/csharp/"
+        description="A very old, but big, set of notes and coding examples from years ago, which (God willing) will be migrated to here"
+    />
+    <LinkCard
+        title="Logic & Problem Solving"
+        href="/coding/logic/"
+        description="Mostly yet-to-be-written, but with pieces also yet-to-be-migrated"
+    />
+</CardGrid>
+
