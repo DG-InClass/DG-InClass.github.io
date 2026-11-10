@@ -422,7 +422,7 @@ Check your understanding of the learning outcomes below. Treat each code sample 
 
 <QuizIntro />
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0017-01" shuffle autoNumber>
 Which example uses function declaration syntax?
 
 - [x] `function double(value) { return value * 2; }`
@@ -432,7 +432,7 @@ Which example uses function declaration syntax?
 A function declaration names the function directly after the `function` keyword. Assigning a function as a value uses a function expression; `double(5)` is a call.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0017-02" shuffle autoNumber>
 Which example assigns a function expression to a constant?
 
 - [ ] `const double = double(5);`
@@ -442,7 +442,7 @@ Which example assigns a function expression to a constant?
 The function expression creates a function value and `const` binds the name `double` to it. That binding cannot later be reassigned.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0017-03" shuffle autoNumber>
 What does this program display?
 
 ```js
@@ -459,7 +459,7 @@ console.log(double(5));
 The call to `double(5)` runs the function and returns 10. The outer call passes that result to `console.log()`. Creating the function alone would not run its body.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0017-04" shuffle autoNumber>
 In this code, which items are the arguments supplied by the caller?
 
 ```js
@@ -477,7 +477,7 @@ displayHeading('Functions', '=');
 Arguments are the values supplied in the call. Parameters are the names in the definition that receive those values.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0017-05" shuffle autoNumber>
 What happens when this code runs?
 
 ```js
@@ -494,7 +494,7 @@ function double(value) {
 Function declarations are hoisted: this declaration is available within its scope before execution reaches its position in the source.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0017-06" shuffle autoNumber>
 Why does this version fail?
 
 ```js
@@ -511,7 +511,7 @@ const double = function(value) {
 A `const` binding cannot be accessed before initialization. Move the call below the assignment. Function expressions assigned this way are not callable early like function declarations.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0017-07" shuffle autoNumber>
 Which call passes `addition` as a callback rather than calling it immediately?
 
 ```js
@@ -528,7 +528,7 @@ const calculate = function(a, b, operation) {
 The name `addition` supplies the function value. `calculate()` invokes it through `operation(a, b)`, returning 5. Supplying `addition(2, 3)` would pass the number 5 instead.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0017-08" shuffle autoNumber>
 What value is stored in `double`?
 
 ```js
@@ -547,7 +547,7 @@ const double = buildMultiplier(2);
 The outer function returns the inner function, not its result. Calling `double(6)` later returns 12 because the returned function retains access to `factor`.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0017-09" shuffle autoNumber>
 What does the final statement display?
 
 ```js

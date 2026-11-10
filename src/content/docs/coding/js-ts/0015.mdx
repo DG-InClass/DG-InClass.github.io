@@ -309,7 +309,7 @@ Check your understanding of the learning outcomes below. Treat each code sample 
 
 <QuizIntro />
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0015-01" shuffle autoNumber>
 Which expression gives the number of characters in the plain-text string `'Hello'`?
 
 - [ ] `'Hello'.length()`
@@ -319,7 +319,7 @@ Which expression gives the number of characters in the plain-text string `'Hello
 `length` is a property, so it does not take parentheses. For this string, its value is 5.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0015-02" shuffle autoNumber>
 What is the value of `text.length`?
 
 ```js
@@ -333,7 +333,7 @@ let text = '\tHi\n';
 The tab and newline each count as one character here, alongside `H` and `i`. Their screen appearance does not change this string's length.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0015-03" shuffle autoNumber>
 You want to remove whitespace from both ends of a name while keeping the space between the words. Which call should you use?
 
 ```js
@@ -347,7 +347,7 @@ let name = '  Ada Lovelace  ';
 `.trim()` removes leading and trailing whitespace, including spaces, tabs, and newlines. It leaves the space inside `'Ada Lovelace'` intact.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0015-04" shuffle autoNumber>
 Which statements about trimming are correct? Select all that apply.
 
 - [x] `.trimStart()` removes whitespace only from the beginning.
@@ -358,7 +358,7 @@ Which statements about trimming are correct? Select all that apply.
 The trim methods return new strings. To retain a trimmed value in the same variable, assign the result, as in `input = input.trim()`.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0015-05" shuffle autoNumber>
 Which pair of expressions produces `'REPORT'` and `'report'`, respectively, from `let title = 'Report';`?
 
 - [x] `title.toUpperCase()` and `title.toLowerCase()`
@@ -368,7 +368,7 @@ Which pair of expressions produces `'REPORT'` and `'report'`, respectively, from
 Case conversion is useful for formatting headings or normalizing text before comparison. These methods return new strings without changing `title`.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0015-06" shuffle autoNumber>
 Which expression pads the text `'42'` with zeros to produce `'00042'`?
 
 - [ ] `'42'.padEnd(5, '0')`
@@ -378,7 +378,7 @@ Which expression pads the text `'42'` with zeros to produce `'00042'`?
 The first argument is the target total length, not the number of characters to add. `padStart()` adds padding before the original text.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0015-07" shuffle autoNumber>
 You want a description left-aligned in a column at least 15 characters wide. Which expression fits that purpose?
 
 - [ ] `description.padStart(15)`
@@ -388,7 +388,7 @@ You want a description left-aligned in a column at least 15 characters wide. Whi
 `padEnd(15)` adds spaces after a shorter description. Padding defaults to spaces, and it does not truncate descriptions that are already longer than 15 characters.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0015-08" shuffle autoNumber>
 What are the values of `divider` and `updated` after this code?
 
 ```js

@@ -364,7 +364,7 @@ Check your understanding of the learning outcomes below. Treat each code sample 
 
 <QuizIntro />
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0014-01" shuffle autoNumber>
 What are the values of `23 % 10` and `2 ** 3`, respectively?
 
 - [ ] `2.3` and `6`
@@ -374,7 +374,7 @@ What are the values of `23 % 10` and `2 ** 3`, respectively?
 `%` gives the remainder after division, and `**` performs exponentiation: 23 has remainder 3 when divided by 10, and 2 cubed is 8.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0014-02" shuffle autoNumber>
 Which call calculates the hypotenuse of a right triangle with shorter sides of 5 and 12?
 
 - [x] `Math.hypot(5, 12)`
@@ -384,7 +384,7 @@ Which call calculates the hypotenuse of a right triangle with shorter sides of 5
 `Math.hypot()` calculates the square root of the sum of the squares of its arguments. For these sides, it returns 13.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0014-03" shuffle autoNumber>
 Why does `0.1 + 0.2` produce `0.30000000000000004`?
 
 - [ ] The `+` operator concatenates all decimal values.
@@ -394,7 +394,7 @@ Why does `0.1 + 0.2` produce `0.30000000000000004`?
 Many decimal fractions have only approximate binary representations. Arithmetic with those approximations can expose a small precision difference.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0014-04" shuffle autoNumber>
 For this example, which expression rounds `floating` to one decimal place while keeping a numeric result?
 
 ```js
@@ -408,7 +408,7 @@ let floating = 0.1 + 0.2;
 Scaling by 10, rounding, then dividing by 10 gives the number 0.3 in this example. `.toFixed(1)` instead returns a string. This rounding pattern is useful, but is not a guarantee of exact decimal arithmetic for every input.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0014-05" shuffle autoNumber>
 Which group contains only functions provided by `Math`?
 
 - [ ] `Math.PI`, `Math.E`, `Math.round`
@@ -418,7 +418,7 @@ Which group contains only functions provided by `Math`?
 These are all callable Math functions. `Math.PI` and `Math.E` are constant numeric properties, not functions.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0014-06" shuffle autoNumber>
 Which expression correctly uses both of the numeric properties `PI` and `E`?
 
 - [ ] `Math.PI() + Math.E()`
@@ -428,7 +428,7 @@ Which expression correctly uses both of the numeric properties `PI` and `E`?
 Read these properties using dot notation without parentheses. Parentheses would attempt to call the numeric values as functions.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0014-07" shuffle autoNumber>
 Which function declaration returns the product of its two inputs?
 
 - [x] `function multiply(a, b) { return a * b; }`
@@ -438,7 +438,7 @@ Which function declaration returns the product of its two inputs?
 The `function` keyword, name, parameter list, and body define a reusable function. `return` sends the product back to its caller; logging a product alone does not return it.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0014-08" shuffle autoNumber>
 After this code runs, what has appeared in the terminal?
 
 ```js
@@ -454,7 +454,7 @@ function showTotal(quantity, price) {
 Declaring the function creates it but does not run its body. A call such as `showTotal(2, 5)` would display 10.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0014-09" shuffle autoNumber>
 In this code, which items are parameters?
 
 ```js
@@ -472,7 +472,7 @@ console.log(roundToDecimals(3.14159, 2));
 Parameters are the names in the function definition. The arguments 3.14159 and 2 supply their values when the function is called. The custom function returns 3.14, which the library function `console.log()` displays.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0014-10" shuffle autoNumber>
 What does this code display?
 
 ```js
@@ -487,7 +487,7 @@ console.log(amount + 1);
 `.toFixed(2)` returns the string `'9.10'`. Adding a number to that string concatenates text. Use `parseFloat(amount) + 1` to perform numeric addition.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0014-11" shuffle autoNumber>
 Which statements about these conversions are correct? Select all that apply.
 
 - [x] `parseFloat('3.75')` returns `3.75`.
@@ -498,7 +498,7 @@ Which statements about these conversions are correct? Select all that apply.
 `parseFloat()` keeps the fractional portion, while `parseInt()` parses the integer portion without rounding. A dollar sign at the start prevents these parsers from reading a numeric prefix, producing `NaN`.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0014-12" shuffle autoNumber>
 How does JavaScript classify the values `3` and `3.75` when checked with `typeof`?
 
 - [x] Both produce `'number'`.

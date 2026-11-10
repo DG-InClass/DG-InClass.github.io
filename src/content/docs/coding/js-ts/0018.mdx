@@ -450,7 +450,7 @@ Check your understanding of the learning outcomes below. Treat each code sample 
 
 <QuizIntro />
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0018-01" shuffle autoNumber>
 What role does an object's prototype play in JavaScript?
 
 - [ ] It converts every property into a string.
@@ -460,7 +460,7 @@ What role does an object's prototype play in JavaScript?
 A prototype supports shared behavior through inheritance. Constructor functions and classes can create instances linked to a prototype; instance-specific data can still be stored on each object.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0018-02" shuffle autoNumber>
 Which constructor function stores the supplied color on each new Car object?
 
 - [ ] `function Car(color) { color = color; }`
@@ -470,7 +470,7 @@ Which constructor function stores the supplied color on each new Car object?
 When invoked with `new`, `this` refers to the newly created instance. Assigning `this.color` stores a property on that instance; a local variable alone does not.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0018-03" shuffle autoNumber>
 Which expression constructs a new instance using a constructor function named `Car`?
 
 - [x] `new Car('green')`
@@ -480,7 +480,7 @@ Which expression constructs a new instance using a constructor function named `C
 Use `new` followed by the constructor call. The argument is available to the constructor when it initializes the new object's properties.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0018-04" shuffle autoNumber>
 Which statement best describes a method?
 
 - [ ] A method is any variable containing a number.
@@ -490,7 +490,7 @@ Which statement best describes a method?
 A method is a function used as an object's member, such as `myCar.drive(10)`. Methods can read or change object state and are not limited to returning strings.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0018-05" shuffle autoNumber>
 What is the role of `constructor` in this class expression?
 
 ```js
@@ -509,7 +509,7 @@ const BankAccount = class {
 For example, `new BankAccount('A123', 500)` creates an account whose own properties hold the supplied account number and opening balance.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0018-06" shuffle autoNumber>
 Which method definition can be placed inside a class body to add a deposit to that account's balance?
 
 - [x] `deposit(amount) { this.balance += amount; }`
@@ -519,7 +519,7 @@ Which method definition can be placed inside a class body to add a deposit to th
 Class method syntax uses the method name, parameters, and body without the `function` keyword. `this.balance += amount` adds to the receiving account's existing balance.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0018-07" shuffle autoNumber>
 What values does the final statement display?
 
 ```js
@@ -543,7 +543,7 @@ console.log(first.odometerReading, second.odometerReading);
 Each call with `new` creates a distinct object. Calling `first.drive(8)` updates only `first` because `this` in that method call refers to `first`.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0018-08" shuffle autoNumber>
 Which statements correctly compare constructor functions and classes? Select all that apply.
 
 - [x] Both can initialize instance properties using `this`.

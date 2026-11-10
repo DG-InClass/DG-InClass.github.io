@@ -541,7 +541,7 @@ Check your understanding of the learning outcomes below. Treat each code sample 
 
 <QuizIntro />
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0012-01" shuffle autoNumber>
 Which terminal command runs `app.js` with Node and runs it again when you save changes?
 
 - [ ] `node app.js`
@@ -552,7 +552,7 @@ Which terminal command runs `app.js` with Node and runs it again when you save c
 `node --watch app.js` starts the file in watch mode. Running `node app.js` executes it once without watching for saved changes.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0012-02" shuffle autoNumber>
 Which statement displays the value stored in `message` in the terminal?
 
 - [ ] `console.log('message');`
@@ -563,7 +563,7 @@ Which statement displays the value stored in `message` in the terminal?
 Passing `message` to `console.log()` displays its value. Quoting `'message'` displays that literal text, while calling `console.log()` without an argument outputs an empty line.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0012-03" shuffle autoNumber>
 Which statement both declares a variable named `quantity` and initializes it with the number `10`?
 
 - [ ] `let quantity;`
@@ -574,7 +574,7 @@ Which statement both declares a variable named `quantity` and initializes it wit
 `let` declares the variable, and `= 10` supplies its initial numeric value. `let quantity;` declares it without an explicit initial value. An assignment to an already declared variable does not declare it again, and `'10'` is a string.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0012-04" shuffle autoNumber>
 Which items are literal values in this code? Select all that apply.
 
 ```js
@@ -591,7 +591,7 @@ console.log(message, price);
 Literals are values written directly into the code. Here, `5.95` is a numeric literal and `'The price is'` is a string literal. `price` and `message` are variable names.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0012-05" shuffle autoNumber>
 What does this code display?
 
 ```js
@@ -608,7 +608,7 @@ console.log(`Price: ${price}, quantity: ${quantity}`);
 Backticks create a template string. Each placeholder evaluates the expression inside its braces and inserts the resulting value into the string.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0012-06" shuffle autoNumber>
 Which expression calculates the total cost of `quantity` items at `price` each, then subtracts a single `discount` from that total?
 
 - [ ] `quantity + price - discount`
@@ -619,7 +619,7 @@ Which expression calculates the total cost of `quantity` items at `price` each, 
 Multiplication calculates the cost of all the items before the discount is subtracted. `quantity * (price - discount)` would instead apply the discount to every item.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0012-07" shuffle autoNumber>
 What value does `total` hold when it is logged?
 
 ```js
@@ -638,7 +638,7 @@ console.log(total);
 `total` stores the value `50` calculated when its initialization runs. It does not store a live connection to the expression. Changing `quantity` later does not recalculate `total`.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0012-08" shuffle autoNumber>
 Which statements about these variables are correct? Select all that apply.
 
 ```js
@@ -654,7 +654,7 @@ let message = '59.5';
 `typeof` identifies the type of a value. The unquoted value is a number; the quoted value is a string, even though its characters look like a number.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0012-09" shuffle autoNumber>
 After this code runs, what value and data type does `amount` have?
 
 ```js
@@ -670,7 +670,7 @@ let amount = total.toFixed(2);
 `.toFixed(2)` returns a string with exactly two digits after the decimal point, rounding when necessary. It does not change `total`, which still holds a number.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0012-10" shuffle autoNumber>
 This code produces a `ReferenceError`. Which change fixes it?
 
 ```js
@@ -687,7 +687,7 @@ let discount = 2.15;
 A variable declared with `let` cannot be accessed before its initialization runs. Declare and initialize `discount` before using its value in the calculation.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0012-11" shuffle autoNumber>
 These statements are in the same scope. How should you fix the second statement so that it updates the existing variable?
 
 ```js
@@ -703,7 +703,7 @@ let message = 'A discount was applied.';
 Declaring the same name twice with `let` in the same scope causes a `SyntaxError`. Use an assignment statement to replace the value in the existing variable.
 </Quiz>
 
-<Quiz shuffle autoNumber>
+<Quiz id="self-check-0012-12" shuffle autoNumber>
 This code runs, but displays `The total is $ {amount}` instead of `The total is $ 59.50`. Which replacement fixes the output?
 
 ```js
