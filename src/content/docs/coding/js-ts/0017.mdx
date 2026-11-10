@@ -9,6 +9,7 @@ draft: false
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
+import { Quiz, QuizIntro, QuizResults } from 'starlight-quiz/components';
 
 {/* *See [issue 63](https://github.com/dgilleland/CPSC-1520/issues/63).* */}
 
@@ -413,3 +414,162 @@ Even with this ability to modularize code with functions, our programs are getti
 import QuoteMe from '../quote-me.mdx';
 
 <QuoteMe />
+
+
+## Self-Check
+
+Check your understanding of the learning outcomes below. Treat each code sample as a separate program. Choose an answer to see an explanation; when a question asks for multiple answers, select all that apply.
+
+<QuizIntro />
+
+<Quiz shuffle autoNumber>
+Which example uses function declaration syntax?
+
+- [x] `function double(value) { return value * 2; }`
+- [ ] `const double = function(value) { return value * 2; };`
+- [ ] `double(5);`
+
+A function declaration names the function directly after the `function` keyword. Assigning a function as a value uses a function expression; `double(5)` is a call.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which example assigns a function expression to a constant?
+
+- [ ] `const double = double(5);`
+- [x] `const double = function(value) { return value * 2; };`
+- [ ] `function double(value) { return value * 2; }`
+
+The function expression creates a function value and `const` binds the name `double` to it. That binding cannot later be reassigned.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What does this program display?
+
+```js
+function double(value) {
+    return value * 2;
+}
+console.log(double(5));
+```
+
+- [ ] `5`
+- [ ] Nothing, because `return` prevents logging.
+- [x] `10`
+
+The call to `double(5)` runs the function and returns 10. The outer call passes that result to `console.log()`. Creating the function alone would not run its body.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+In this code, which items are the arguments supplied by the caller?
+
+```js
+function displayHeading(text, underline) {
+    console.log(text);
+    console.log(''.padStart(text.length, underline));
+}
+displayHeading('Functions', '=');
+```
+
+- [ ] `text` and `underline`
+- [x] `'Functions'` and `'='`
+- [ ] `console` and `log`
+
+Arguments are the values supplied in the call. Parameters are the names in the definition that receive those values.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What happens when this code runs?
+
+```js
+console.log(double(4));
+function double(value) {
+    return value * 2;
+}
+```
+
+- [x] It displays `8`.
+- [ ] It fails because every function must be written before its first call.
+- [ ] It displays the function's source code.
+
+Function declarations are hoisted: this declaration is available within its scope before execution reaches its position in the source.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Why does this version fail?
+
+```js
+console.log(double(4));
+const double = function(value) {
+    return value * 2;
+};
+```
+
+- [ ] Functions cannot be assigned to constants.
+- [ ] The function expression needs a different multiplication operator.
+- [x] The call accesses `double` before its initialization has run.
+
+A `const` binding cannot be accessed before initialization. Move the call below the assignment. Function expressions assigned this way are not callable early like function declarations.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which call passes `addition` as a callback rather than calling it immediately?
+
+```js
+const addition = function(a, b) { return a + b; };
+const calculate = function(a, b, operation) {
+    return operation(a, b);
+};
+```
+
+- [ ] `calculate(2, 3, addition(2, 3))`
+- [x] `calculate(2, 3, addition)`
+- [ ] `calculate(2, 3, 'addition')`
+
+The name `addition` supplies the function value. `calculate()` invokes it through `operation(a, b)`, returning 5. Supplying `addition(2, 3)` would pass the number 5 instead.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What value is stored in `double`?
+
+```js
+function buildMultiplier(factor) {
+    return function(value) {
+        return value * factor;
+    };
+}
+const double = buildMultiplier(2);
+```
+
+- [ ] The number `2`
+- [ ] The number `4`
+- [x] A function that multiplies its input by `2`
+
+The outer function returns the inner function, not its result. Calling `double(6)` later returns 12 because the returned function retains access to `factor`.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What does the final statement display?
+
+```js
+function buildCounter() {
+    let step = 0;
+    return function() {
+        step = step + 1;
+        return step;
+    };
+}
+const first = buildCounter();
+const second = buildCounter();
+first();
+first();
+console.log(second());
+```
+
+- [x] `1`
+- [ ] `2`
+- [ ] `3`
+
+Each call to `buildCounter()` creates a separate `step` variable and a function that retains access to it. Calling `first()` twice does not change the state used by `second()`.
+</Quiz>
+
+<QuizResults />

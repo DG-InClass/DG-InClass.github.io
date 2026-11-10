@@ -9,6 +9,7 @@ draft: false
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
+import { Quiz, QuizIntro, QuizResults } from 'starlight-quiz/components';
 import todo from '@assets/undraw/undraw_under-construction_c2y1.svg';
 
 <Image src={todo} alt="Author TODO Items" class="float-end ml-3" width="150" />
@@ -300,3 +301,106 @@ There are other ways we can modify our strings. This can be helpful in several w
 This tutorial completes our look at the two foundational types of data - strings and numbers. Along the way, we examined several string functions that can prove helpful in the future.
 
 Our next tutorial will introduce *complex* data types in JavaScript.
+
+
+## Self-Check
+
+Check your understanding of the learning outcomes below. Treat each code sample as a separate program. Choose an answer to see an explanation; when a question asks for multiple answers, select all that apply.
+
+<QuizIntro />
+
+<Quiz shuffle autoNumber>
+Which expression gives the number of characters in the plain-text string `'Hello'`?
+
+- [ ] `'Hello'.length()`
+- [x] `'Hello'.length`
+- [ ] `'Hello'.size`
+
+`length` is a property, so it does not take parentheses. For this string, its value is 5.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What is the value of `text.length`?
+
+```js
+let text = '\tHi\n';
+```
+
+- [x] `4`
+- [ ] `6`
+- [ ] It depends on how wide the terminal displays a tab.
+
+The tab and newline each count as one character here, alongside `H` and `i`. Their screen appearance does not change this string's length.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+You want to remove whitespace from both ends of a name while keeping the space between the words. Which call should you use?
+
+```js
+let name = '  Ada Lovelace  ';
+```
+
+- [ ] `name.replaceAll(' ', '')`
+- [ ] `name.trimStart()`
+- [x] `name.trim()`
+
+`.trim()` removes leading and trailing whitespace, including spaces, tabs, and newlines. It leaves the space inside `'Ada Lovelace'` intact.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which statements about trimming are correct? Select all that apply.
+
+- [x] `.trimStart()` removes whitespace only from the beginning.
+- [x] `.trimEnd()` removes whitespace only from the end.
+- [ ] `.trim()` removes every space inside the string.
+- [ ] Calling `.trim()` automatically replaces the value in the original variable.
+
+The trim methods return new strings. To retain a trimmed value in the same variable, assign the result, as in `input = input.trim()`.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which pair of expressions produces `'REPORT'` and `'report'`, respectively, from `let title = 'Report';`?
+
+- [x] `title.toUpperCase()` and `title.toLowerCase()`
+- [ ] `title.toLowerCase()` and `title.toUpperCase()`
+- [ ] `title.trimStart()` and `title.trimEnd()`
+
+Case conversion is useful for formatting headings or normalizing text before comparison. These methods return new strings without changing `title`.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which expression pads the text `'42'` with zeros to produce `'00042'`?
+
+- [ ] `'42'.padEnd(5, '0')`
+- [ ] `'42'.padStart(3, '0')`
+- [x] `'42'.padStart(5, '0')`
+
+The first argument is the target total length, not the number of characters to add. `padStart()` adds padding before the original text.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+You want a description left-aligned in a column at least 15 characters wide. Which expression fits that purpose?
+
+- [ ] `description.padStart(15)`
+- [x] `description.padEnd(15)`
+- [ ] `description.trimEnd(15)`
+
+`padEnd(15)` adds spaces after a shorter description. Padding defaults to spaces, and it does not truncate descriptions that are already longer than 15 characters.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What are the values of `divider` and `updated` after this code?
+
+```js
+let divider = '---';
+let updated = divider.replaceAll('-', '=');
+```
+
+- [ ] Both are `'==='`.
+- [x] `divider` is `'---'` and `updated` is `'==='`.
+- [ ] `divider` is `'---'` and `updated` is `'=--'`.
+
+`replaceAll()` replaces every matching occurrence in the returned string. Like the other string methods in this tutorial, it leaves the original value unchanged.
+</Quiz>
+
+<QuizResults />

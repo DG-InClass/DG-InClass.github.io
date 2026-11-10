@@ -9,6 +9,7 @@ draft: false
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
+import { Quiz, QuizIntro, QuizResults } from 'starlight-quiz/components';
 
 import todo from '@assets/undraw/undraw_under-construction_c2y1.svg';
 
@@ -441,3 +442,116 @@ At this point, you've got enough of a foundation in JavaScript to head out in a 
 
 
 By far, the most natural next step is to **explore using JavaScript in HTML**. We'll begin that soon with the tutorial on [Querying the DOM/] (/CPSC-1520/tutorials/0030/). First, it can be helpful to know how to create your HTML/CSS quickly by learning how to use [*Emmet*/] (/CPSC-1520/tutorials/0025/) in the next tutorial. This will allow you to venture on your own experiments by creating the *content* and *context* for exploring JavaScript in ways that interest you.
+
+
+## Self-Check
+
+Check your understanding of the learning outcomes below. Treat each code sample as a separate program. Choose an answer to see an explanation; when a question asks for multiple answers, select all that apply.
+
+<QuizIntro />
+
+<Quiz shuffle autoNumber>
+What role does an object's prototype play in JavaScript?
+
+- [ ] It converts every property into a string.
+- [x] It provides another object from which properties and methods can be inherited.
+- [ ] It prevents all changes to an object's data.
+
+A prototype supports shared behavior through inheritance. Constructor functions and classes can create instances linked to a prototype; instance-specific data can still be stored on each object.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which constructor function stores the supplied color on each new Car object?
+
+- [ ] `function Car(color) { color = color; }`
+- [ ] `function Car(color) { let paint = color; }`
+- [x] `function Car(color) { this.color = color; }`
+
+When invoked with `new`, `this` refers to the newly created instance. Assigning `this.color` stores a property on that instance; a local variable alone does not.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which expression constructs a new instance using a constructor function named `Car`?
+
+- [x] `new Car('green')`
+- [ ] `Car.new('green')`
+- [ ] `new Car = 'green'`
+
+Use `new` followed by the constructor call. The argument is available to the constructor when it initializes the new object's properties.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which statement best describes a method?
+
+- [ ] A method is any variable containing a number.
+- [x] A method is a function associated with an object and callable as a member.
+- [ ] A method is a function that must return a string.
+
+A method is a function used as an object's member, such as `myCar.drive(10)`. Methods can read or change object state and are not limited to returning strings.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What is the role of `constructor` in this class expression?
+
+```js
+const BankAccount = class {
+    constructor(accountNumber, openingBalance) {
+        this.accountNumber = accountNumber;
+        this.balance = openingBalance;
+    }
+};
+```
+
+- [ ] It is called whenever any property is read.
+- [ ] It prevents `balance` from ever changing.
+- [x] It initializes an instance when the class is used with `new`.
+
+For example, `new BankAccount('A123', 500)` creates an account whose own properties hold the supplied account number and opening balance.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which method definition can be placed inside a class body to add a deposit to that account's balance?
+
+- [x] `deposit(amount) { this.balance += amount; }`
+- [ ] `function deposit(amount) { this.balance += amount; }`
+- [ ] `deposit(amount) { balance = amount; }`
+
+Class method syntax uses the method name, parameters, and body without the `function` keyword. `this.balance += amount` adds to the receiving account's existing balance.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What values does the final statement display?
+
+```js
+const Car = function(color, odometer) {
+    this.color = color;
+    this.odometerReading = odometer;
+    this.drive = function(distance) {
+        this.odometerReading += distance;
+    };
+};
+let first = new Car('green', 42);
+let second = new Car('silver', 1000);
+first.drive(8);
+console.log(first.odometerReading, second.odometerReading);
+```
+
+- [ ] `50` and `1008`
+- [x] `50` and `1000`
+- [ ] `42` and `1000`
+
+Each call with `new` creates a distinct object. Calling `first.drive(8)` updates only `first` because `this` in that method call refers to `first`.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which statements correctly compare constructor functions and classes? Select all that apply.
+
+- [x] Both can initialize instance properties using `this`.
+- [x] Both can be used with `new` to create instances.
+- [ ] Calling a class without `new` creates an empty object.
+- [x] Classes use JavaScript's prototype-based inheritance.
+
+Classes provide syntax for working with objects and prototypes, including a constructor and methods. Calling a class without `new` throws a TypeError. Ordinary constructor functions do not automatically enforce that requirement.
+</Quiz>
+
+<QuizResults />

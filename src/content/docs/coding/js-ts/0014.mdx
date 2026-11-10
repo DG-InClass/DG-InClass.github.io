@@ -9,6 +9,7 @@ draft: false
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
+import { Quiz, QuizIntro, QuizResults } from 'starlight-quiz/components';
 import creditCard from '@assets/undraw/undraw_credit-card_t6qm.svg';
 import task from '@assets/undraw/undraw_task_x8ko.svg';
 
@@ -355,3 +356,156 @@ In this tutorial, you've briefly gained some working knowledge of how to do math
 </LinkButton>
 
 In the next tutorial, we'll take a closer look at functions that allow us to manipulate strings.
+
+
+## Self-Check
+
+Check your understanding of the learning outcomes below. Treat each code sample as a separate program. Choose an answer to see an explanation; when a question asks for multiple answers, select all that apply.
+
+<QuizIntro />
+
+<Quiz shuffle autoNumber>
+What are the values of `23 % 10` and `2 ** 3`, respectively?
+
+- [ ] `2.3` and `6`
+- [x] `3` and `8`
+- [ ] `3` and `6`
+
+`%` gives the remainder after division, and `**` performs exponentiation: 23 has remainder 3 when divided by 10, and 2 cubed is 8.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which call calculates the hypotenuse of a right triangle with shorter sides of 5 and 12?
+
+- [x] `Math.hypot(5, 12)`
+- [ ] `Math.round(5, 12)`
+- [ ] `Math.sqrt(5 + 12)`
+
+`Math.hypot()` calculates the square root of the sum of the squares of its arguments. For these sides, it returns 13.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Why does `0.1 + 0.2` produce `0.30000000000000004`?
+
+- [ ] The `+` operator concatenates all decimal values.
+- [ ] JavaScript rounds every calculation to a whole number.
+- [x] Some decimal fractions cannot be represented exactly using binary floating-point numbers.
+
+Many decimal fractions have only approximate binary representations. Arithmetic with those approximations can expose a small precision difference.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+For this example, which expression rounds `floating` to one decimal place while keeping a numeric result?
+
+```js
+let floating = 0.1 + 0.2;
+```
+
+- [ ] `Math.round(floating)`
+- [x] `Math.round(floating * 10) / 10`
+- [ ] `floating.toFixed(1)`
+
+Scaling by 10, rounding, then dividing by 10 gives the number 0.3 in this example. `.toFixed(1)` instead returns a string. This rounding pattern is useful, but is not a guarantee of exact decimal arithmetic for every input.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which group contains only functions provided by `Math`?
+
+- [ ] `Math.PI`, `Math.E`, `Math.round`
+- [ ] `Math.parseFloat`, `Math.toFixed`, `Math.logText`
+- [x] `Math.hypot`, `Math.sin`, `Math.cos`, `Math.round`, `Math.floor`, `Math.ceil`
+
+These are all callable Math functions. `Math.PI` and `Math.E` are constant numeric properties, not functions.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which expression correctly uses both of the numeric properties `PI` and `E`?
+
+- [ ] `Math.PI() + Math.E()`
+- [x] `Math.PI + Math.E`
+- [ ] `PI.Math + E.Math`
+
+Read these properties using dot notation without parentheses. Parentheses would attempt to call the numeric values as functions.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which function declaration returns the product of its two inputs?
+
+- [x] `function multiply(a, b) { return a * b; }`
+- [ ] `function multiply(a, b) { console.log(a * b); }`
+- [ ] `multiply(3, 4);`
+
+The `function` keyword, name, parameter list, and body define a reusable function. `return` sends the product back to its caller; logging a product alone does not return it.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+After this code runs, what has appeared in the terminal?
+
+```js
+function showTotal(quantity, price) {
+    console.log(quantity * price);
+}
+```
+
+- [ ] `0`
+- [x] Nothing yet.
+- [ ] `undefined`
+
+Declaring the function creates it but does not run its body. A call such as `showTotal(2, 5)` would display 10.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+In this code, which items are parameters?
+
+```js
+function roundToDecimals(num, decimals) {
+    let factor = Math.pow(10, decimals);
+    return Math.round(num * factor) / factor;
+}
+console.log(roundToDecimals(3.14159, 2));
+```
+
+- [ ] `3.14159` and `2`
+- [ ] `Math` and `console`
+- [x] `num` and `decimals`
+
+Parameters are the names in the function definition. The arguments 3.14159 and 2 supply their values when the function is called. The custom function returns 3.14, which the library function `console.log()` displays.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What does this code display?
+
+```js
+let amount = (9.1).toFixed(2);
+console.log(amount + 1);
+```
+
+- [ ] `10.1`
+- [x] `9.101`
+- [ ] `10.10`
+
+`.toFixed(2)` returns the string `'9.10'`. Adding a number to that string concatenates text. Use `parseFloat(amount) + 1` to perform numeric addition.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which statements about these conversions are correct? Select all that apply.
+
+- [x] `parseFloat('3.75')` returns `3.75`.
+- [ ] `parseInt('3.75', 10)` returns `4`.
+- [x] `parseInt('3.75', 10)` returns `3`.
+- [ ] `parseFloat('$ 4.97')` returns `4.97`.
+
+`parseFloat()` keeps the fractional portion, while `parseInt()` parses the integer portion without rounding. A dollar sign at the start prevents these parsers from reading a numeric prefix, producing `NaN`.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+How does JavaScript classify the values `3` and `3.75` when checked with `typeof`?
+
+- [x] Both produce `'number'`.
+- [ ] They produce `'integer'` and `'float'`.
+- [ ] They produce `'number'` and `'string'`.
+
+Although one value is a whole number and the other has a fractional portion, both use JavaScript's Number type.
+</Quiz>
+
+<QuizResults />

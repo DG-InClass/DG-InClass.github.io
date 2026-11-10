@@ -9,6 +9,7 @@ draft: false
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
+import { Quiz, QuizIntro, QuizResults } from 'starlight-quiz/components';
 import todo from '@assets/undraw/undraw_under-construction_c2y1.svg';
 
 <Image src={todo} alt="Author TODO Items" class="float-end ml-3" width="150" />
@@ -348,3 +349,134 @@ We've used Node to run and watch our editing of some simple JavaScript files. No
 
 In the next tutorial, we'll take a very brief look HTML and CSS to discover how the browser uses these files to generate (*render*) a web page. In it, we'll discover the amazing connection between the web page and JavaScript - one that's at the heart of how browsers operate.
 */}
+
+
+## Self-Check
+
+Check your understanding of the learning outcomes below. Treat each code sample as a separate program. Choose an answer to see an explanation; when a question asks for multiple answers, select all that apply.
+
+<QuizIntro />
+
+<Quiz shuffle autoNumber>
+Why would you store a person's name, age, and employment status in one object?
+
+- [x] An object groups related values under named properties.
+- [ ] Objects can only hold values that have the same primitive type.
+- [ ] Primitive values cannot be stored in variables.
+
+An object brings related information together. Its properties can hold different types of values, such as a string, a number, and a Boolean.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which are Boolean values? Select all that apply.
+
+- [x] `true`
+- [ ] `'false'`
+- [x] `false`
+- [ ] `'true'`
+
+The unquoted keywords `true` and `false` are the two Boolean values. Putting them in quotes creates strings.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which statement creates an object using object literal syntax?
+
+- [ ] `let person = 'name: Ada, age: 25';`
+- [x] `let person = { name: 'Ada', age: 25 };`
+- [ ] `let person = { name = 'Ada'; age = 25; };`
+
+An object literal uses curly braces containing property names and values separated by colons, with commas between properties.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What does this code display?
+
+```js
+let person = { name: 'Ada', age: 25 };
+person.age = person.age + 1;
+console.log(person.age);
+```
+
+- [ ] `25`
+- [ ] `'age'`
+- [x] `26`
+
+Dot notation accesses the named property. The assignment updates `age` on the object, and the final statement reads that updated value.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+How can you add an employment status to this existing object?
+
+```js
+let person = { name: 'Ada' };
+```
+
+- [x] `person.employed = true;`
+- [ ] `let person.employed = true;`
+- [ ] You must recreate the object to add any property.
+
+Assigning to a new property name adds it to this ordinary object. You do not declare object properties using `let person.employed`.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which expression creates a new Date object for the current date and time?
+
+- [ ] `Date.toString()`
+- [x] `new Date()`
+- [ ] `new date()`
+
+The `new` keyword constructs a distinct object. `Date` is case-sensitive, and calling its constructor without arguments initializes it to the current date and time.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+A Date object is inserted into a template string. Why does it appear as readable date text?
+
+- [ ] The Date variable has permanently changed into a string.
+- [ ] All objects have exactly the same text representation.
+- [x] String conversion uses the Date object's string representation.
+
+Date's `.toString()` supplies a readable representation. Converting it to text for display does not replace the original object; `typeof` still reports `'object'`.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which expression constructs a Date for March 5, 2024 in local time? For the numeric constructor, January is month `0`.
+
+- [ ] `new Date(2024, 3, 5)`
+- [x] `new Date(2024, 2, 5)`
+- [ ] `new Date(5, 2, 2024)`
+
+The numeric arguments are year, zero-based month, and day of the month. March is month 2. This form avoids relying on the parsing of a written month name.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which statements about this date are correct? Select all that apply.
+
+```js
+let hiredDate = new Date(2024, 2, 5);
+```
+
+- [x] `hiredDate.getFullYear()` returns `2024`.
+- [ ] `hiredDate.getMonth()` returns `3`.
+- [x] `hiredDate.getMonth()` returns `2`.
+- [x] `hiredDate.getDate()` returns `5`.
+
+These methods read parts of the date in local time. Months are zero-based, but days of the month start at 1. Calling the methods requires parentheses.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What date does `meeting` represent after these statements?
+
+```js
+let meeting = new Date(2024, 2, 5);
+meeting.setDate(1);
+meeting.setDate(meeting.getDate() - 1);
+```
+
+- [ ] March 4, 2024
+- [ ] March 1, 2024
+- [x] February 29, 2024
+
+`setDate()` changes the existing Date object. The first call sets March 1, and setting its day to 0 moves it to the last day of the previous month. In 2024, that is February 29.
+</Quiz>
+
+<QuizResults />

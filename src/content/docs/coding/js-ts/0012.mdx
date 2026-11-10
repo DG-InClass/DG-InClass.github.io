@@ -9,6 +9,7 @@ draft: false
 
 import { Aside, Badge, Card, CardGrid, Code, FileTree, Icon, LinkButton, LinkCard, Steps, TabItem, Tabs } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
+import { Quiz, QuizIntro, QuizResults } from 'starlight-quiz/components';
 import sideBySide from './0012/side-by-side.gif';
 import finalOutput from './0012/final-output.png';
 
@@ -533,3 +534,189 @@ In this quickstart, we've created code that manipulates and displays simple info
     <Image src={finalOutput} alt="Final terminal output"/>
 
 </details>
+
+## Self-Check
+
+Check your understanding of the learning outcomes below. Treat each code sample as a separate program. Choose an answer to see an explanation; when a question asks for multiple answers, select all that apply.
+
+<QuizIntro />
+
+<Quiz shuffle autoNumber>
+Which terminal command runs `app.js` with Node and runs it again when you save changes?
+
+- [ ] `node app.js`
+- [x] `node --watch app.js`
+- [ ] `node --watch`
+- [ ] `console.log(app.js)`
+
+`node --watch app.js` starts the file in watch mode. Running `node app.js` executes it once without watching for saved changes.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which statement displays the value stored in `message` in the terminal?
+
+- [ ] `console.log('message');`
+- [ ] `message = console.log;`
+- [x] `console.log(message);`
+- [ ] `console.log();`
+
+Passing `message` to `console.log()` displays its value. Quoting `'message'` displays that literal text, while calling `console.log()` without an argument outputs an empty line.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which statement both declares a variable named `quantity` and initializes it with the number `10`?
+
+- [ ] `let quantity;`
+- [x] `let quantity = 10;`
+- [ ] `quantity = 10;`
+- [ ] `let quantity = '10';`
+
+`let` declares the variable, and `= 10` supplies its initial numeric value. `let quantity;` declares it without an explicit initial value. An assignment to an already declared variable does not declare it again, and `'10'` is a string.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which items are literal values in this code? Select all that apply.
+
+```js
+let price = 5.95;
+let message = 'The price is';
+console.log(message, price);
+```
+
+- [x] `5.95`
+- [ ] `price`
+- [x] `'The price is'`
+- [ ] `message`
+
+Literals are values written directly into the code. Here, `5.95` is a numeric literal and `'The price is'` is a string literal. `price` and `message` are variable names.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What does this code display?
+
+```js
+let quantity = 10;
+let price = 5.95;
+console.log(`Price: ${price}, quantity: ${quantity}`);
+```
+
+- [ ] `Price: price, quantity: quantity`
+- [ ] `Price: ${price}, quantity: ${quantity}`
+- [x] `Price: 5.95, quantity: 10`
+- [ ] `Price: 10, quantity: 5.95`
+
+Backticks create a template string. Each placeholder evaluates the expression inside its braces and inserts the resulting value into the string.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which expression calculates the total cost of `quantity` items at `price` each, then subtracts a single `discount` from that total?
+
+- [ ] `quantity + price - discount`
+- [ ] `quantity * (price - discount)`
+- [ ] `quantity * price + discount`
+- [x] `quantity * price - discount`
+
+Multiplication calculates the cost of all the items before the discount is subtracted. `quantity * (price - discount)` would instead apply the discount to every item.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+What value does `total` hold when it is logged?
+
+```js
+let quantity = 10;
+let price = 5;
+let total = quantity * price;
+quantity = 20;
+console.log(total);
+```
+
+- [ ] `100`
+- [x] `50`
+- [ ] `20`
+- [ ] The expression `quantity * price`, waiting to be calculated
+
+`total` stores the value `50` calculated when its initialization runs. It does not store a live connection to the expression. Changing `quantity` later does not recalculate `total`.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+Which statements about these variables are correct? Select all that apply.
+
+```js
+let total = 59.5;
+let message = '59.5';
+```
+
+- [x] `typeof total` returns `'number'`.
+- [ ] `typeof total` returns `'string'`.
+- [ ] `typeof message` returns `'number'`.
+- [x] `typeof message` returns `'string'`.
+
+`typeof` identifies the type of a value. The unquoted value is a number; the quoted value is a string, even though its characters look like a number.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+After this code runs, what value and data type does `amount` have?
+
+```js
+let total = 59.5;
+let amount = total.toFixed(2);
+```
+
+- [ ] The number `59.5`
+- [ ] The string `'59.5'`
+- [x] The string `'59.50'`
+- [ ] The number `60`
+
+`.toFixed(2)` returns a string with exactly two digits after the decimal point, rounding when necessary. It does not change `total`, which still holds a number.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+This code produces a `ReferenceError`. Which change fixes it?
+
+```js
+let total = 59.5;
+total = total - discount;
+let discount = 2.15;
+```
+
+- [ ] Put quotes around `discount` in the subtraction.
+- [x] Move `let discount = 2.15;` before the subtraction.
+- [ ] Replace `let discount = 2.15;` with `console.log(discount);`.
+- [ ] Add another semicolon after the subtraction.
+
+A variable declared with `let` cannot be accessed before its initialization runs. Declare and initialize `discount` before using its value in the calculation.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+These statements are in the same scope. How should you fix the second statement so that it updates the existing variable?
+
+```js
+let message = 'Original total';
+let message = 'A discount was applied.';
+```
+
+- [ ] Change the second `let` to `const`.
+- [ ] Put quotes around the second variable name.
+- [ ] Delete the value from the second statement, leaving `let message;`.
+- [x] Remove `let` from the second statement, leaving `message = 'A discount was applied.';`.
+
+Declaring the same name twice with `let` in the same scope causes a `SyntaxError`. Use an assignment statement to replace the value in the existing variable.
+</Quiz>
+
+<Quiz shuffle autoNumber>
+This code runs, but displays `The total is $ {amount}` instead of `The total is $ 59.50`. Which replacement fixes the output?
+
+```js
+let amount = '59.50';
+console.log(`The total is $ {amount}`);
+```
+
+- [ ] `console.log('The total is $ ${amount}');`
+- [ ] ``console.log(`The total is ${amount}`);``
+- [x] ``console.log(`The total is $ ${amount}`);``
+- [ ] ``console.log(`The total is $ amount`);``
+
+Use backticks and place the placeholder's dollar sign immediately before its opening brace. A separate dollar sign in the text supplies the currency symbol. Single quotes would display the placeholder literally.
+</Quiz>
+
+<QuizResults />
