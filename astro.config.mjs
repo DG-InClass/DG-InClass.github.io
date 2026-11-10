@@ -209,9 +209,8 @@ export default defineConfig({
                 {
                     exclude: ['/blog/**/*'],
                     topics: {
-                        sdev1150: ['/sdev-1150/**'],
-                        sdev2150: ['/sdev-2150/**'],
-                        dmit: ['/dmit/**'],
+                        // Keys must match top-level topic IDs, including for hidden pages.
+                        classes: ['/sdev-1150/**', '/sdev-2150/**', '/dmit/**'],
                         errata: ['/guides/**', '/reference/**'],
                     },
                 },
