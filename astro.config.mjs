@@ -207,7 +207,7 @@ export default defineConfig({
                     },
                 ],
                 {
-                    exclude: ['/blog/**/*', '/coding/quote-me'],
+                    exclude: ['/blog/**/*'],
                     topics: {
                         sdev1150: ['/sdev-1150/**'],
                         sdev2150: ['/sdev-2150/**'],
