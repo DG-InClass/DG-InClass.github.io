@@ -1,0 +1,44 @@
+---
+title: Vite Output Dogfood
+description: Plain Vite terminal output highlighted with a custom grammar.
+sidebar:
+  hidden: true
+---
+
+Paste terminal output into a code fence labeled `vite`. No ANSI escape codes are
+needed. Colors adapt to the site's light and dark themes. This grammar recognizes
+common Vite messages; other application output stays plain unless it matches a
+supported pattern, such as quoted strings in arrays or standalone numbers.
+
+## Sample output
+
+```vite
+  VITE v8.3.8  ready in 1414 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help
+Name: asdf
+Message: afds
+5:30:39 p.m. [vite] (client) page reload contact.html
+5:30:46 p.m. [vite] (client) page reload contact.html (x2)
+5:33:24 p.m. [vite] vite.config.js changed, restarting server...
+5:33:24 p.m. [vite] server restarted.
+5:38:34 p.m. [vite] vite.config.js changed, restarting server...
+5:38:34 p.m. [vite] server restarted.
+[ [ 'name', 'afd' ], [ 'message', 'adf' ] ]
+2
+Name: afd
+Message: adf
+```
+
+## Variations
+
+URLs can use other hosts and ports, and timestamps can use a 24-hour clock.
+
+```vite
+  ➜  Local:   http://localhost:4173/
+  ➜  Network: http://192.168.1.10:4173/
+17:30:39 [vite] (server) page reload contact.html (x12)
+Application message: this stays plain.
+```
